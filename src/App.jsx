@@ -25,7 +25,8 @@ const defaultData = {
     nbEnfants: 0,
   },
   ressources: {
-    totalRessourcesAnnuelles: 0, // équivalent Apercu!C37 (temporaire, on détaillera ensuite)
+    ressourcesMensuelles: 0,          // total mensuel (temporaire)
+    ressourcesDiversesAnnuelles: 0,   // annuel
   },
 };
 
@@ -67,7 +68,10 @@ function computeFromForm(data) {
   const categorie = situationToCategorie(data.menage.situation);
 
   const dateISO = normalizeDateISO(data.reference.dateISO);
-  const totalRessourcesAnnuelles = safeNumber(data.ressources.totalRessourcesAnnuelles, 0);
+  const ressourcesMensuelles = safeNumber(data.ressources.ressourcesMensuelles, 0);
+  const ressourcesDiversesAnnuelles = safeNumber(data.ressources.ressourcesDiversesAnnuelles, 0);
+
+  const totalRessourcesAnnuelles = (ressourcesMensuelles * 12) + ressourcesDiversesAnnuelles;
 
   const jours =
     data.reference.joursPrisEnCompte === "" || data.reference.joursPrisEnCompte == null
@@ -288,23 +292,40 @@ export default function App() {
               <h2 style={{ marginTop: 0 }}>Ressources</h2>
 
               <Field
-                label="Total des ressources annuelles (temporaire)"
-                hint="Correspond à la cellule de total global des ressources (annuel) sur le dashboard Excel. On détaillera ensuite (revenus nets, ressources diverses, etc.)."
+                label="Ressources mensuelles (total – temporaire)"
+                hint="Ex : salaires/chômage/mutuelle… (on détaillera ensuite par type)."
               >
                 <input
                   type="number"
-                  value={data.ressources.totalRessourcesAnnuelles}
+                  value={data.ressources.ressourcesMensuelles}
                   onChange={(e) =>
                     setData((d) => ({
                       ...d,
-                      ressources: {
-                        ...d.ressources,
-                        totalRessourcesAnnuelles: safeNumber(e.target.value, 0),
-                      },
+                      ressources: { ...d.ressources, ressourcesMensuelles: safeNumber(e.target.value, 0) },
                     }))
                   }
                 />
               </Field>
+
+              <Field
+                label="Ressources diverses annuelles"
+                hint="Montants annuels qui ne sont pas mensuels."
+              >
+                <input
+                  type="number"
+                  value={data.ressources.ressourcesDiversesAnnuelles}
+                  onChange={(e) =>
+                    setData((d) => ({
+                      ...d,
+                      ressources: { ...d.ressources, ressourcesDiversesAnnuelles: safeNumber(e.target.value, 0) },
+                    }))
+                  }
+                />
+              </Field>
+              <div style={{ fontSize: 13, opacity: 0.75 }}>
+                Total ressources annuelles (calculé) ={" "}
+                <b>{(safeNumber(data.ressources.ressourcesMensuelles, 0) * 12 + safeNumber(data.ressources.ressourcesDiversesAnnuelles, 0)).toFixed(2)} €</b>
+              </div>        
 
               <div style={{ opacity: 0.75, fontSize: 13 }}>
                 Prochaine étape : remplacer ce champ par le détail des onglets (revenus, chômage, avantages, biens, etc.)
