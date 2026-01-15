@@ -39,8 +39,8 @@ const defaultData = {
   cmr: {
     chomage: {
       mensuelReel: 0,
-      montantJour26: 0, // €/jour → *26
-      montantJourAnnuel: 0, // €/jour → *joursPayesAnnee/12
+      montantJour26: 0,
+      montantJourAnnuel: 0,
     },
     mutuelle: {
       mensuelReel: 0,
@@ -53,11 +53,22 @@ const defaultData = {
       allocationHandicapeMensuel: 0,
     },
   },
+  avantages: {
+    chargesLocativesTiers: 0, // Initialise avec 0
+    loyerFictifProfessionnel: 0,
+    loyerFictifSimulateur: 0,
+    pretHypothecaireTiers: 0,
+  },
+  biens: {
+    revenuCadastral: 0,  // Revenu cadastral du bien immobilier
+    exonération: 0,      // Exonération en fonction de la législation
+  },
   ressources: {
-    autresRessourcesMensuelles: 0, // placeholder pour la suite (avantages en nature, etc.)
-    ressourcesDiversesAnnuelles: 0, // annuel
+    autresRessourcesMensuelles: 0,
+    ressourcesDiversesAnnuelles: 0,
   },
 };
+
 
 function Field({ label, hint, children }) {
   return (
