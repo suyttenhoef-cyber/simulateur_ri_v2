@@ -612,8 +612,9 @@ export default function App() {
                       ...d,
                       ressources: { ...d.ressources, ressourcesDiversesAnnuelles: safeNumber(e.target.value, 0) },
                     }))
-                  />
-                </Field>
+                  }    
+                />
+              </Field>
             </section>
           )}
 
