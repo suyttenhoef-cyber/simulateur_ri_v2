@@ -87,6 +87,15 @@ function situationToCategorie(situation) {
   if (situation === "cohabitant") return 2;
   return 3;
 }
+function computeAvantagesMensuels({ chargesLocativesTiers, loyerFictifProfessionnel, loyerFictifSimulateur, pretHypothecaireTiers }) {
+  const charges = safeNumber(chargesLocativesTiers, 0);
+  const loyerPro = safeNumber(loyerFictifProfessionnel, 0);
+  const loyerSimu = safeNumber(loyerFictifSimulateur, 0);
+  const pretHypo = safeNumber(pretHypothecaireTiers, 0);
+
+  const mensuelTotal = charges + loyerPro + loyerSimu + pretHypo;
+  return { mensuelTotal, annuelTotal: mensuelTotal * 12 };
+}
 
 function computeNetMonthly(rows) {
   const sumC = rows.reduce((acc, r) => acc + safeNumber(r.comptabilise, 0), 0);
@@ -97,15 +106,6 @@ function computeNetMonthly(rows) {
 function Money({ value }) {
   const v = typeof value === "number" ? value : safeNumber(value, 0);
   return <>{v.toFixed(2)} €</>;
-}
-
-function computeAvantagesMensuels({ voitureSociete, logementGratuit, ticketsRepas, autresAvantages }) {
-  const v = safeNumber(voitureSociete, 0);
-  const l = safeNumber(logementGratuit, 0);
-  const t = safeNumber(ticketsRepas, 0);
-  const o = safeNumber(autresAvantages, 0);
-  const mensuelTotal = v + l + t + o;
-  return { mensuelTotal, annuelTotal: mensuelTotal * 12 };
 }
 
 function RowsTable({ title, rows, onChangeRows }) {
@@ -289,7 +289,6 @@ function computeFromForm(data) {
   const chom = computeChomageOrMutuelleMonthly({ ...data.cmr.chomage, year });
   const mut = computeChomageOrMutuelleMonthly({ ...data.cmr.mutuelle, year });
   const rem = computeRemplacementMonthly(data.cmr.remplacement);
-
   const cmrMensuel = chom.mensuelTotal + mut.mensuelTotal + rem.mensuel;
 
   // Avantages en nature
@@ -309,7 +308,9 @@ function computeFromForm(data) {
       categorie,
       revenusNetsDemandeurMensuel: dem.net,
       revenusNetsConjointMensuel: conj.net,
-      cmrMensuel,
+      chomage: chom,
+      mutuelle: mut,
+      remplacement: rem,
       avantages,
       totalMensuel,
       diversesAnnuelles,
@@ -317,7 +318,6 @@ function computeFromForm(data) {
     },
   };
 }
-
 export default function App() {
   const [active, setActive] = useState("reference");
   const [data, setData] = useState(defaultData);
@@ -659,15 +659,15 @@ export default function App() {
           {active === "avantages" && (
             <section style={{ display: "grid", gap: 12 }}>
               <h2 style={{ marginTop: 0 }}>Avantages en nature</h2>
-              
+
               <Field label="Charges locatives prises en charge par un tiers (€/mois)">
                 <input
                   type="number"
-                  value={data.avantages.voitureSociete}
+                  value={data.avantages.chargesLocativesTiers}
                   onChange={(e) =>
                     setData((d) => ({
                       ...d,
-                      avantages: { ...d.avantages, voitureSociete: safeNumber(e.target.value, 0) },
+                      avantages: { ...d.avantages, chargesLocativesTiers: safeNumber(e.target.value, 0) },
                     }))
                   }
                 />
@@ -676,11 +676,11 @@ export default function App() {
               <Field label="Loyer fictif évalué par un professionnel (€/mois)">
                 <input
                   type="number"
-                  value={data.avantages.logementGratuit}
+                  value={data.avantages.loyerFictifProfessionnel}
                   onChange={(e) =>
                     setData((d) => ({
                       ...d,
-                      avantages: { ...d.avantages, logementGratuit: safeNumber(e.target.value, 0) },
+                      avantages: { ...d.avantages, loyerFictifProfessionnel: safeNumber(e.target.value, 0) },
                     }))
                   }
                 />
@@ -689,11 +689,11 @@ export default function App() {
               <Field label="Loyer fictif évalué via simulateur ou grille de loyers (€/mois)">
                 <input
                   type="number"
-                  value={data.avantages.ticketsRepas}
+                  value={data.avantages.loyerFictifSimulateur}
                   onChange={(e) =>
                     setData((d) => ({
                       ...d,
-                      avantages: { ...d.avantages, ticketsRepas: safeNumber(e.target.value, 0) },
+                      avantages: { ...d.avantages, loyerFictifSimulateur: safeNumber(e.target.value, 0) },
                     }))
                   }
                 />
@@ -702,11 +702,11 @@ export default function App() {
               <Field label="Prêt hypothécaire pris en charge par un tiers (€/mois)">
                 <input
                   type="number"
-                  value={data.avantages.autresAvantages}
+                  value={data.avantages.pretHypothecaireTiers}
                   onChange={(e) =>
                     setData((d) => ({
                       ...d,
-                      avantages: { ...d.avantages, autresAvantages: safeNumber(e.target.value, 0) },
+                      avantages: { ...d.avantages, pretHypothecaireTiers: safeNumber(e.target.value, 0) },
                     }))
                   }
                 />
