@@ -1,5 +1,26 @@
 import { useMemo, useState } from "react";
 import { computeRI } from "./engine/ri";
+import { useEffect } from "react";
+
+useEffect(() => {
+  function notifyHeight() {
+    const height = document.documentElement.scrollHeight;
+    window.parent?.postMessage(
+      { type: "SIMULATEUR_RI_HEIGHT", height },
+      "*"
+    );
+  }
+
+  notifyHeight();
+
+  const observer = new ResizeObserver(() => {
+    notifyHeight();
+  });
+
+  observer.observe(document.body);
+
+  return () => observer.disconnect();
+}, []);
 
 const SECTIONS = [
   { id: "reference", label: "Référence" },
