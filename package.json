@@ -1,5 +1,6 @@
 {
-  "name": "simulateur-ri",
+  "name": "simulateur_ri_v2",
+  "homepage": "https://suyttenhoef-cyber.github.io/simulateur_ri_v2",
   "private": true,
   "version": "0.0.0",
   "type": "module",
