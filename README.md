@@ -6,7 +6,7 @@ Pour intégrer ce simulateur dans votre site web, utilisez le code suivant :
 
 ```html
 <iframe 
-    src="https://suyttenhoef-cyber.github.io/simulateur-ri/embedded.html" 
+    src="https://suyttenhoef-cyber.github.io/simulateur_ri_v2/embedded.html" 
     width="100%" 
     height="900px" 
     frameborder="0" 
