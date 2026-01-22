@@ -3,5 +3,5 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  base: "/simulateur-ri/",
+  base: "/simulateur_ri_v2/",
 });
