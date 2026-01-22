@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Simulateur de Revenu d'Intégration - CPASConnect">
+    <title>Simulateur de Revenu d'Intégration - CPASConnect</title>
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://suyttenhoef-cyber.github.io/simulateur-ri/">
+    <meta property="og:title" content="Simulateur de Revenu d'Intégration">
+    <meta property="og:description" content="Calcul local et sécurisé du revenu d'intégration pour les CPAS">
+    <meta property="og:image" content="https://www.cpasconnect.be/img/cpasconnect/logo.svg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://suyttenhoef-cyber.github.io/simulateur-ri/">
+    <meta property="twitter:title" content="Simulateur de Revenu d'Intégration">
+    <meta property="twitter:description" content="Calcul local et sécurisé du revenu d'intégration pour les CPAS">
+    <meta property="twitter:image" content="https://www.cpasconnect.be/img/cpasconnect/logo.svg">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="https://www.cpasconnect.be/favicon.ico" type="image/x-icon">
+    
+    <!-- Styles -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #2C3E50;
+            background: linear-gradient(135deg, #F5F8FA 0%, #E8F4F8 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header Styles */
+        .main-header {
+            background: linear-gradient(135deg, #163E67 0%, #234268 100%);
+            color: white;
+            padding: 30px 0;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(22, 62, 103, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .main-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(43, 235, 206, 0.1) 0%, transparent 70%);
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            position: relative;
+            z-index: 1;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .logo {
+            height: 60px;
+            filter: brightness(0) invert(1);
+        }
+        
+        .separator {
+            width: 1px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .title-section h1 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .title-section p {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid #E1E8ED;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 15px;
+            color: #163E67;
+        }
+        
+        .stat-title {
+            font-size: 14px;
+            color: #7F8C8D;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #163E67;
+            margin-bottom: 5px;
+        }
+        
+        .stat-description {
+            font-size: 13px;
+            color: #7F8C8D;
+            line-height: 1.4;
+        }
+        
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        
+        .simulator-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            border: 1px solid #E1E8ED;
+        }
+        
+        .iframe-wrapper {
+            position: relative;
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid #E1E8ED;
+            background: #F5F8FA;
+        }
+        
+        #simulator-iframe {
+            width: 100%;
+            height: 800px;
+            border: none;
+            display: block;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #F5F8FA;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #E1E8ED;
+            border-top: 4px solid #2BEBCE;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Info Panel */
+        .info-panel {
+            background: linear-gradient(135deg, #E8F4F8 0%, #D4EAF7 100%);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid #2BEBCE;
+        }
+        
+        .info-panel h2 {
+            color: #163E67;
+            margin-bottom: 20px;
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-panel h2:before {
+            content: "💡";
+            font-size: 24px;
+        }
+        
+        .feature-list {
+            list-style: none;
+        }
+        
+        .feature-list li {
+            margin-bottom: 15px;
+            padding-left: 30px;
+            position: relative;
+            color: #2C3E50;
+        }
+        
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #2BEBCE;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        /* Footer */
+        .main-footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #E1E8ED;
+            text-align: center;
+            color: #7F8C8D;
+            font-size: 14px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        
+        .footer-link {
+            color: #163E67;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-link:hover {
+            color: #2BEBCE;
+            text-decoration: underline;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                padding: 0 20px;
+            }
+            
+            .logo-section {
+                flex-direction: column;
+            }
+            
+            .separator {
+                display: none;
+            }
+            
+            .title-section h1 {
+                font-size: 24px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .simulator-container {
+                padding: 20px;
+            }
+            
+            #simulator-iframe {
+                height: 600px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #simulator-iframe {
+                height: 500px;
+            }
+            
+            .info-panel {
+                padding: 20px;
+            }
+            
+            .main-header {
+                padding: 20px 0;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            .stats-grid,
+            .info-panel,
+            .main-footer {
+                display: none;
+            }
+            
+            .simulator-container {
+                box-shadow: none;
+                border: none;
+                padding: 0;
+            }
+        }
+    </style>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <img src="https://www.cpasconnect.be/img/cpasconnect/logo.svg" alt="CPASConnect Logo" class="logo">
+                    <div class="separator"></div>
+                    <div class="title-section">
+                        <h1>Simulateur de Revenu d'Intégration</h1>
+                        <p>Bibliothèque digitale pour les CPAS - Calcul local et sécurisé</p>
+                    </div>
+                </div>
+                
+                <div class="header-actions">
+                    <div class="badge" style="background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 50px; font-weight: 600;">
+                        <i class="fas fa-shield-alt" style="margin-right: 8px;"></i>
+                        Sécurité & Confidentialité
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-title">Rapidité</div>
+                <div class="stat-value">2 minutes</div>
+                <div class="stat-description">Pour une simulation complète du revenu d'intégration</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🔒</div>
+                <div class="stat-title">Sécurité</div>
+                <div class="stat-value">100% local</div>
+                <div class="stat-description">Les données ne quittent jamais votre navigateur</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-title">Précision</div>
+                <div class="stat-value">Conforme barème</div>
+                <div class="stat-description">Basé sur les barèmes officiels CPASConnect</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🔄</div>
+                <div class="stat-title">Mise à jour</div>
+                <div class="stat-value">Automatique</div>
+                <div class="stat-description">Barèmes actualisés selon la législation</div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="simulator-container">
+                <h2 style="color: #163E67; margin-bottom: 20px; font-size: 22px; font-weight: 700;">
+                    <i class="fas fa-calculator" style="margin-right: 10px;"></i>
+                    Simulateur en ligne
+                </h2>
+                
+                <div class="iframe-wrapper">
+                    <div class="loading-overlay" id="loading-overlay">
+                        <div class="spinner"></div>
+                    </div>
+                    <iframe 
+                        id="simulator-iframe" 
+                        src="https://suyttenhoef-cyber.github.io/simulateur-ri/" 
+                        title="Simulateur de Revenu d'Intégration"
+                        allow="clipboard-write; encrypted-media;"
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+                    ></iframe>
+                </div>
+                
+                <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="refreshSimulator()" class="action-btn" style="background: #2BEBCE; color: #163E67;">
+                        <i class="fas fa-sync-alt"></i> Rafraîchir
+                    </button>
+                    <button onclick="openFullscreen()" class="action-btn" style="background: #163E67; color: white;">
+                        <i class="fas fa-expand"></i> Plein écran
+                    </button>
+                    <button onclick="copyEmbedCode()" class="action-btn" style="background: #234268; color: white;">
+                        <i class="fas fa-code"></i> Code d'intégration
+                    </button>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <h2>Comment utiliser le simulateur</h2>
+                <ul class="feature-list">
+                    <li><strong>1. Renseignez les informations personnelles</strong> du demandeur (nom, date de naissance, situation familiale)</li>
+                    <li><strong>2. Saisissez tous les revenus</strong> nets du demandeur et du conjoint le cas échéant</li>
+                    <li><strong>3. Ajoutez les allocations</strong> de chômage, mutuelle et revenus de remplacement</li>
+                    <li><strong>4. Déclarez les biens immobiliers et mobiliers</strong> ainsi que les cessions de biens</li>
+                    <li><strong>5. Indiquez les exonérations</strong> applicables et les ressources diverses</li>
+                    <li><strong>6. Consultez l'aperçu final</strong> avec le calcul détaillé du revenu d'intégration</li>
+                    <li><strong>7. Exportez le résultat</strong> en PDF pour archivage ou transmission</li>
+                </ul>
+                
+                <div style="margin-top: 25px; padding: 15px; background: rgba(255,255,255,0.5); border-radius: 10px; border-left: 4px solid #2BEBCE;">
+                    <strong><i class="fas fa-info-circle" style="color: #163E67; margin-right: 8px;"></i> Note importante</strong>
+                    <p style="margin-top: 8px; font-size: 14px; color: #2C3E50;">
+                        Ce simulateur est un outil d'aide à la décision. Les résultats obtenus sont indicatifs et doivent être validés par les services compétents du CPAS.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>© 2024 Simulateur de Revenu d'Intégration - Développé avec Vanden Broele - CPASConnect Tool</p>
+            <div class="footer-links">
+                <a href="https://github.com/suyttenhoef-cyber/simulateur-ri" target="_blank" class="footer-link">
+                    <i class="fab fa-github"></i> Code source
+                </a>
+                <a href="https://www.cpasconnect.be/" target="_blank" class="footer-link">
+                    <i class="fas fa-external-link-alt"></i> CPASConnect
+                </a>
+                <a href="mailto:contact@example.com" class="footer-link">
+                    <i class="fas fa-envelope"></i> Contact
+                </a>
+            </div>
+        </footer>
+    </div>
+    
+    <script>
+        // Fonctions pour gérer l'iframe
+        document.addEventListener('DOMContentLoaded', function() {
+            const iframe = document.getElementById('simulator-iframe');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            
+            // Masquer le loading quand l'iframe est chargée
+            iframe.addEventListener('load', function() {
+                setTimeout(() => {
+                    loadingOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingOverlay.style.display = 'none';
+                    }, 300);
+                }, 500);
+            });
+            
+            // Démarrer le chargement
+            loadingOverlay.style.display = 'flex';
+        });
+        
+        // Rafraîchir l'iframe
+        function refreshSimulator() {
+            const iframe = document.getElementById('simulator-iframe');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            
+            loadingOverlay.style.display = 'flex';
+            loadingOverlay.style.opacity = '1';
+            
+            // Recharger l'iframe
+            iframe.src = iframe.src;
+        }
+        
+        // Plein écran
+        function openFullscreen() {
+            const iframe = document.getElementById('simulator-iframe');
+            
+            if (iframe.requestFullscreen) {
+                iframe.requestFullscreen();
+            } else if (iframe.webkitRequestFullscreen) {
+                iframe.webkitRequestFullscreen();
+            } else if (iframe.msRequestFullscreen) {
+                iframe.msRequestFullscreen();
+            }
+        }
+        
+        // Copier le code d'intégration
+        function copyEmbedCode() {
+            const embedCode = `<iframe 
+    src="https://suyttenhoef-cyber.github.io/simulateur-ri/" 
+    width="100%" 
+    height="800px" 
+    frameborder="0" 
+    style="border-radius: 15px; border: 2px solid #E1E8ED;"
+    title="Simulateur de Revenu d'Intégration"
+    allow="clipboard-write; encrypted-media;"
+    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+></iframe>`;
+            
+            navigator.clipboard.writeText(embedCode).then(() => {
+                alert('Code d\'intégration copié dans le presse-papier !');
+            }).catch(err => {
+                console.error('Erreur lors de la copie : ', err);
+                alert('Erreur lors de la copie du code');
+            });
+        }
+        
+        // Gestion des boutons d'action
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.style.cssText = `
+                padding: 12px 20px;
+                border: none;
+                border-radius: 10px;
+                font-weight: 600;
+                font-size: 14px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                font-family: 'Source Sans Pro', sans-serif;
+            `;
+            
+            btn.addEventListener('mouseover', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+            });
+            
+            btn.addEventListener('mouseout', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'none';
+            });
+        });
+        
+        // Analytics simple
+        window.addEventListener('load', function() {
+            console.log('Simulateur RI embarqué chargé avec succès');
+        });
+    </script>
+</body>
+</html>
