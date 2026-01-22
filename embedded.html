@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur de Revenu d'Intégration - CPASConnect</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f8fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #163E67;
+            color: white;
+            border-radius: 10px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .iframe-container {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        #simulator-iframe {
+            width: 100%;
+            height: 800px;
+            border: none;
+            display: block;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #163E67;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2BEBCE;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        button {
+            background: #2BEBCE;
+            color: #163E67;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: opacity 0.3s;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 768px) {
+            #simulator-iframe {
+                height: 600px;
+            }
+            
+            body {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Simulateur de Revenu d'Intégration</h1>
+            <p>Calcul local et sécurisé - Les données restent dans votre navigateur</p>
+        </div>
+        
+        <div class="iframe-container">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Chargement du simulateur...</p>
+            </div>
+            <iframe 
+                id="simulator-iframe" 
+                src="https://suyttenhoef-cyber.github.io/simulateur_ri_v2/" 
+                title="Simulateur de Revenu d'Intégration"
+                allow="clipboard-write"
+                sandbox="allow-scripts allow-same-origin allow-forms"
+            ></iframe>
+        </div>
+        
+        <div class="controls">
+            <button onclick="refreshApp()">🔄 Rafraîchir</button>
+            <button onclick="openFullscreen()">📺 Plein écran</button>
+        </div>
+    </div>
+
+    <script>
+        const iframe = document.getElementById('simulator-iframe');
+        const loading = document.getElementById('loading');
+        
+        // Masquer le chargement quand l'iframe est prête
+        iframe.addEventListener('load', function() {
+            setTimeout(() => {
+                loading.style.display = 'none';
+            }, 500);
+        });
+        
+        // Rafraîchir l'application
+        function refreshApp() {
+            loading.style.display = 'block';
+            iframe.src = iframe.src;
+        }
+        
+        // Plein écran
+        function openFullscreen() {
+            if (iframe.requestFullscreen) {
+                iframe.requestFullscreen();
+            } else if (iframe.webkitRequestFullscreen) {
+                iframe.webkitRequestFullscreen();
+            }
+        }
+        
+        // Erreur de chargement
+        iframe.addEventListener('error', function() {
+            loading.innerHTML = `
+                <div style="color: #e74c3c; font-size: 18px;">
+                    ⚠️ Erreur de chargement
+                </div>
+                <p style="margin-top: 10px;">
+                    L'application n'est pas disponible. 
+                    <br>
+                    <button onclick="refreshApp()" style="margin-top: 10px; background: #163E67; color: white;">
+                        Réessayer
+                    </button>
+                </p>
+            `;
+        });
+    </script>
+</body>
+</html>
