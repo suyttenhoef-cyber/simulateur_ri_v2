@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { generatePDF } from './utils/pdfExport';
-
+import { exportPdf } from "./utils/pdfExport"; // ou import exportPdf from "./utils/pdfExport";
 
 // Palette de couleurs
 const colors = {
