@@ -2165,69 +2165,6 @@ export default function App() {
       boxSizing: "border-box",  // Pour inclure le padding dans la largeur
       overflowX: "hidden"  // AJOUTER CETTE LIGNE
     }}>
-      <header style={{
-        background: "#bdc6d2",  // Couleur spécifiée
-        borderRadius: "12px",
-        padding: "20px 40px",
-        marginBottom: "20px",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-        width: "100%",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        flexWrap: "wrap",
-        gap: "20px"
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-          {/* Logo CPAS Connect */}
-          <img 
-            src="https://www.cpasconnect.be/img/cpasconnect/logo.svg" 
-            alt="CPAS Connect"
-            style={{
-              height: "50px",
-              width: "auto",
-              
-            }}
-          />
-          
-          {/* Séparateur vertical */}
-          <div style={{
-            width: "1px",
-            height: "50px",
-            background: "rgba(0, 0, 0, 0.1)"
-          }} />
-          
-          <div>
-            <h1 style={{
-              margin: "0 0 8px 0",
-              fontSize: "28px",
-              fontWeight: "700",
-              color: colors.primary
-            }}>
-              Simulateur de Revenu d'Intégration
-            </h1>
-            <p style={{
-              margin: 0,
-              fontSize: "14px",
-              color: colors.text,
-              fontWeight: "500"
-            }}>
-              Calcul complet avec prise en compte des cohabitants
-            </p>
-          </div>
-        </div>
-        
-        {/* Bouton Réinitialiser avec onClick */}
-        <Button 
-          variant="secondary" 
-          icon="🔄"
-          onClick={handleReset}
-          className="reset-button"
-        >
-          Réinitialiser
-        </Button>
-      </header>
-
       <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 16, marginTop: 16 }}>
         <Sidebar active={active} onSelect={setActive} />
 
