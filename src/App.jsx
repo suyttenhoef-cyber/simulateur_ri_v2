@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { generatePDF, exportPdf } from './utils/pdfExport.js';
+import { generatePDF } from './utils/pdfExport.js';
 
 // Palette de couleurs
 const colors = {
