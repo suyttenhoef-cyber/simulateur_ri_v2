@@ -629,7 +629,6 @@ const REVENUS_COMPTABILISES_SUGGESTIONS = [
   { value: "Allocation de formation Forem, VDAB ou Actiris", label: "Allocation de formation Forem, VDAB ou Actiris" },
   { value: "Allocation de stage d'insertion", label: "Allocation de stage d'insertion" },
   { value: "Allocation de stage Onem (ou Actiris)", label: "Allocation de stage Onem (ou Actiris)" },
-  { value: "Autre", label: "💡 Autre (saisie libre)" },
   { value: "Avance reçue", label: "Avance reçue" },
   { value: "Bonus de démarrage de l'Onem", label: "Bonus de démarrage de l'Onem" },
   { value: "Chèque-repas (part patronale)", label: "Chèque-repas (part patronale)" },
@@ -646,7 +645,8 @@ const REVENUS_COMPTABILISES_SUGGESTIONS = [
   { value: "PFI - Prime du Forem ou VDAB,...", label: "PFI - Prime du Forem ou VDAB,..." },
   { value: "Revenus d'une activité artistique irrégulière", label: "Revenus d'une activité artistique irrégulière" },
   { value: "Revenus d'une activité artistique régulière", label: "Revenus d'une activité artistique régulière" },
-  { value: "Simple pécule de vacances - régime ouvrier", label: "Simple pécule de vacances - régime ouvrier" }
+  { value: "Simple pécule de vacances - régime ouvrier", label: "Simple pécule de vacances - régime ouvrier" },
+  { value: "Autre", label: "💡 Autre (saisie libre)" },
 ];
 
 const REVENUS_EXONERES_SUGGESTIONS = [
