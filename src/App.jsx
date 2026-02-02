@@ -2238,47 +2238,35 @@ export default function App() {
               {/* Carte Identité */}
               <Card title="👤 Identité">
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                  <div>
-                    <label style={{ fontSize: "14px", fontWeight: "500", display: "block", marginBottom: "4px" }}>
-                      Nom
-                    </label>
+                  <Field label="Nom">
                     <input 
                       value={data.identite.nom}
                       onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nom: e.target.value } }))}
-                      style={inputStyle}
+                      style={{ width: "100%", padding: "8px" }}
                     />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: "14px", fontWeight: "500", display: "block", marginBottom: "4px" }}>
-                      Prénom
-                    </label>
+                  </Field>
+                  <Field label="Prénom">
                     <input 
                       value={data.identite.prenom}
                       onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, prenom: e.target.value } }))}
-                      style={inputStyle}
+                      style={{ width: "100%", padding: "8px" }}
                     />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: "14px", fontWeight: "500", display: "block", marginBottom: "4px" }}>
-                      Date de naissance
-                    </label>
+                  </Field>
+                  <Field label="Date de naissance">
                     <input 
                       type="date" 
                       value={data.identite.dateNaissance}
                       onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, dateNaissance: e.target.value } }))}
-                      style={inputStyle}
+                      style={{ width: "100%", padding: "8px" }}
                     />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: "14px", fontWeight: "500", display: "block", marginBottom: "4px" }}>
-                      Nationalité
-                    </label>
+                  </Field>
+                  <Field label="Nationalité">
                     <input 
                       value={data.identite.nationalite}
                       onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nationalite: e.target.value } }))}
-                      style={inputStyle}
+                      style={{ width: "100%", padding: "8px" }}
                     />
-                  </div>
+                  </Field>
                 </div>
               </Card>
 
