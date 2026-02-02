@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { generatePDF } from './utils/pdfExport.js';
+import './app-styles-improved.css';
 
 // Ajouter juste après les imports
 const globalStyles = `
@@ -1424,78 +1425,55 @@ function Input({ label, type = "text", value, onChange, placeholder, hint }) {
     </Field>
   );
 }
-function Sidebar({ active, onSelect }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
+function Sidebar({ active, onSelect, className }) {
   return (
-    <nav style={{
-      background: colors.primary,
-      borderRadius: "12px",
-      padding: isCollapsed ? "16px 8px" : "16px",
-      height: "fit-content",
-      position: "sticky",
-      top: "20px",
-      transition: "all 0.3s"
+    <aside className={className} style={{
+      // Retirez les styles de hauteur et overflow qui sont maintenant dans le CSS
     }}>
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: "16px"
-      }}>
-        {!isCollapsed && (
-          <h2 style={{
-            margin: 0,
-            fontSize: "16px",
-            fontWeight: "700",
-            color: colors.white,
-            fontFamily: "'Source Sans Pro', sans-serif"
-          }}>
-            Menu
-          </h2>
-        )}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          style={{
-            background: "transparent",
-            border: "none",
-            color: colors.white,
-            cursor: "pointer",
-            fontSize: "20px"
-          }}
-        >
-          {isCollapsed ? "→" : "←"}
-        </button>
+      <div style={{ marginBottom: 32, textAlign: "center" }}>
+        <h1 style={{
+          color: colors.secondary,
+          fontSize: 24,
+          margin: 0
+        }}>
+          Simulateur RI
+        </h1>
+        <p style={{
+          color: "rgba(255,255,255,0.7)",
+          fontSize: 12,
+          margin: "8px 0 0"
+        }}>
+          CPAS Connect
+        </p>
       </div>
 
-      {SECTIONS.map((s) => (
-        <button
-          key={s.id}
-          onClick={() => onSelect(s.id)}
-          style={{
-            width: "100%",
-            textAlign: "left",
-            padding: "12px",
-            marginBottom: "8px",
-            borderRadius: "8px",
-            border: "none",
-            background: active === s.id ? colors.secondary : "transparent",
-            color: active === s.id ? colors.primary : colors.white,
-            cursor: "pointer",
-            fontFamily: "'Source Sans Pro', sans-serif",
-            fontSize: "14px",
-            fontWeight: active === s.id ? "600" : "400",
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            transition: "all 0.2s"
-          }}
-        >
-          <span style={{ fontSize: "18px" }}>{s.icon}</span>
-          {!isCollapsed && <span>{s.label}</span>}
-        </button>
-      ))}
-    </nav>
+      <nav style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {SECTIONS.map((section) => (
+          <button
+            key={section.id}
+            onClick={() => onSelect(section.id)}
+            style={{
+              background: active === section.id ? colors.secondary : "transparent",
+              color: active === section.id ? colors.primary : "white",
+              border: "none",
+              padding: "12px 16px",
+              borderRadius: 8,
+              textAlign: "left",
+              cursor: "pointer",
+              fontSize: 14,
+              fontWeight: active === section.id ? 600 : 400,
+              transition: "all 0.2s ease",
+              display: "flex",
+              alignItems: "center",
+              gap: 10
+            }}
+          >
+            <span style={{ fontSize: 18 }}>{section.icon}</span>
+            <span>{section.label}</span>
+          </button>
+        ))}
+      </nav>
+    </aside>
   );
 }
 
