@@ -25,6 +25,26 @@ function isInIframe() {
 }
 
 /**
+ * Convertir une image en base64 pour éviter les problèmes CORS
+ */
+async function imageToBase64(url) {
+  try {
+    const response = await fetch(url, { mode: 'cors' });
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.warn('Impossible de charger l\'image:', url, error);
+    // Retourner une image par défaut ou vide
+    return '';
+  }
+}
+
+/**
  * Télécharge le PDF dans le navigateur
  */
 async function downloadPDF(pdfBlob, fileName) {
@@ -67,6 +87,9 @@ async function downloadPDF(pdfBlob, fileName) {
  */
 export async function generatePDF(data, result, apercu) {
   try {
+    // Précharger le logo en base64 pour éviter les problèmes CORS
+    const logoBase64 = await imageToBase64('https://www.cpasconnect.be/img/cpasconnect/logo.svg');
+    
     // Créer un élément HTML temporaire pour le PDF
     const pdfElement = document.createElement('div');
     pdfElement.style.position = 'absolute';
@@ -82,7 +105,7 @@ export async function generatePDF(data, result, apercu) {
     pdfElement.innerHTML = `
       <div style="text-align: center; margin-bottom: 30px;">
         <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-          <img src="https://www.cpasconnect.be/img/cpasconnect/logo.svg" alt="CPAS Connect" style="height: 50px; margin-right: 15px;" />
+          ${logoBase64 ? `<img src="${logoBase64}" alt="CPAS Connect" style="height: 50px; margin-right: 15px;" />` : '<div style="width: 50px; height: 50px; margin-right: 15px;"></div>'}
           <div style="border-left: 2px solid #163E67; height: 40px; margin-right: 15px;"></div>
           <div>
             <h1 style="margin: 0; color: #163E67; font-size: 24px;">Simulateur de Revenu d'Intégration</h1>
@@ -191,7 +214,8 @@ export async function generatePDF(data, result, apercu) {
     // Générer le PDF avec html2canvas
     const canvas = await html2canvas(pdfElement, {
       scale: 2,
-      useCORS: true,
+      useCORS: false, // Désactivé car on utilise base64
+      allowTaint: true, // Permet les images cross-origin
       logging: false,
       backgroundColor: '#ffffff'
     });
