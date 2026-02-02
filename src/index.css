@@ -11,6 +11,36 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* ===== Design tokens (propres) ===== */
+  --radius-card: 16px;
+  --radius-control: 10px;
+
+  --border-color: rgba(0, 0, 0, 0.12);
+  --border-color-focus: rgba(0, 0, 0, 0.28);
+
+  --bg-page: #f6f7fb;
+  --bg-surface: #ffffff;
+
+  --text: #213547;
+  --text-muted: rgba(0, 0, 0, 0.55);
+
+  --control-padding-y: 10px;
+  --control-padding-x: 12px;
+  --control-font-size: 14px;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+
+  /* Page “app” classique */
+  background: var(--bg-page);
+  color: var(--text);
+
+  /* IMPORTANT: enlève le centrage demo */
+  display: block;
 }
 
 a {
@@ -20,14 +50,6 @@ a {
 }
 a:hover {
   color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
 }
 
 h1 {
@@ -65,4 +87,51 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+/* ===== Form controls unifiés ===== */
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formLabel {
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.formHint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.formControl {
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: var(--control-padding-y) var(--control-padding-x);
+  font-size: var(--control-font-size);
+
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-control);
+  background: var(--bg-surface);
+  color: var(--text);
+
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.formControl:focus {
+  border-color: var(--border-color-focus);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+}
+
+.formControl::placeholder {
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.formControl[type="date"] {
+  appearance: none;
+  -webkit-appearance: none;
 }
