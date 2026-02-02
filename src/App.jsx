@@ -1,6 +1,17 @@
 import { useMemo, useState } from "react";
 import { generatePDF } from './utils/pdfExport.js';
 
+// Ajouter juste après les imports
+const globalStyles = `
+  * { box-sizing: border-box; }
+  body, html { 
+    margin: 0; 
+    padding: 0; 
+    overflow-x: hidden !important; 
+    max-width: 100vw !important;
+  }
+`;
+
 // Palette de couleurs
 const colors = {
   primary: "#163E67",      // Bleu foncé
@@ -2155,19 +2166,32 @@ export default function App() {
 
   return (
     <div style={{
-      fontFamily: "'Source Sans Pro', sans-serif",
       background: colors.background,
       minHeight: "100vh",
-      padding: "20px",
-      width: "100vw",  // Ajoutez ceci
-      margin: 0,        // Et ceci
-      boxSizing: "border-box",  // Pour inclure le padding dans la largeur
-      overflowX: "hidden"  // AJOUTER CETTE LIGNE
+      fontFamily: "system-ui, -apple-system, sans-serif",
+      maxWidth: "100vw",      // ← AJOUT : Limite la largeur maximale
+      overflowX: "hidden",    // ← AJOUT : Cache le scroll horizontal
+      boxSizing: "border-box" // ← AJOUT : Inclut padding dans le calcul
     }}>
-      <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 16, marginTop: 16 }}>
+      <div style={{ 
+      display: "grid", 
+      gridTemplateColumns: "280px 1fr", 
+      gap: 16, 
+      marginTop: 16,
+      maxWidth: "100%",      // ← AJOUT
+      overflowX: "hidden"    // ← AJOUT
+    }}>
         <Sidebar active={active} onSelect={setActive} />
 
-        <main style={{ border: "1px solid #ddd", borderRadius: 10, padding: 16, width: "100%" }}>
+        <main style={{ 
+          border: "1px solid #ddd", 
+          borderRadius: 10, 
+          padding: 16, 
+          width: "100%",
+          maxWidth: "100%",     // ← AJOUT
+          overflowX: "auto",    // ← AJOUT : permet le scroll interne si nécessaire
+          boxSizing: "border-box" // ← AJOUT
+        }}>
           {active === "informations" && (
             <div style={{ display: "grid", gap: "24px" }}>
               {/* Carte Référence */}

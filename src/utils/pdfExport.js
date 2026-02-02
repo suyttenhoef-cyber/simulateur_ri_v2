@@ -1,6 +1,70 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
+/**
+ * Fonction helper pour convertir un Blob en base64
+ */
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+/**
+ * Détecte si l'application est dans un iframe
+ */
+function isInIframe() {
+  try {
+    return window.self !== window.top;
+  } catch (e) {
+    return true;
+  }
+}
+
+/**
+ * Télécharge le PDF dans le navigateur
+ */
+async function downloadPDF(pdfBlob, fileName) {
+  if (isInIframe()) {
+    // Dans un iframe : envoyer au parent
+    try {
+      const base64Data = await blobToBase64(pdfBlob);
+      window.parent.postMessage({
+        type: 'DOWNLOAD_PDF',
+        fileName: fileName,
+        pdfData: base64Data
+      }, '*'); // En production, remplacez '*' par l'URL exacte du parent
+      
+      console.log('PDF envoyé à la fenêtre parente');
+      return true;
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi du PDF au parent:', error);
+      // Fallback : ouvrir dans un nouvel onglet
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      window.open(pdfUrl, '_blank');
+      setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
+      return true;
+    }
+  } else {
+    // Pas dans un iframe : téléchargement normal
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(pdfBlob);
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    return true;
+  }
+}
+
+/**
+ * Génère un PDF à partir des données de simulation
+ */
 export async function generatePDF(data, result, apercu) {
   try {
     // Créer un élément HTML temporaire pour le PDF
@@ -124,7 +188,7 @@ export async function generatePDF(data, result, apercu) {
       </div>
     `;
 
-    // Générer le PDF
+    // Générer le PDF avec html2canvas
     const canvas = await html2canvas(pdfElement, {
       scale: 2,
       useCORS: true,
@@ -147,9 +211,14 @@ export async function generatePDF(data, result, apercu) {
     // Nettoyer l'élément temporaire
     document.body.removeChild(pdfElement);
 
-    // Sauvegarder le PDF
+    // Générer le nom du fichier
     const fileName = `RI_${data.identite.nom || 'simulation'}_${new Date().toISOString().split('T')[0]}.pdf`;
-    pdf.save(fileName);
+    
+    // Créer le blob du PDF
+    const pdfBlob = pdf.output('blob');
+    
+    // Télécharger le PDF (gère automatiquement iframe ou non)
+    await downloadPDF(pdfBlob, fileName);
 
     return true;
   } catch (error) {

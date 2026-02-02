@@ -453,17 +453,45 @@
             const loadingOverlay = document.getElementById('loading-overlay');
             
             // Masquer le loading quand l'iframe est chargée
-            iframe.addEventListener('load', function() {
-                setTimeout(() => {
-                    loadingOverlay.style.opacity = '0';
+            if (iframe && loadingOverlay) {
+                iframe.addEventListener('load', function() {
                     setTimeout(() => {
-                        loadingOverlay.style.display = 'none';
-                    }, 300);
-                }, 500);
-            });
+                        loadingOverlay.style.opacity = '0';
+                        setTimeout(() => {
+                            loadingOverlay.style.display = 'none';
+                        }, 300);
+                    }, 500);
+                });
+                
+                // Démarrer le chargement
+                loadingOverlay.style.display = 'flex';
+            }
+        });
+        
+        // **NOUVEAU : Écouter les messages de l'iframe pour le téléchargement de PDF**
+        window.addEventListener('message', function(event) {
+            // Pour plus de sécurité, vérifier l'origine
+            if (event.origin !== "https://suyttenhoef-cyber.github.io") {
+                return;
+            }
             
-            // Démarrer le chargement
-            loadingOverlay.style.display = 'flex';
+            // Vérifier le type de message
+            if (event.data && event.data.type === 'DOWNLOAD_PDF') {
+                try {
+                    // Créer un lien de téléchargement
+                    const link = document.createElement('a');
+                    link.href = event.data.pdfData;
+                    link.download = event.data.fileName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    console.log('PDF téléchargé avec succès:', event.data.fileName);
+                } catch (error) {
+                    console.error('Erreur lors du téléchargement du PDF:', error);
+                    alert('Erreur lors du téléchargement du PDF');
+                }
+            }
         });
         
         // Rafraîchir l'iframe
@@ -471,22 +499,26 @@
             const iframe = document.getElementById('simulator-iframe');
             const loadingOverlay = document.getElementById('loading-overlay');
             
-            loadingOverlay.style.display = 'flex';
-            loadingOverlay.style.opacity = '1';
-            
-            // Recharger l'iframe
-            iframe.src = iframe.src;
+            if (iframe && loadingOverlay) {
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.style.opacity = '1';
+                
+                // Recharger l'iframe
+                iframe.src = iframe.src;
+            }
         }
         
         // Plein écran
         function openFullscreen() {
             const iframe = document.getElementById('simulator-iframe');
             
+            if (!iframe) return;
+            
             if (iframe.requestFullscreen) {
                 iframe.requestFullscreen();
-            } else if (iframe.webkitRequestFullscreen) {
+            } else if (iframe.webkitRequestFullscreen) { // Safari
                 iframe.webkitRequestFullscreen();
-            } else if (iframe.msRequestFullscreen) {
+            } else if (iframe.msRequestFullscreen) { // IE11
                 iframe.msRequestFullscreen();
             }
         }
@@ -494,48 +526,96 @@
         // Copier le code d'intégration
         function copyEmbedCode() {
             const embedCode = `<iframe 
-    src="https://suyttenhoef-cyber.github.io/simulateur_ri_v2/" 
-    width="100%" 
-    height="800px" 
-    frameborder="0" 
-    style="border-radius: 15px; border: 2px solid #E1E8ED;"
-    title="Simulateur de Revenu d'Intégration"
-    allow="clipboard-write; encrypted-media;"
-    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
-></iframe>`;
+        src="https://suyttenhoef-cyber.github.io/simulateur_ri_v2/" 
+        width="100%" 
+        height="800px" 
+        frameborder="0" 
+        style="border-radius: 15px; border: 2px solid #E1E8ED;"
+        title="Simulateur de Revenu d'Intégration"
+        allow="clipboard-write; encrypted-media;"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
+    ></iframe>
+
+    <script>
+    // Gestion du téléchargement PDF depuis l'iframe
+    window.addEventListener('message', function(event) {
+        if (event.origin !== "https://suyttenhoef-cyber.github.io") return;
+        if (event.data && event.data.type === 'DOWNLOAD_PDF') {
+            const link = document.createElement('a');
+            link.href = event.data.pdfData;
+            link.download = event.data.fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    });
+    <\/script>`;
             
-            navigator.clipboard.writeText(embedCode).then(() => {
-                alert('Code d\'intégration copié dans le presse-papier !');
-            }).catch(err => {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(embedCode).then(() => {
+                    alert('Code d\'intégration copié dans le presse-papier !');
+                }).catch(err => {
+                    console.error('Erreur lors de la copie : ', err);
+                    // Fallback pour les anciens navigateurs
+                    fallbackCopyToClipboard(embedCode);
+                });
+            } else {
+                // Fallback pour les navigateurs qui ne supportent pas l'API Clipboard
+                fallbackCopyToClipboard(embedCode);
+            }
+        }
+        
+        // Fonction fallback pour copier dans le presse-papier
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-9999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert('Code d\'intégration copié dans le presse-papier !');
+                } else {
+                    alert('Erreur lors de la copie du code');
+                }
+            } catch (err) {
                 console.error('Erreur lors de la copie : ', err);
                 alert('Erreur lors de la copie du code');
-            });
+            }
+            
+            document.body.removeChild(textArea);
         }
         
         // Gestion des boutons d'action
-        document.querySelectorAll('.action-btn').forEach(btn => {
-            btn.style.cssText = `
-                padding: 12px 20px;
-                border: none;
-                border-radius: 10px;
-                font-weight: 600;
-                font-size: 14px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                font-family: 'Source Sans Pro', sans-serif;
-            `;
-            
-            btn.addEventListener('mouseover', function() {
-                this.style.transform = 'translateY(-2px)';
-                this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-            });
-            
-            btn.addEventListener('mouseout', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = 'none';
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.action-btn').forEach(btn => {
+                btn.style.cssText = `
+                    padding: 12px 20px;
+                    border: none;
+                    border-radius: 10px;
+                    font-weight: 600;
+                    font-size: 14px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-family: 'Source Sans Pro', sans-serif;
+                `;
+                
+                btn.addEventListener('mouseover', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                });
+                
+                btn.addEventListener('mouseout', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = 'none';
+                });
             });
         });
         
