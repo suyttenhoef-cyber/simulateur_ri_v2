@@ -12,7 +12,23 @@ const globalStyles = `
     max-width: 100vw !important;
   }
 `;
+const inputStyle = {
+  width: "100%",
+  padding: "8px 12px",
+  border: "1px solid #d1d5db",
+  borderRadius: "6px",
+  fontSize: "14px",
+  boxSizing: "border-box",
+  outline: "none",
+  transition: "border-color 0.2s",
+};
 
+// Ajoutez ceci pour l'effet au focus
+const inputStyleFocus = {
+  ...inputStyle,
+  borderColor: "#3b82f6",
+  boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+};
 // Palette de couleurs
 const colors = {
   primary: "#163E67",      // Bleu foncé
