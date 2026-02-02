@@ -2230,7 +2230,7 @@ export default function App() {
               </Card>
 
               {/* Carte Identité */}
-              <Card title="👤 Identité">
+              <Card title="👤 Identité coco">
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                   <div>
                     <label style={{ fontSize: "14px", fontWeight: "500", display: "block", marginBottom: "4px" }}>
