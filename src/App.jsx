@@ -2213,38 +2213,29 @@ export default function App() {
                 </div>
               </Card>
 
-              {/* Carte Identité */}
               <Card title="👤 Identité">
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                  <Field label="Nom">
-                    <input 
-                      value={data.identite.nom}
-                      onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nom: e.target.value } }))}
-                      style={{ width: "100%", padding: "8px" }}
-                    />
-                  </Field>
-                  <Field label="Prénom">
-                    <input 
-                      value={data.identite.prenom}
-                      onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, prenom: e.target.value } }))}
-                      style={{ width: "100%", padding: "8px" }}
-                    />
-                  </Field>
-                  <Field label="Date de naissance">
-                    <input 
-                      type="date" 
-                      value={data.identite.dateNaissance}
-                      onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, dateNaissance: e.target.value } }))}
-                      style={{ width: "100%", padding: "8px" }}
-                    />
-                  </Field>
-                  <Field label="Nationalité">
-                    <input 
-                      value={data.identite.nationalite}
-                      onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nationalite: e.target.value } }))}
-                      style={{ width: "100%", padding: "8px" }}
-                    />
-                  </Field>
+                  <Input
+                    label="Nom"
+                    value={data.identite.nom}
+                    onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nom: e.target.value } }))}
+                  />
+                  <Input
+                    label="Prénom"
+                    value={data.identite.prenom}
+                    onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, prenom: e.target.value } }))}
+                  />
+                  <Input
+                    label="Date de naissance"
+                    type="date"
+                    value={data.identite.dateNaissance}
+                    onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, dateNaissance: e.target.value } }))}
+                  />
+                  <Input
+                    label="Nationalité"
+                    value={data.identite.nationalite}
+                    onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nationalite: e.target.value } }))}
+                  />
                 </div>
               </Card>
 
