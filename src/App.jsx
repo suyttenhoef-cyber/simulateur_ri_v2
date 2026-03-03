@@ -2300,7 +2300,22 @@ export default function App() {
 
           {active === "revenus_nets" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Revenus nets</h2>
+              <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                Revenus nets
+                <a 
+                  href="https://myportal.vandenbroeleconnect.be/perma/149746886634684678" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  title="Documentation CPASConnect"
+                  style={{ 
+                    color: colors.textLight,
+                    textDecoration: "none",
+                    fontSize: "12px"
+                  }}
+                >
+                  📋
+                </a>
+              </h2>
               <RowsTable title="Demandeur" rows={data.revenusNets.demandeur.rows}
                 onChangeRows={(rows) => setData(d => ({
                   ...d, revenusNets: { ...d.revenusNets, demandeur: { ...d.revenusNets.demandeur, rows } }
