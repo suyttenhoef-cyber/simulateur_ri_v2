@@ -2517,6 +2517,19 @@ export default function App() {
                       }
                     />
                     Exonération générale
+                    <a 
+                      href="https://myportal.vandenbroeleconnect.be/perma/149746886634684907" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      title="Documentation CPASConnect"
+                      style={{ 
+                        color: colors.textLight,
+                        textDecoration: "none",
+                        fontSize: "12px"
+                      }}
+                    >
+                      📋
+                    </a>
                   </label>
 
                   <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
@@ -2534,6 +2547,19 @@ export default function App() {
                       }
                     />
                     Exonération étudiants
+                    <a 
+                      href="https://myportal.vandenbroeleconnect.be/perma/149746886634684907" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      title="Documentation CPASConnect"
+                      style={{ 
+                        color: colors.textLight,
+                        textDecoration: "none",
+                        fontSize: "12px"
+                      }}
+                    >
+                      📋
+                    </a>
                   </label>
 
                   <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
@@ -2551,6 +2577,19 @@ export default function App() {
                       }
                     />
                     Exonération pénurie
+                    <a 
+                      href="https://myportal.vandenbroeleconnect.be/perma/149746886634385151" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      title="Documentation CPASConnect"
+                      style={{ 
+                        color: colors.textLight,
+                        textDecoration: "none",
+                        fontSize: "12px"
+                      }}
+                    >
+                      📋
+                    </a>
                   </label>
 
                   <Field label={
