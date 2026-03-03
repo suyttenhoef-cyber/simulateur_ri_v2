@@ -3021,26 +3021,37 @@ export default function App() {
             </div>
           </section>
         )}
-        {active === "biens_mobiliers" && (
+          {active === "biens_mobiliers" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <Card title="💰 Biens mobiliers">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  <Input label="Montant du capital (B5)" type="number"
+              <h2 style={{ marginTop: 0 }}>Biens mobiliers</h2>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <Field label="Montant du capital (B5)">
+                  <input
+                    type="number"
                     value={data.biensMobiliers.montantCapital}
-                    onChange={(e) => setData((d) => ({
-                      ...d,
-                      biensMobiliers: { ...d.biensMobiliers, montantCapital: safeNumber(e.target.value, 0) },
-                    }))} />
-                  <Input label="Part concernée (%) (C5)" type="number"
+                    onChange={(e) =>
+                      setData((d) => ({
+                        ...d,
+                        biensMobiliers: { ...d.biensMobiliers, montantCapital: safeNumber(e.target.value, 0) },
+                      }))
+                    }
+                  />
+                </Field>
+
+                <Field label="Part concernée (%) (C5)">
+                  <input
+                    type="number"
                     value={data.biensMobiliers.partConcernee}
-                    onChange={(e) => setData((d) => ({
-                      ...d,
-                      biensMobiliers: { ...d.biensMobiliers, partConcernee: safeNumber(e.target.value, 100) },
-                    }))} />
-                </div>
-              </Card>
-            </section>
-          )}
+                    onChange={(e) =>
+                      setData((d) => ({
+                        ...d,
+                        biensMobiliers: { ...d.biensMobiliers, partConcernee: safeNumber(e.target.value, 100) },
+                      }))
+                    }
+                  />
+                </Field>
+              </div>
 
               <div style={{ padding: 10, background: "#f5f5f5", borderRadius: 8 }}>
                 {(() => {
@@ -3064,4 +3075,3 @@ export default function App() {
     </div>
   );
 }
-          
