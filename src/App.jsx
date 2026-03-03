@@ -2896,52 +2896,53 @@ export default function App() {
                     total={result.apercu.ri.E45_montantMensuel * 12}
                     />
                   {/* ===== Calcul du RI pour un mois incomplet (Excel) ===== */}
-                  <div style={{ border: "2px solid #1f6feb", borderRadius: 10, padding: 14, marginTop: 16 }}>
-                    <div style={{ fontWeight: 800, marginBottom: 10 }}>
-                      Calcul du revenu d’intégration pour un mois incomplet
-                    </div>
-
-                    <div style={{ display: "grid", gap: 10, fontSize: 13 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                        <div>Nbre de jours pris en compte dans la période concernée :</div>
-
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <input
-                            style={{ width: 70, padding: "6px 8px" }}
-                            type="number"
-                            min={0}
-                            value={data.reference.joursPrisEnCompte ?? 0}
-                            onChange={(e) =>
-                              setData((prev) => ({
-                                ...prev,
-                                reference: {
-                                  ...prev.reference,
-                                  joursPrisEnCompte: e.target.value === "" ? 0 : Number(e.target.value),
-                                },
-                              }))
-                            }
-                          />
-                          <span>sur</span>
-                          <input
-                            style={{ width: 70, padding: "6px 8px", background: "#f5f5f5" }}
-                            type="number"
-                            value={result.apercu.ri.joursMois}
-                            readOnly
-                          />
-                          <span>jours</span>
+                  <tr>
+                    <td colSpan={4} style={{ paddingTop: 16 }}>
+                      <div style={{ border: "2px solid #1f6feb", borderRadius: 10, padding: 14 }}>
+                        <div style={{ fontWeight: 800, marginBottom: 10 }}>
+                          Calcul du revenu d'intégration pour un mois incomplet
+                        </div>
+                        <div style={{ display: "grid", gap: 10, fontSize: 13 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                            <div>Nbre de jours pris en compte dans la période concernée :</div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <input
+                                style={{ width: 70, padding: "6px 8px" }}
+                                type="number"
+                                min={0}
+                                value={data.reference.joursPrisEnCompte ?? 0}
+                                onChange={(e) =>
+                                  setData((prev) => ({
+                                    ...prev,
+                                    reference: {
+                                      ...prev.reference,
+                                      joursPrisEnCompte: e.target.value === "" ? 0 : Number(e.target.value),
+                                    },
+                                  }))
+                                }
+                              />
+                              <span>sur</span>
+                              <input
+                                style={{ width: 70, padding: "6px 8px", background: "#f5f5f5" }}
+                                type="number"
+                                value={result.apercu.ri.joursMois}
+                                readOnly
+                              />
+                              <span>jours</span>
+                            </div>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                            <div style={{ fontWeight: 700 }}>
+                              Revenu d'intégration mensuel en tenant compte du nombre de jours
+                            </div>
+                            <div style={{ fontSize: 16, fontWeight: 900 }}>
+                              <Money value={result.apercu.ri.montantMensuelProrata} />
+                            </div>
+                          </div>
                         </div>
                       </div>
-
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                        <div style={{ fontWeight: 700 }}>
-                          Revenu d’intégration mensuel en tenant compte du nombre de jours
-                        </div>
-                        <div style={{ fontSize: 16, fontWeight: 900 }}>
-                          <Money value={result.apercu.ri.montantMensuelProrata} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>  
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
