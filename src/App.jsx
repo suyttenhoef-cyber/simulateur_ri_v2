@@ -2303,7 +2303,7 @@ export default function App() {
               <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
                 Revenus nets
                 <a 
-                  href="https://myportal.vandenbroeleconnect.be/perma/149746886634684678" 
+                  href="https://myportal.vandenbroeleconnect.be/perma/149746886634684897" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   title="Documentation CPASConnect"
@@ -2553,7 +2553,24 @@ export default function App() {
                     Exonération pénurie
                   </label>
 
-                  <Field label="Jours (si compteur dépassé)">
+                  <Field label={
+                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      Jours (si compteur dépassé)
+                      <a 
+                        href="https://myportal.vandenbroeleconnect.be/perma/149746886634684897" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        title="Documentation CPASConnect"
+                        style={{ 
+                          color: colors.textLight,
+                          textDecoration: "none",
+                          fontSize: "12px"
+                        }}
+                      >
+                        📋
+                      </a>
+                    </span>
+                  }>
                     <input
                       type="number"
                       value={data.exoneration.demandeur.joursCompteur}
@@ -2644,8 +2661,24 @@ export default function App() {
                     />
                     Exonération pénurie
                   </label>
-
-                  <Field label="Jours (si compteur dépassé)">
+                  <Field label={
+                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      Jours (si compteur dépassé)
+                      <a 
+                        href="https://myportal.vandenbroeleconnect.be/perma/149746886634684897" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        title="Documentation CPASConnect"
+                        style={{ 
+                          color: colors.textLight,
+                          textDecoration: "none",
+                          fontSize: "12px"
+                        }}
+                      >
+                        📋
+                      </a>
+                    </span>
+                  }>
                     <input
                       type="number"
                       value={data.exoneration.conjoint.joursCompteur}
