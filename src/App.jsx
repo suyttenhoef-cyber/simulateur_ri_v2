@@ -455,121 +455,85 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
   }
 
   return (
-    <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
-        <h3 style={{ margin: 0 }}>Revenus des cohabitants</h3>
-        <button onClick={addRow} style={{ cursor: "pointer", padding: "6px 10px" }}>+ Ajouter</button>
-      </div>
-
+    <Card title="👥 Revenus des cohabitants"
+      action={<button onClick={addRow} style={{ cursor: "pointer", padding: "6px 10px" }}>+ Ajouter</button>}
+    >
       {rows.length === 0 ? (
         <p style={{ opacity: 0.6 }}>Aucun cohabitant enregistré</p>
       ) : (
         <>
           {rows.map((r, i) => {
             const calc = computeCohabitantRow(r, referenceDate);
-            
             return (
-              <div key={i} style={{ 
-                border: "1px solid #e0e0e0", 
-                borderRadius: 8, 
-                padding: 12, 
-                marginBottom: 15,
-                background: "#fafafa"
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                  <strong>Cohabitant #{i + 1}</strong>
-                  <button onClick={() => removeRow(i)} style={{ 
-                    cursor: "pointer", 
-                    background: "#dc3545", 
-                    color: "white", 
-                    border: "none", 
-                    borderRadius: 4, 
-                    padding: "4px 8px" 
-                  }}>
-                    × Supprimer
-                  </button>
+              <Card key={i} title={
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                  <span>Cohabitant #{i + 1}</span>
+                  <button onClick={() => removeRow(i)} style={{
+                    cursor: "pointer", background: "#dc3545", color: "white",
+                    border: "none", borderRadius: 4, padding: "4px 8px"
+                  }}>× Supprimer</button>
                 </div>
-
+              }>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10 }}>
-                  <Input label="Nom"
-                    value={r.nom}
+                  <Input label="Nom" value={r.nom}
                     onChange={(e) => updateRow(i, { nom: e.target.value })}
                     placeholder="Nom du cohabitant" />
-                
-                  <Input label="Type" type="select"
-                    value={r.type}
+                  <Input label="Type" type="select" value={r.type}
                     onChange={(e) => updateRow(i, { type: e.target.value })}>
                     <option value="Ascendants/descendant majeur">Ascendants/descendant majeur</option>
                     <option value="Conjoint">Conjoint</option>
                     <option value="Autre">Autre</option>
                   </Input>
-                
-                  <Input label="Ressources totales (€/an)" type="number"
-                    value={r.ressourcesTotale}
+                  <Input label="Ressources totales (€/an)" type="number" value={r.ressourcesTotale}
                     onChange={(e) => updateRow(i, { ressourcesTotale: safeNumber(e.target.value, 0) })} />
-                
-                  <Input label="Prise en charge" type="select"
-                    value={r.priseEnCharge}
+                  <Input label="Prise en charge" type="select" value={r.priseEnCharge}
                     onChange={(e) => updateRow(i, { priseEnCharge: e.target.value })}>
                     <option value="Non">Non</option>
                     <option value="Oui">Oui</option>
                     <option value="MAX">MAX</option>
                   </Input>
-                
-                  <Input label="Type de report" type="select"
-                    value={r.typeReport}
+                  <Input label="Type de report" type="select" value={r.typeReport}
                     onChange={(e) => updateRow(i, { typeReport: e.target.value })}>
                     <option value="Report max">Report max</option>
                     <option value="Partenaire">Partenaire</option>
                   </Input>
-                
-                  <Input label="% Report" type="number"
-                    value={r.pctReport}
+                  <Input label="% Report" type="number" value={r.pctReport}
                     onChange={(e) => updateRow(i, { pctReport: safeNumber(e.target.value, 30) })}
                     min="0" max="100" />
-                
-                  <Input label="Catégorie" type="select"
-                    value={r.categorie}
+                  <Input label="Catégorie" type="select" value={r.categorie}
                     onChange={(e) => updateRow(i, { categorie: parseInt(e.target.value) })}>
                     <option value={1}>1 - Cohabitant</option>
                     <option value={2}>2 - Isolé</option>
                     <option value={3}>3 - Famille</option>
                   </Input>
                 </div>
-
-                {/* Détail du calcul */}
-                  <div style={{ 
-                    background: "#fff", 
-                    padding: 10, 
-                    borderRadius: 6, 
-                    border: "1px solid #ddd", 
-                    fontSize: 12,
-                    marginTop: 10
-                  }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8 }}>
-                      <div><strong>Seuil RI (catégorie {calc.categorie}):</strong> <Money value={calc.seuilRI} /></div>
-                      <div><strong>Excédent:</strong> <Money value={calc.excedent} /></div>
-                      <div><strong>Montant mensuel:</strong> <Money value={calc.montantMensuel} /></div>
-                      <div><strong>Montant reporté:</strong> <Money value={calc.montantReporte} /></div> {/* ← CHANGER ICI */}
-                    </div>
-                    {calc.message && (
-                      <div style={{ 
-                        marginTop: 8, 
-                        padding: 8, 
-                        background: "#fff3cd", 
-                        borderRadius: 4,
-                        color: "#856404",
-                        fontSize: 11
-                      }}>
-                        {calc.message}
-                      </div>
-                    )}
+  
+                <div style={{
+                  background: "#f5f5f5", padding: 10, borderRadius: 6,
+                  fontSize: 12, marginTop: 10
+                }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8 }}>
+                    <div><strong>Seuil RI (catégorie {calc.categorie}):</strong> <Money value={calc.seuilRI} /></div>
+                    <div><strong>Excédent:</strong> <Money value={calc.excedent} /></div>
+                    <div><strong>Montant mensuel:</strong> <Money value={calc.montantMensuel} /></div>
+                    <div><strong>Montant reporté:</strong> <Money value={calc.montantReporte} /></div>
                   </div>
-              </div>
+                  {calc.message && (
+                    <div style={{
+                      marginTop: 8, padding: 8, background: "#fff3cd",
+                      borderRadius: 4, color: "#856404", fontSize: 11
+                    }}>
+                      {calc.message}
+                    </div>
+                  )}
+                </div>
+              </Card>
             );
           })}
         </>
       )}
+    </Card>
+  );
       
       <div style={{ 
         marginTop: 10, 
