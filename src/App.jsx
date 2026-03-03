@@ -2420,22 +2420,22 @@ export default function App() {
           {active === "avantages" && (
             <section style={{ display: "grid", gap: 12 }}>
               <h2 style={{ marginTop: 0 }}>Avantages en nature</h2>
-              <Field label="Charges locatives prises en charge par un tiers (€/mois)">
-                <input type="number" value={data.avantages.chargesLocativesTiers}
-                  onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, chargesLocativesTiers: safeNumber(e.target.value, 0) } }))} />
-              </Field>
-              <Field label="Loyer fictif évalué par un professionnel (€/mois)">
-                <input type="number" value={data.avantages.loyerFictifProfessionnel}
-                  onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifProfessionnel: safeNumber(e.target.value, 0) } }))} />
-              </Field>
-              <Field label="Loyer fictif évalué via simulateur ou grille de loyers (€/mois)">
-                <input type="number" value={data.avantages.loyerFictifSimulateur}
-                  onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifSimulateur: safeNumber(e.target.value, 0) } }))} />
-              </Field>
-              <Field label="Prêt hypothécaire pris en charge par un tiers (€/mois)">
-                <input type="number" value={data.avantages.pretHypothecaireTiers}
-                  onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, pretHypothecaireTiers: safeNumber(e.target.value, 0) } }))} />
-              </Field>
+              <Card title="🏠 Avantages en nature">
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                  <Input label="Charges locatives prises en charge par un tiers (€/mois)" type="number"
+                    value={data.avantages.chargesLocativesTiers}
+                    onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, chargesLocativesTiers: safeNumber(e.target.value, 0) } }))} />
+                  <Input label="Loyer fictif évalué par un professionnel (€/mois)" type="number"
+                    value={data.avantages.loyerFictifProfessionnel}
+                    onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifProfessionnel: safeNumber(e.target.value, 0) } }))} />
+                  <Input label="Loyer fictif évalué via simulateur ou grille de loyers (€/mois)" type="number"
+                    value={data.avantages.loyerFictifSimulateur}
+                    onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifSimulateur: safeNumber(e.target.value, 0) } }))} />
+                  <Input label="Prêt hypothécaire pris en charge par un tiers (€/mois)" type="number"
+                    value={data.avantages.pretHypothecaireTiers}
+                    onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, pretHypothecaireTiers: safeNumber(e.target.value, 0) } }))} />
+                </div>
+              </Card>
             </section>
           )}
 
