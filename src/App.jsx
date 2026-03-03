@@ -1250,7 +1250,7 @@ function computeChomageOrMutuelleMonthly({ mensuelReel, montantJour26, montantJo
   return { mensuelTotal: m1 + m2 + m3, daysPaid };
 }
 
-function computeRemplacementMonthly({ pensionMensuel, droitPasserelleMensuel, allocationHandicapeMensuel, indemnisation_perte_revenus }) {
+function computeRemplacementMonthly({ pensionMensuel, droitPasserelleMensuel, allocationHandicapeMensuel, indemnisation_perte_revenus, autres_revenus, }) {
   return safeNumber(pensionMensuel, 0) + safeNumber(droitPasserelleMensuel, 0) + safeNumber(allocationHandicapeMensuel, 0) + safeNumber(indemnisation_perte_revenus, 0), + safeNumber(autres_revenus, 0);
 }
 function computeBiensMobiliersExcel({ montantCapital, partConcernee }) {
