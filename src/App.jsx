@@ -2768,35 +2768,31 @@ export default function App() {
 
           {active === "ressources_diverses" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Ressources diverses</h2>
-              
-              <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 12 }}>
-                <h3 style={{ marginTop: 0 }}>Ressources diverses générales</h3>
-                {data.ressourcesDiverses.generales.map((r, i) => (
-                  <Field key={i} label={r.label}>
-                    <input type="number" value={r.montant}
+              <Card title="📦 Ressources diverses générales">
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                  {data.ressourcesDiverses.generales.map((r, i) => (
+                    <Input key={i} label={r.label} type="number" value={r.montant}
                       onChange={(e) => {
                         const next = [...data.ressourcesDiverses.generales];
                         next[i] = { ...next[i], montant: safeNumber(e.target.value, 0) };
                         setData(d => ({ ...d, ressourcesDiverses: { ...d.ressourcesDiverses, generales: next } }));
                       }} />
-                  </Field>
-                ))}
-              </div>
-
-              <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 12 }}>
-                <h3 style={{ marginTop: 0 }}>Ressources diverses — Bénévoles</h3>
-                {data.ressourcesDiverses.benevoles.map((r, i) => (
-                  <Field key={i} label={r.label}>
-                    <input type="number" value={r.montant}
+                  ))}
+                </div>
+              </Card>
+          
+              <Card title="🤝 Ressources diverses — Bénévoles">
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                  {data.ressourcesDiverses.benevoles.map((r, i) => (
+                    <Input key={i} label={r.label} type="number" value={r.montant}
                       onChange={(e) => {
                         const next = [...data.ressourcesDiverses.benevoles];
                         next[i] = { ...next[i], montant: safeNumber(e.target.value, 0) };
                         setData(d => ({ ...d, ressourcesDiverses: { ...d.ressourcesDiverses, benevoles: next } }));
                       }} />
-                  </Field>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </Card>
             </section>
           )}
           {active === "cohabitants" && (
@@ -3025,8 +3021,7 @@ export default function App() {
             </div>
           </section>
         )}
-
-          {active === "biens_mobiliers" && (
+        {active === "biens_mobiliers" && (
             <section style={{ display: "grid", gap: 12 }}>
               <Card title="💰 Biens mobiliers">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
@@ -3069,3 +3064,4 @@ export default function App() {
     </div>
   );
 }
+          
