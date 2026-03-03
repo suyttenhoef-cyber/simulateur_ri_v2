@@ -445,19 +445,11 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
   function updateRow(i, patch) {
     onChangeRows(rows.map((r, idx) => idx === i ? { ...r, ...patch } : r));
   }
-  
-  function addRow() { 
-    onChangeRows([...rows, defaultCohabitantRow()]); 
-  }
-  
-  function removeRow(i) { 
-    onChangeRows(rows.filter((_, idx) => idx !== i)); 
-  }
+  function addRow() { onChangeRows([...rows, defaultCohabitantRow()]); }
+  function removeRow(i) { onChangeRows(rows.filter((_, idx) => idx !== i)); }
 
   return (
-    <Card title="👥 Revenus des cohabitants"
-      action={<button onClick={addRow} style={{ cursor: "pointer", padding: "6px 10px" }}>+ Ajouter</button>}
-    >
+    <Card title="👥 Revenus des cohabitants">
       {rows.length === 0 ? (
         <p style={{ opacity: 0.6 }}>Aucun cohabitant enregistré</p>
       ) : (
@@ -507,7 +499,7 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                     <option value={3}>3 - Famille</option>
                   </Input>
                 </div>
-  
+
                 <div style={{
                   background: "#f5f5f5", padding: 10, borderRadius: 6,
                   fontSize: 12, marginTop: 10
@@ -532,9 +524,8 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
           })}
         </>
       )}
-    </Card>
-  );
-      
+
+      {/* Totaux — à l'intérieur du return, après la liste */}
       <div style={{ 
         marginTop: 10, 
         padding: 10, 
@@ -545,7 +536,11 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
         <div><b>Total annuel des cohabitants : <Money value={totals.totalAnnuel} /></b></div>
         <div><b>Total mensuel des cohabitants : <Money value={totals.totalMensuel} /></b></div>
       </div>
-    </div>
+
+      <button onClick={addRow} style={{ marginTop: 10, cursor: "pointer", padding: "6px 10px" }}>
+        + Ajouter un cohabitant
+      </button>
+    </Card>
   );
 }
 // Listes officielles des revenus
