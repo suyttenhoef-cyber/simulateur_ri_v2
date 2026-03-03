@@ -2237,64 +2237,61 @@ export default function App() {
 
               {/* Carte Identité */}
               <Card title="👤 Identité">
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                  <Field label="Nom">
-                    <input 
-                      value={data.identite.nom}
-                      onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nom: e.target.value } }))}
-                      style={{ width: "100%", padding: "8px" }}
-                    />
-                  </Field>
-                  <Field label="Prénom">
-                    <input 
-                      value={data.identite.prenom}
-                      onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, prenom: e.target.value } }))}
-                      style={{ width: "100%", padding: "8px" }}
-                    />
-                  </Field>
-                  <Field label="Date de naissance">
-                    <input 
-                      type="date" 
-                      value={data.identite.dateNaissance}
-                      onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, dateNaissance: e.target.value } }))}
-                      style={{ width: "100%", padding: "8px" }}
-                    />
-                  </Field>
-                  <Field label="Nationalité">
-                    <input 
-                      value={data.identite.nationalite}
-                      onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nationalite: e.target.value } }))}
-                      style={{ width: "100%", padding: "8px" }}
-                    />
-                  </Field>
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                  gap: "16px"
+                }}>
+                  <Input
+                    label="Nom"
+                    value={data.identite.nom}
+                    onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nom: e.target.value } }))}
+                  />
+                  <Input
+                    label="Prénom"
+                    value={data.identite.prenom}
+                    onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, prenom: e.target.value } }))}
+                  />
+                  <Input
+                    label="Date de naissance"
+                    type="date"
+                    value={data.identite.dateNaissance}
+                    onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, dateNaissance: e.target.value } }))}
+                  />
+                  <Input
+                    label="Nationalité"
+                    value={data.identite.nationalite}
+                    onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nationalite: e.target.value } }))}
+                  />
                 </div>
               </Card>
 
               {/* Carte Ménage */}
-              <Card title="🏠 Ménage">
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                  <Field label="Situation">
-                    <select 
-                      value={data.menage.situation}
-                      onChange={(e) => setData(d => ({ ...d, menage: { ...d.menage, situation: e.target.value } }))}
-                      style={{ width: "100%", padding: "8px" }}
-                    >
-                      <option value="isolé">Isolé (Cat. 2)</option>
-                      <option value="cohabitant">Cohabitant (Cat. 1)</option>
-                      <option value="famille">Famille (Cat. 3)</option>
-                    </select>
-                  </Field>
-                  <Field label="Nombre d'enfants à charge">
-                    <input 
-                      type="number" 
-                      min="0" 
-                      value={data.menage.nbEnfants}
-                      onChange={(e) => setData(d => ({ ...d, menage: { ...d.menage, nbEnfants: safeNumber(e.target.value, 0) } }))}
-                      style={{ width: "100%", padding: "8px" }}
-                    />
-                  </Field>
-                </div>
-              </Card>
+               <Card title="🏠 Ménage">
+                 <div style={{
+                   display: "grid",
+                   gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                   gap: "16px"
+                 }}>
+                   <Input
+                     label="Situation"
+                     type="select"
+                     value={data.menage.situation}
+                     onChange={(e) => setData(d => ({ ...d, menage: { ...d.menage, situation: e.target.value } }))}
+                   >
+                     <option value="isolé">Isolé (Cat. 2)</option>
+                     <option value="cohabitant">Cohabitant (Cat. 1)</option>
+                     <option value="famille">Famille (Cat. 3)</option>
+                   </Input>
+                   <Input
+                     label="Nombre d'enfants à charge"
+                     type="number"
+                     min="0"
+                     value={data.menage.nbEnfants}
+                     onChange={(e) => setData(d => ({ ...d, menage: { ...d.menage, nbEnfants: safeNumber(e.target.value, 0) } }))}
+                   />
+                 </div>
+               </Card>
             </div>
           )}
 
@@ -2341,176 +2338,83 @@ export default function App() {
           {active === "cmr" && (
             <section style={{ display: "grid", gap: 12 }}>
               <h2 style={{ marginTop: 0 }}>Chômage / Mutuelle / Remplacement</h2>
-
-              <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 12 }}>
-                <h3 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
+          
+              <Card title={
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   Chômage
-                  <a 
-                    href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    title="Documentation CPASConnect"
-                    style={{ 
-                      color: colors.textLight,
-                      textDecoration: "none",
-                      fontSize: "12px"
-                    }}
-                  >
+                  <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905"
+                    target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
+                    style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
                     📋
                   </a>
-                </h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-                  <Field label="Montant mensuel réel">
-                    <input type="number" value={data.cmr.chomage.mensuelReel}
-                      onChange={(e) => setData(d => ({
-                        ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, mensuelReel: safeNumber(e.target.value, 0) } }
-                      }))} />
-                  </Field>
-                  <Field label="Montant/jour (sur 26 jours)">
-                    <input type="number" value={data.cmr.chomage.montantJour26}
-                      onChange={(e) => setData(d => ({
-                        ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, montantJour26: safeNumber(e.target.value, 0) } }
-                      }))} />
-                  </Field>
-                  <Field label="Montant/jour (annuel)">
-                    <input type="number" value={data.cmr.chomage.montantJourAnnuel}
-                      onChange={(e) => setData(d => ({
-                        ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, montantJourAnnuel: safeNumber(e.target.value, 0) } }
-                      }))} />
-                  </Field>
+                </span>
+              }>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                  <Input label="Montant mensuel réel" type="number" value={data.cmr.chomage.mensuelReel}
+                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, mensuelReel: safeNumber(e.target.value, 0) } } }))} />
+                  <Input label="Montant/jour (sur 26 jours)" type="number" value={data.cmr.chomage.montantJour26}
+                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, montantJour26: safeNumber(e.target.value, 0) } } }))} />
+                  <Input label="Montant/jour (annuel)" type="number" value={data.cmr.chomage.montantJourAnnuel}
+                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, montantJourAnnuel: safeNumber(e.target.value, 0) } } }))} />
                 </div>
-              </div>
-
-              <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 12 }}>
-                <h3 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
+              </Card>
+          
+              <Card title={
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   Mutuelle
-                  <a 
-                    href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    title="Documentation CPASConnect"
-                    style={{ 
-                      color: colors.textLight,
-                      textDecoration: "none",
-                      fontSize: "12px"
-                    }}
-                  >
+                  <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905"
+                    target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
+                    style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
                     📋
                   </a>
-                </h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-                  <Field label="Montant mensuel réel">
-                    <input type="number" value={data.cmr.mutuelle.mensuelReel}
-                      onChange={(e) => setData(d => ({
-                        ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, mensuelReel: safeNumber(e.target.value, 0) } }
-                      }))} />
-                  </Field>
-                  <Field label="Montant/jour (sur 26 jours)">
-                    <input type="number" value={data.cmr.mutuelle.montantJour26}
-                      onChange={(e) => setData(d => ({
-                        ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, montantJour26: safeNumber(e.target.value, 0) } }
-                      }))} />
-                  </Field>
-                  <Field label="Montant/jour (annuel)">
-                    <input type="number" value={data.cmr.mutuelle.montantJourAnnuel}
-                      onChange={(e) => setData(d => ({
-                        ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, montantJourAnnuel: safeNumber(e.target.value, 0) } }
-                      }))} />
-                  </Field>
+                </span>
+              }>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                  <Input label="Montant mensuel réel" type="number" value={data.cmr.mutuelle.mensuelReel}
+                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, mensuelReel: safeNumber(e.target.value, 0) } } }))} />
+                  <Input label="Montant/jour (sur 26 jours)" type="number" value={data.cmr.mutuelle.montantJour26}
+                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, montantJour26: safeNumber(e.target.value, 0) } } }))} />
+                  <Input label="Montant/jour (annuel)" type="number" value={data.cmr.mutuelle.montantJourAnnuel}
+                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, montantJourAnnuel: safeNumber(e.target.value, 0) } } }))} />
                 </div>
-              </div>
-
-              <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 12 }}>
-                <h3 style={{ marginTop: 0 }}>Remplacement</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }}>
-                  <Field label="Pension (mensuel)">
-                    <input type="number" value={data.cmr.remplacement.pensionMensuel}
-                      onChange={(e) => setData(d => ({
-                        ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, pensionMensuel: safeNumber(e.target.value, 0) } }
-                      }))} />
-                  </Field>
-                  <Field label="Droit passerelle (mensuel)">
-                    <input type="number" value={data.cmr.remplacement.droitPasserelleMensuel}
-                      onChange={(e) => setData(d => ({
-                        ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, droitPasserelleMensuel: safeNumber(e.target.value, 0) } }
-                      }))} />
-                  </Field>
-                  <Field label={
-                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      Allocation d'Handicapé ARR (mensuel)
-                      <a 
-                        href="https://myportal.vandenbroeleconnect.be/perma/149746886634684880" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        title="Documentation CPASConnect"
-                        style={{ 
-                          color: colors.textLight,
-                          textDecoration: "none",
-                          fontSize: "12px"
-                        }}
-                      >
-                        📋
-                      </a>
-                    </span>
-                  }>
-                    <input type="number" value={data.cmr.remplacement.allocationHandicapeMensuel}
-                      onChange={(e) => setData(d => ({
-                        ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, allocationHandicapeMensuel: safeNumber(e.target.value, 0) } }
-                      }))} />
-                  </Field>
-                  <Field label="Indemnisation 'accident' pour perte de revenus (mensuel)">
-                    <input type="number" value={data.cmr.remplacement.indemnisation_perte_revenus}
-                      onChange={(e) => setData(d => ({
-                        ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, indemnisation_perte_revenus: safeNumber(e.target.value, 0) } }
-                      }))} />
-                  </Field>
-                  <Field label={
-                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      Autre revenu de remplacement (mensuel)
-                      <a 
-                        href="https://myportal.vandenbroeleconnect.be/perma/149746886634684904" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        title="Documentation CPASConnect"
-                        style={{ 
-                          color: colors.textLight,
-                          textDecoration: "none",
-                          fontSize: "12px"
-                        }}
-                      >
-                        📋
-                      </a>
-                    </span>
-                  }>
-                    <input type="number" value={data.cmr.remplacement.autres_revenus}
-                      onChange={(e) => setData(d => ({
-                        ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, autres_revenus: safeNumber(e.target.value, 0) } }
-                      }))} />
-                  </Field>
+              </Card>
+          
+              <Card title="Remplacement">
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                  <Input label="Pension (mensuel)" type="number" value={data.cmr.remplacement.pensionMensuel}
+                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, pensionMensuel: safeNumber(e.target.value, 0) } } }))} />
+                  <Input label="Droit passerelle (mensuel)" type="number" value={data.cmr.remplacement.droitPasserelleMensuel}
+                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, droitPasserelleMensuel: safeNumber(e.target.value, 0) } } }))} />
+                  <Input
+                    label={
+                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        Allocation d'Handicapé ARR (mensuel)
+                        <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684880"
+                          target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
+                          style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
+                          📋
+                        </a>
+                      </span>
+                    }
+                    type="number" value={data.cmr.remplacement.allocationHandicapeMensuel}
+                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, allocationHandicapeMensuel: safeNumber(e.target.value, 0) } } }))} />
+                  <Input label="Indemnisation 'accident' pour perte de revenus (mensuel)" type="number" value={data.cmr.remplacement.indemnisation_perte_revenus}
+                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, indemnisation_perte_revenus: safeNumber(e.target.value, 0) } } }))} />
+                  <Input
+                    label={
+                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        Autre revenu de remplacement (mensuel)
+                        <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684904"
+                          target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
+                          style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
+                          📋
+                        </a>
+                      </span>
+                    }
+                    type="number" value={data.cmr.remplacement.autres_revenus}
+                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, autres_revenus: safeNumber(e.target.value, 0) } } }))} />
                 </div>
-              </div>
-            </section>
-          )}
-
-          {active === "avantages" && (
-            <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Avantages en nature</h2>
-              <Field label="Charges locatives prises en charge par un tiers (€/mois)">
-                <input type="number" value={data.avantages.chargesLocativesTiers}
-                  onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, chargesLocativesTiers: safeNumber(e.target.value, 0) } }))} />
-              </Field>
-              <Field label="Loyer fictif évalué par un professionnel (€/mois)">
-                <input type="number" value={data.avantages.loyerFictifProfessionnel}
-                  onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifProfessionnel: safeNumber(e.target.value, 0) } }))} />
-              </Field>
-              <Field label="Loyer fictif évalué via simulateur ou grille de loyers (€/mois)">
-                <input type="number" value={data.avantages.loyerFictifSimulateur}
-                  onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifSimulateur: safeNumber(e.target.value, 0) } }))} />
-              </Field>
-              <Field label="Prêt hypothécaire pris en charge par un tiers (€/mois)">
-                <input type="number" value={data.avantages.pretHypothecaireTiers}
-                  onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, pretHypothecaireTiers: safeNumber(e.target.value, 0) } }))} />
-              </Field>
+              </Card>
             </section>
           )}
 
