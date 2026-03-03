@@ -491,88 +491,50 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10 }}>
-                  <label style={{ display: "grid", gap: 4 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600 }}>Nom</span>
-                    <input
-                      value={r.nom}
-                      onChange={(e) => updateRow(i, { nom: e.target.value })}
-                      placeholder="Nom du cohabitant"
-                      style={{ padding: "6px" }}
-                    />
-                  </label>
-
-                  <label style={{ display: "grid", gap: 4 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600 }}>Type</span>
-                    <select
-                      value={r.type}
-                      onChange={(e) => updateRow(i, { type: e.target.value })}
-                      style={{ padding: "6px" }}
-                    >
-                      <option value="Ascendants/descendant majeur">Ascendants/descendant majeur</option>
-                      <option value="Conjoint">Conjoint</option>
-                      <option value="Autre">Autre</option>
-                    </select>
-                  </label>
-
-                  <label style={{ display: "grid", gap: 4 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600 }}>Ressources totales (€/an)</span>
-                    <input
-                      type="number"
-                      value={r.ressourcesTotale}
-                      onChange={(e) => updateRow(i, { ressourcesTotale: safeNumber(e.target.value, 0) })}
-                      style={{ padding: "6px" }}
-                    />
-                  </label>
-
-                  <label style={{ display: "grid", gap: 4 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600 }}>Prise en charge</span>
-                    <select
-                      value={r.priseEnCharge}
-                      onChange={(e) => updateRow(i, { priseEnCharge: e.target.value })}
-                      style={{ padding: "6px" }}
-                    >
-                      <option value="Non">Non</option>
-                      <option value="Oui">Oui</option>
-                      <option value="MAX">MAX</option>
-                    </select>
-                  </label>
-
-                  <label style={{ display: "grid", gap: 4 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600 }}>Type de report</span>
-                    <select
-                      value={r.typeReport}
-                      onChange={(e) => updateRow(i, { typeReport: e.target.value })}
-                      style={{ padding: "6px" }}
-                    >
-                      <option value="Report max">Report max</option>
-                      <option value="Partenaire">Partenaire</option>
-                    </select>
-                  </label>
-
-                  <label style={{ display: "grid", gap: 4 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600 }}>% Report</span>
-                    <input
-                      type="number"
-                      value={r.pctReport}
-                      onChange={(e) => updateRow(i, { pctReport: safeNumber(e.target.value, 30) })}
-                      min="0"
-                      max="100"
-                      style={{ padding: "6px" }}
-                    />
-                  </label>
-
-                  <label style={{ display: "grid", gap: 4 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600 }}>Catégorie</span>
-                    <select
-                      value={r.categorie}
-                      onChange={(e) => updateRow(i, { categorie: parseInt(e.target.value) })}
-                      style={{ padding: "6px" }}
-                    >
-                      <option value={1}>1 - Cohabitant</option>
-                      <option value={2}>2 - Isolé</option>
-                      <option value={3}>3 - Famille</option>
-                    </select>
-                  </label>
+                  <Input label="Nom"
+                    value={r.nom}
+                    onChange={(e) => updateRow(i, { nom: e.target.value })}
+                    placeholder="Nom du cohabitant" />
+                
+                  <Input label="Type" type="select"
+                    value={r.type}
+                    onChange={(e) => updateRow(i, { type: e.target.value })}>
+                    <option value="Ascendants/descendant majeur">Ascendants/descendant majeur</option>
+                    <option value="Conjoint">Conjoint</option>
+                    <option value="Autre">Autre</option>
+                  </Input>
+                
+                  <Input label="Ressources totales (€/an)" type="number"
+                    value={r.ressourcesTotale}
+                    onChange={(e) => updateRow(i, { ressourcesTotale: safeNumber(e.target.value, 0) })} />
+                
+                  <Input label="Prise en charge" type="select"
+                    value={r.priseEnCharge}
+                    onChange={(e) => updateRow(i, { priseEnCharge: e.target.value })}>
+                    <option value="Non">Non</option>
+                    <option value="Oui">Oui</option>
+                    <option value="MAX">MAX</option>
+                  </Input>
+                
+                  <Input label="Type de report" type="select"
+                    value={r.typeReport}
+                    onChange={(e) => updateRow(i, { typeReport: e.target.value })}>
+                    <option value="Report max">Report max</option>
+                    <option value="Partenaire">Partenaire</option>
+                  </Input>
+                
+                  <Input label="% Report" type="number"
+                    value={r.pctReport}
+                    onChange={(e) => updateRow(i, { pctReport: safeNumber(e.target.value, 30) })}
+                    min="0" max="100" />
+                
+                  <Input label="Catégorie" type="select"
+                    value={r.categorie}
+                    onChange={(e) => updateRow(i, { categorie: parseInt(e.target.value) })}>
+                    <option value={1}>1 - Cohabitant</option>
+                    <option value={2}>2 - Isolé</option>
+                    <option value={3}>3 - Famille</option>
+                  </Input>
                 </div>
 
                 {/* Détail du calcul */}
