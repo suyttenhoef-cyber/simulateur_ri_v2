@@ -130,7 +130,7 @@ const defaultData = {
   cmr: {
     chomage: { mensuelReel: 0, montantJour26: 0, montantJourAnnuel: 0 },
     mutuelle: { mensuelReel: 0, montantJour26: 0, montantJourAnnuel: 0 },
-    remplacement: { pensionMensuel: 0, droitPasserelleMensuel: 0, allocationHandicapeMensuel: 0 }
+    remplacement: { pensionMensuel: 0, droitPasserelleMensuel: 0, allocationHandicapeMensuel: 0, indemnisation_perte_revenus: 0, autres_revenus: 0, }
   },
   avantages: {
     chargesLocativesTiers: 0, loyerFictifProfessionnel: 0,
@@ -1250,8 +1250,8 @@ function computeChomageOrMutuelleMonthly({ mensuelReel, montantJour26, montantJo
   return { mensuelTotal: m1 + m2 + m3, daysPaid };
 }
 
-function computeRemplacementMonthly({ pensionMensuel, droitPasserelleMensuel, allocationHandicapeMensuel }) {
-  return safeNumber(pensionMensuel, 0) + safeNumber(droitPasserelleMensuel, 0) + safeNumber(allocationHandicapeMensuel, 0);
+function computeRemplacementMonthly({ pensionMensuel, droitPasserelleMensuel, allocationHandicapeMensuel, indemnisation_perte_revenus }) {
+  return safeNumber(pensionMensuel, 0) + safeNumber(droitPasserelleMensuel, 0) + safeNumber(allocationHandicapeMensuel, 0) + safeNumber(indemnisation_perte_revenus, 0), + safeNumber(autres_revenus, 0);
 }
 function computeBiensMobiliersExcel({ montantCapital, partConcernee }) {
   const B = safeNumber(montantCapital, 0);
@@ -2343,7 +2343,22 @@ export default function App() {
               <h2 style={{ marginTop: 0 }}>Chômage / Mutuelle / Remplacement</h2>
 
               <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 12 }}>
-                <h3 style={{ marginTop: 0 }}>Chômage</h3>
+                <h3 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                  Chômage
+                  <a 
+                    href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    title="Documentation CPASConnect"
+                    style={{ 
+                      color: colors.textLight,
+                      textDecoration: "none",
+                      fontSize: "12px"
+                    }}
+                  >
+                    📋
+                  </a>
+                </h3>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
                   <Field label="Montant mensuel réel">
                     <input type="number" value={data.cmr.chomage.mensuelReel}
@@ -2367,7 +2382,22 @@ export default function App() {
               </div>
 
               <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 12 }}>
-                <h3 style={{ marginTop: 0 }}>Mutuelle</h3>
+                <h3 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                  Mutuelle
+                  <a 
+                    href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    title="Documentation CPASConnect"
+                    style={{ 
+                      color: colors.textLight,
+                      textDecoration: "none",
+                      fontSize: "12px"
+                    }}
+                  >
+                    📋
+                  </a>
+                </h3>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
                   <Field label="Montant mensuel réel">
                     <input type="number" value={data.cmr.mutuelle.mensuelReel}
@@ -2392,7 +2422,7 @@ export default function App() {
 
               <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 12 }}>
                 <h3 style={{ marginTop: 0 }}>Remplacement</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }}>
                   <Field label="Pension (mensuel)">
                     <input type="number" value={data.cmr.remplacement.pensionMensuel}
                       onChange={(e) => setData(d => ({
@@ -2405,10 +2435,56 @@ export default function App() {
                         ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, droitPasserelleMensuel: safeNumber(e.target.value, 0) } }
                       }))} />
                   </Field>
-                  <Field label="Allocation d'Handicapé ARR (mensuel)">
+                  <Field label={
+                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      Allocation d'Handicapé ARR (mensuel)
+                      <a 
+                        href="https://myportal.vandenbroeleconnect.be/perma/149746886634684880" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        title="Documentation CPASConnect"
+                        style={{ 
+                          color: colors.textLight,
+                          textDecoration: "none",
+                          fontSize: "12px"
+                        }}
+                      >
+                        📋
+                      </a>
+                    </span>
+                  }>
                     <input type="number" value={data.cmr.remplacement.allocationHandicapeMensuel}
                       onChange={(e) => setData(d => ({
                         ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, allocationHandicapeMensuel: safeNumber(e.target.value, 0) } }
+                      }))} />
+                  </Field>
+                  <Field label="Indemnisation 'accident' pour perte de revenus (mensuel)">
+                    <input type="number" value={data.cmr.remplacement.indemnisation_perte_revenus}
+                      onChange={(e) => setData(d => ({
+                        ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, indemnisation_perte_revenus: safeNumber(e.target.value, 0) } }
+                      }))} />
+                  </Field>
+                  <Field label={
+                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      Autre revenu de remplacement (mensuel)
+                      <a 
+                        href="https://myportal.vandenbroeleconnect.be/perma/149746886634684904" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        title="Documentation CPASConnect"
+                        style={{ 
+                          color: colors.textLight,
+                          textDecoration: "none",
+                          fontSize: "12px"
+                        }}
+                      >
+                        📋
+                      </a>
+                    </span>
+                  }>
+                    <input type="number" value={data.cmr.remplacement.autres_revenus}
+                      onChange={(e) => setData(d => ({
+                        ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, autres_revenus: safeNumber(e.target.value, 0) } }
                       }))} />
                   </Field>
                 </div>
