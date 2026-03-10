@@ -2978,10 +2978,6 @@ export default function App() {
           )}
         </main>
       </div>
-
-      <footer style={{ marginTop: 16, fontSize: 12, opacity: 0.65 }}>
-        Vanden Broele - CPASConnect Tool
-      </footer>
     </div>
   );
 }
