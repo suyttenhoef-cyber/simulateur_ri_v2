@@ -3,184 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulateur de Revenu d'Intégration - CPASConnect</title>
+    <meta name="description" content="Simulateur de Revenu d'Intégration - CPASConnect">
+    <title>Simulateur RI — CPASConnect</title>
+
+    <link rel="icon" href="https://www.cpasconnect.be/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --primary:     #163E67;
+            --primary-mid: #234268;
+            --accent:      #2BEBCE;
+            --accent-dark: #1BC9B0;
+            --bg:          #F5F8FA;
+            --surface:     #FFFFFF;
+            --border:      #E1E8ED;
+            --text:        #2C3E50;
+            --muted:       #7F8C8D;
+            --radius:      12px;
+            --shadow:      0 4px 20px rgba(22,62,103,.10);
         }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f8fa;
+
+        html, body {
+            height: 100%;
+            font-family: 'Source Sans Pro', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Layout global ── */
+        .page {
+            display: flex;
+            flex-direction: column;
             min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
+            padding: 16px 20px 24px;
+            gap: 14px;
         }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 20px;
-            background: #163E67;
-            color: white;
-            border-radius: 10px;
-        }
-        
-        .header h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            opacity: 0.9;
-            font-size: 16px;
-        }
-        
-        .iframe-container {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+
+        /* ── Topbar compacte ── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 100%);
+            border-radius: var(--radius);
+            padding: 14px 24px;
+            box-shadow: var(--shadow);
             position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
         }
-        
-        #simulator-iframe {
+
+        .topbar::after {
+            content: '';
+            position: absolute;
+            right: -30px; top: -40px;
+            width: 180px; height: 180px;
+            background: radial-gradient(circle, rgba(43,235,206,.12) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .topbar-logo {
+            height: 32px;
+            filter: brightness(0) invert(1);
+        }
+
+        .topbar-sep {
+            width: 1px; height: 28px;
+            background: rgba(255,255,255,.2);
+        }
+
+        .topbar-titles h1 {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 1px;
+        }
+
+        .topbar-titles p {
+            color: rgba(255,255,255,.75);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Boutons ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all .2s ease;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+
+        .btn-accent {
+            background: var(--accent);
+            color: var(--primary);
+            box-shadow: 0 2px 10px rgba(43,235,206,.35);
+        }
+        .btn-accent:hover { background: var(--accent-dark); }
+
+        .btn-ghost {
+            background: rgba(255,255,255,.12);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.2);
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,.22); }
+
+        /* ── Note info ── */
+        .info-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 13px;
+            color: var(--muted);
+            flex-shrink: 0;
+        }
+        .info-bar i { color: var(--accent-dark); font-size: 14px; flex-shrink: 0; }
+        .info-bar strong { color: var(--text); }
+
+        /* ── Wrapper iframe ── */
+        .iframe-shell {
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+            min-height: 600px;
+        }
+
+        /* Loader */
+        .loader {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            background: var(--bg);
+            z-index: 10;
+            transition: opacity .3s;
+        }
+
+        .loader-spinner {
+            width: 40px; height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loader-text {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        #sim-iframe {
             width: 100%;
-            height: 800px;
+            height: 100%;
+            min-height: 780px;
             border: none;
             display: block;
         }
-        
-        .loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+
+        /* ── Footer minimaliste ── */
+        .footer {
             text-align: center;
-            color: #163E67;
+            font-size: 12px;
+            color: var(--muted);
+            flex-shrink: 0;
         }
-        
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #2BEBCE;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
+        .footer a { color: var(--primary); font-weight: 600; }
+        .footer a:hover { color: var(--accent-dark); }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .page { padding: 10px 12px 16px; gap: 10px; }
+            .topbar { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+            .topbar-sep { display: none; }
+            .topbar-titles h1 { font-size: 14px; }
+            .btn span { display: none; }
+            #sim-iframe { min-height: 560px; }
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .controls {
-            margin-top: 20px;
-            text-align: center;
-        }
-        
-        button {
-            background: #2BEBCE;
-            color: #163E67;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-            margin: 0 5px;
-            transition: opacity 0.3s;
-        }
-        
-        button:hover {
-            opacity: 0.9;
-        }
-        
-        @media (max-width: 768px) {
-            #simulator-iframe {
-                height: 600px;
-            }
-            
-            body {
-                padding: 10px;
-            }
+
+        @media print {
+            .topbar, .info-bar, .footer { display: none; }
+            .iframe-shell { border: none; box-shadow: none; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Simulateur de Revenu d'Intégration</h1>
-            <p>Calcul local et sécurisé - Les données restent dans votre navigateur</p>
-        </div>
-        
-        <div class="iframe-container">
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>Chargement du simulateur...</p>
+<div class="page">
+
+    <!-- Topbar -->
+    <header class="topbar">
+        <div class="topbar-brand">
+            <img src="https://www.cpasconnect.be/img/cpasconnect/logo.svg" alt="CPASConnect" class="topbar-logo">
+            <div class="topbar-sep"></div>
+            <div class="topbar-titles">
+                <h1>Simulateur de Revenu d'Intégration</h1>
+                <p>Bibliothèque digitale pour les CPAS · Calcul local et sécurisé</p>
             </div>
-            <iframe 
-                id="simulator-iframe" 
-                src="https://suyttenhoef-cyber.github.io/simulateur_ri_v2/" 
-                title="Simulateur de Revenu d'Intégration"
-                allow="clipboard-write"
-                sandbox="allow-scripts allow-same-origin allow-forms"
-            ></iframe>
         </div>
-        
-        <div class="controls">
-            <button onclick="refreshApp()">🔄 Rafraîchir</button>
-            <button onclick="openFullscreen()">📺 Plein écran</button>
+        <div class="topbar-actions">
+            <button class="btn btn-ghost" onclick="refreshSim()" title="Rafraîchir">
+                <i class="fas fa-sync-alt"></i>
+                <span>Rafraîchir</span>
+            </button>
+            <button class="btn btn-accent" onclick="openFullscreen()" title="Plein écran">
+                <i class="fas fa-expand"></i>
+                <span>Plein écran</span>
+            </button>
         </div>
+    </header>
+
+    <!-- Note indicative -->
+    <div class="info-bar">
+        <i class="fas fa-info-circle"></i>
+        <span><strong>Outil d'aide à la décision.</strong> Les résultats sont indicatifs et doivent être validés par les services compétents du CPAS.</span>
     </div>
 
-    <script>
-        const iframe = document.getElementById('simulator-iframe');
-        const loading = document.getElementById('loading');
-        
-        // Masquer le chargement quand l'iframe est prête
-        iframe.addEventListener('load', function() {
-            setTimeout(() => {
-                loading.style.display = 'none';
-            }, 500);
-        });
-        
-        // Rafraîchir l'application
-        function refreshApp() {
-            loading.style.display = 'block';
-            iframe.src = iframe.src;
+    <!-- Iframe -->
+    <div class="iframe-shell">
+        <div class="loader" id="loader">
+            <div class="loader-spinner"></div>
+            <span class="loader-text">Chargement du simulateur…</span>
+        </div>
+        <iframe
+            id="sim-iframe"
+            src="https://suyttenhoef-cyber.github.io/simulateur_ri_v2/"
+            title="Simulateur de Revenu d'Intégration"
+            allow="clipboard-write; encrypted-media"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+        ></iframe>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        © 2026 <a href="https://www.cpasconnect.be/" target="_blank">Vanden Broele · CPASConnect</a> —
+        <a href="https://www.vandenbroele.be/fr-be/contactez-nous" target="_blank">Contact</a>
+    </footer>
+
+</div>
+
+<script>
+    /* Loader */
+    const iframe = document.getElementById('sim-iframe');
+    const loader = document.getElementById('loader');
+
+    iframe.addEventListener('load', () => {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.style.display = 'none', 300);
+    });
+
+    /* Rafraîchir */
+    function refreshSim() {
+        loader.style.display = 'flex';
+        loader.style.opacity = '1';
+        iframe.src = iframe.src;
+    }
+
+    /* Plein écran */
+    function openFullscreen() {
+        const el = iframe;
+        (el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen).call(el);
+    }
+
+    /* PDF depuis iframe */
+    window.addEventListener('message', (e) => {
+        if (e.origin !== 'https://suyttenhoef-cyber.github.io') return;
+        if (e.data?.type === 'DOWNLOAD_PDF') {
+            const a = document.createElement('a');
+            a.href = e.data.pdfData;
+            a.download = e.data.fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
         }
-        
-        // Plein écran
-        function openFullscreen() {
-            if (iframe.requestFullscreen) {
-                iframe.requestFullscreen();
-            } else if (iframe.webkitRequestFullscreen) {
-                iframe.webkitRequestFullscreen();
-            }
-        }
-        
-        // Erreur de chargement
-        iframe.addEventListener('error', function() {
-            loading.innerHTML = `
-                <div style="color: #e74c3c; font-size: 18px;">
-                    ⚠️ Erreur de chargement
-                </div>
-                <p style="margin-top: 10px;">
-                    L'application n'est pas disponible. 
-                    <br>
-                    <button onclick="refreshApp()" style="margin-top: 10px; background: #163E67; color: white;">
-                        Réessayer
-                    </button>
-                </p>
-            `;
-        });
-    </script>
+    });
+</script>
 </body>
 </html>
