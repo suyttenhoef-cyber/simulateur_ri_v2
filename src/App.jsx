@@ -1249,56 +1249,17 @@ function computeExonerationExcel({ dateISO, exo }) {
     totalAnnuel: (dem.totalMensuel + conj.totalMensuel) * 12,
   };
 }
-function Button({ children, onClick, variant = "primary", icon, disabled = false, className = "" }) {
-  const styles = {
-    primary: {
-      background: colors.primary,
-      color: colors.white,
-      border: "none"
-    },
-    secondary: {
-      background: colors.secondary,
-      color: colors.primary,
-      border: "none"
-    },
-    outline: {
-      background: "transparent",
-      color: colors.primary,
-      border: `2px solid ${colors.primary}`
-    },
-    danger: {
-      background: colors.danger,
-      color: colors.white,
-      border: "none"
-    }
-  };
+function Button({ children, onClick, variant = "primary", icon, disabled = false }) {
+  const variantClass = {
+    primary:   "btn btn--primary",
+    secondary: "btn btn--accent",
+    outline:   "btn btn--outline",
+    danger:    "btn btn--danger",
+    ghost:     "btn btn--ghost",
+  }[variant] || "btn btn--primary";
 
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={className}
-      style={{
-        ...styles[variant],
-        padding: "10px 20px",
-        borderRadius: "8px",
-        fontSize: "14px",
-        fontWeight: "600",
-        cursor: disabled ? "not-allowed" : "pointer",
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "8px",
-        transition: "all 0.2s",
-        opacity: disabled ? 0.5 : 1,
-        fontFamily: "'Source Sans Pro', sans-serif"
-      }}
-      onMouseOver={(e) => {
-        if (!disabled) e.target.style.transform = "translateY(-1px)";
-      }}
-      onMouseOut={(e) => {
-        if (!disabled) e.target.style.transform = "translateY(0)";
-      }}
-    >
+    <button onClick={onClick} disabled={disabled} className={variantClass}>
       {icon && <span>{icon}</span>}
       {children}
     </button>
