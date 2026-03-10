@@ -539,7 +539,7 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
         <div><b>Total mensuel des cohabitants : <Money value={totals.totalMensuel} /></b></div>
       </div>
 
-      <button onClick={addRow} style={{ marginTop: 10, cursor: "pointer", padding: "6px 10px" }}>
+      <button onClick={addRow} className="btn-add">
         + Ajouter un cohabitant
       </button>
     </Card>
@@ -606,7 +606,7 @@ function RowsTable({ title, rows, onChangeRows }) {
     <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
         <h3 style={{ margin: 0 }}>{title}</h3>
-        <button onClick={addRow} style={{ cursor: "pointer", padding: "6px 10px" }}>+ Ajouter</button>
+        <button onClick={addRow} className="btn-add">+ Ajouter</button>
       </div>
 
       {/* En-têtes de colonnes */}
@@ -855,7 +855,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
     <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
         <h3 style={{ margin: 0 }}>Cessions de biens</h3>
-        <button onClick={addRow} style={{ cursor: "pointer", padding: "6px 10px" }}>+ Ajouter</button>
+        <button onClick={addRow} className="btn-add">+ Ajouter</button>
       </div>
 
       {rows.length === 0 ? (
@@ -1014,7 +1014,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
     <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
         <h3 style={{ margin: 0 }}>Biens immobiliers</h3>
-        <button onClick={addRow} style={{ cursor: "pointer", padding: "6px 10px" }}>+ Ajouter</button>
+        <button onClick={addRow} className="btn-add">+ Ajouter</button>
       </div>
 
       {rows.length === 0 ? (
