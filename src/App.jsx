@@ -2949,13 +2949,13 @@ export default function App() {
             <section style={{ display: "grid", gap: 12 }}>
               <Card title="💰 Biens mobiliers">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  <Input label="Montant du capital (B5)" type="number"
+                  <Input label="Montant du capital" type="number"
                     value={data.biensMobiliers.montantCapital}
                     onChange={(e) => setData((d) => ({
                       ...d,
                       biensMobiliers: { ...d.biensMobiliers, montantCapital: safeNumber(e.target.value, 0) },
                     }))} />
-                  <Input label="Part concernée (%) (C5)" type="number"
+                  <Input label="Part concernée (%)" type="number"
                     value={data.biensMobiliers.partConcernee}
                     onChange={(e) => setData((d) => ({
                       ...d,
