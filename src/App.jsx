@@ -2889,11 +2889,11 @@ export default function App() {
 
                   {/* ================= E45 ================= */}
                   <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>
-                    Revenu d’intégration (mensuel)
+                    Revenu d’intégration mensuel
                   </td></tr>
 
                   <Row
-                    label="Revenu d’intégration (mois)"
+                    highlight label="Revenu d’intégration mensuel"
                     mensuel={result.apercu.ri.E45_montantMensuel}
                     annuel={null}
                     total={result.apercu.ri.E45_montantMensuel * 12}
