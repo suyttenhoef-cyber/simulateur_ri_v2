@@ -1267,22 +1267,8 @@ function Button({ children, onClick, variant = "primary", icon, disabled = false
 }
 function Card({ title, children }) {
   return (
-    <div style={{
-      border: `1px solid ${colors.border}`,
-      borderRadius: "12px",
-      padding: "20px",
-      background: colors.white,
-      boxShadow: "0 2px 8px rgba(0,0,0,0.04)"
-    }}>
-      <h3 style={{
-        marginTop: 0,
-        marginBottom: "16px",
-        fontSize: "16px",
-        fontWeight: "600",
-        color: colors.primary
-      }}>
-        {title}
-      </h3>
+    <div className="card">
+      {title && <h3 className="card__title">{title}</h3>}
       {children}
     </div>
   );
@@ -1308,45 +1294,17 @@ function Input({ label, type = "text", value, onChange, placeholder, hint }) {
     </Field>
   );
 }
-function Sidebar({ active, onSelect }) {
+unction Sidebar({ active, onSelect }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <nav style={{
-      background: colors.primary,
-      borderRadius: "12px",
-      padding: isCollapsed ? "16px 8px" : "16px",
-      height: "fit-content",
-      position: "sticky",
-      top: "20px",
-      transition: "all 0.3s"
-    }}>
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: "16px"
-      }}>
-        {!isCollapsed && (
-          <h2 style={{
-            margin: 0,
-            fontSize: "16px",
-            fontWeight: "700",
-            color: colors.white,
-            fontFamily: "'Source Sans Pro', sans-serif"
-          }}>
-            Menu
-          </h2>
-        )}
+    <nav className={`sidebar${isCollapsed ? " sidebar--collapsed" : ""}`}>
+      <div className="sidebar__header">
+        {!isCollapsed && <span className="sidebar__title">Navigation</span>}
         <button
+          className="sidebar__toggle"
           onClick={() => setIsCollapsed(!isCollapsed)}
-          style={{
-            background: "transparent",
-            border: "none",
-            color: colors.white,
-            cursor: "pointer",
-            fontSize: "20px"
-          }}
+          title={isCollapsed ? "Déplier" : "Replier"}
         >
           {isCollapsed ? "→" : "←"}
         </button>
@@ -1356,26 +1314,10 @@ function Sidebar({ active, onSelect }) {
         <button
           key={s.id}
           onClick={() => onSelect(s.id)}
-          style={{
-            width: "100%",
-            textAlign: "left",
-            padding: "12px",
-            marginBottom: "8px",
-            borderRadius: "8px",
-            border: "none",
-            background: active === s.id ? colors.secondary : "transparent",
-            color: active === s.id ? colors.primary : colors.white,
-            cursor: "pointer",
-            fontFamily: "'Source Sans Pro', sans-serif",
-            fontSize: "14px",
-            fontWeight: active === s.id ? "600" : "400",
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            transition: "all 0.2s"
-          }}
+          className={`sidebar__nav-btn${active === s.id ? " sidebar__nav-btn--active" : ""}`}
+          title={isCollapsed ? s.label : undefined}
         >
-          <span style={{ fontSize: "18px" }}>{s.icon}</span>
+          <span className="sidebar__nav-icon">{s.icon}</span>
           {!isCollapsed && <span>{s.label}</span>}
         </button>
       ))}
@@ -2049,900 +1991,461 @@ export default function App() {
   }
 
   return (
-    <div style={{
-      background: colors.background,
-      minHeight: "100vh",
-      fontFamily: "system-ui, -apple-system, sans-serif",
-      maxWidth: "100vw",      // ← AJOUT : Limite la largeur maximale
-      overflowX: "hidden",    // ← AJOUT : Cache le scroll horizontal
-      boxSizing: "border-box" // ← AJOUT : Inclut padding dans le calcul
-    }}>
-      <div style={{ 
-      display: "grid", 
-      gridTemplateColumns: "280px 1fr", 
-      gap: 16, 
-      marginTop: 16,
-      maxWidth: "100%",      // ← AJOUT
-      overflowX: "hidden"    // ← AJOUT
-    }}>
-        <Sidebar active={active} onSelect={setActive} />
+  <div style={{ background: "var(--bg-page)", minHeight: "100vh", maxWidth: "100vw", overflowX: "hidden" }}>
 
-        <main style={{ 
-          border: "1px solid #ddd", 
-          borderRadius: 10, 
-          padding: 16, 
-          width: "100%",
-          maxWidth: "100%",     // ← AJOUT
-          overflowX: "auto",    // ← AJOUT : permet le scroll interne si nécessaire
-          boxSizing: "border-box" // ← AJOUT
-        }}>
-          {active === "informations" && (
-            <div style={{ display: "grid", gap: "24px" }}>
-              {/* Carte Référence */}
-              <Card title="📅 Référence">
-                <div style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                  gap: "16px"
-                }}>
-                  <Input
-                    label={
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <span>Date de référence (barème)</span>
-                        <a 
-                          href="https://myportal.vandenbroeleconnect.be/perma/149746886634684678" 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          title="Documentation CPASConnect"
-                          style={{ 
-                            color: colors.textLight,
-                            textDecoration: "none",
-                            fontSize: "12px"
-                          }}
-                        >
-                          📋
-                        </a>
-                      </div>
-                    }
-                    type="date"
-                    value={data.reference.dateISO}
-                    onChange={(e) => setData(d => ({ ...d, reference: { ...d.reference, dateISO: e.target.value } }))}
-                  />
-                  <Input
-                    label="Jours pris en compte (prorata)"
-                    type="number"
-                    placeholder="Laissez vide pour mois complet"
-                    hint=""
-                    value={data.reference.joursPrisEnCompte}
-                    onChange={(e) => setData(d => ({ ...d, reference: { ...d.reference, joursPrisEnCompte: e.target.value } }))}
-                  />
-                </div>
-              </Card>
+    {/* ── Header ── */}
+    <header className="app-header">
+      <div className="app-header__logo-section">
+        <img
+          src="https://www.cpasconnect.be/img/cpasconnect/logo.svg"
+          alt="CPASConnect"
+          className="app-header__logo"
+        />
+        <div className="app-header__separator" />
+        <div className="app-header__titles">
+          <h1>Simulateur de Revenu d'Intégration</h1>
+          <p>Bibliothèque digitale pour les CPAS — Calcul local et sécurisé</p>
+        </div>
+      </div>
 
-              {/* Carte Identité */}
-              <Card title="👤 Identité">
-                <div style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                  gap: "16px"
-                }}>
-                  <Input
-                    label="Nom"
-                    value={data.identite.nom}
-                    onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nom: e.target.value } }))}
-                  />
-                  <Input
-                    label="Prénom"
-                    value={data.identite.prenom}
-                    onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, prenom: e.target.value } }))}
-                  />
-                  <Input
-                    label="Date de naissance"
-                    type="date"
-                    value={data.identite.dateNaissance}
-                    onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, dateNaissance: e.target.value } }))}
-                  />
-                  <Input
-                    label="Nationalité"
-                    value={data.identite.nationalite}
-                    onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nationalite: e.target.value } }))}
-                  />
-                </div>
-              </Card>
+      <div className="app-header__actions">
+        <button
+          className="btn btn--accent"
+          onClick={handleExportPDF}
+          disabled={isGeneratingPDF}
+        >
+          {isGeneratingPDF ? "⏳ Génération..." : "📄 Exporter PDF"}
+        </button>
+        <button className="btn btn--ghost" onClick={handleReset}>
+          🔄 Réinitialiser
+        </button>
+      </div>
+    </header>
 
-              {/* Carte Ménage */}
-               <Card title="🏠 Ménage">
-                 <div style={{
-                   display: "grid",
-                   gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                   gap: "16px"
-                 }}>
-                   <Input
-                     label="Situation"
-                     type="select"
-                     value={data.menage.situation}
-                     onChange={(e) => setData(d => ({ ...d, menage: { ...d.menage, situation: e.target.value } }))}
-                   >
-                     <option value="isolé">Isolé (Cat. 2)</option>
-                     <option value="cohabitant">Cohabitant (Cat. 1)</option>
-                     <option value="famille">Famille (Cat. 3)</option>
-                   </Input>
-                   <Input
-                     label="Nombre d'enfants à charge"
-                     type="number"
-                     min="0"
-                     value={data.menage.nbEnfants}
-                     onChange={(e) => setData(d => ({ ...d, menage: { ...d.menage, nbEnfants: safeNumber(e.target.value, 0) } }))}
-                   />
-                 </div>
-               </Card>
-            </div>
-          )}
+    {/* ── Layout sidebar + contenu ── */}
+    <div className="app-layout">
+      <Sidebar active={active} onSelect={setActive} />
 
-          {active === "revenus_nets" && (
-            <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                Revenus nets
-                <a 
-                  href="https://myportal.vandenbroeleconnect.be/perma/149746886634684897" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  title="Documentation CPASConnect"
-                  style={{ 
-                    color: colors.textLight,
-                    textDecoration: "none",
-                    fontSize: "12px"
-                  }}
-                >
-                  📋
-                </a>
-              </h2>
-              <RowsTable title="Demandeur" rows={data.revenusNets.demandeur.rows}
-                onChangeRows={(rows) => setData(d => ({
-                  ...d, revenusNets: { ...d.revenusNets, demandeur: { ...d.revenusNets.demandeur, rows } }
-                }))} />
+      <main className="app-main">
 
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <input type="checkbox" checked={data.revenusNets.conjoint.enabled}
-                  onChange={(e) => setData(d => ({
-                    ...d, revenusNets: { ...d.revenusNets, conjoint: { ...d.revenusNets.conjoint, enabled: e.target.checked } }
-                  }))} />
-                <span>Encoder aussi les revenus nets du conjoint</span>
+        {/* ── Informations ── */}
+        {active === "informations" && (
+          <div style={{ display: "grid", gap: "24px" }}>
+            <Card title="📅 Référence">
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+                <Input
+                  label={
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <span>Date de référence (barème)</span>
+                      <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684678"
+                        target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
+                        style={{ color: "var(--text-muted)", textDecoration: "none", fontSize: "12px" }}>📋</a>
+                    </div>
+                  }
+                  type="date"
+                  value={data.reference.dateISO}
+                  onChange={(e) => setData(d => ({ ...d, reference: { ...d.reference, dateISO: e.target.value } }))}
+                />
+                <Input
+                  label="Jours pris en compte (prorata)"
+                  type="number"
+                  placeholder="Laissez vide pour mois complet"
+                  value={data.reference.joursPrisEnCompte}
+                  onChange={(e) => setData(d => ({ ...d, reference: { ...d.reference, joursPrisEnCompte: e.target.value } }))}
+                />
               </div>
+            </Card>
 
-              {data.revenusNets.conjoint.enabled && (
-                <RowsTable title="Conjoint" rows={data.revenusNets.conjoint.rows}
-                  onChangeRows={(rows) => setData(d => ({
-                    ...d, revenusNets: { ...d.revenusNets, conjoint: { ...d.revenusNets.conjoint, rows } }
-                  }))} />
-              )}
-            </section>
-          )}
+            <Card title="👤 Identité">
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+                <Input label="Nom" value={data.identite.nom}
+                  onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nom: e.target.value } }))} />
+                <Input label="Prénom" value={data.identite.prenom}
+                  onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, prenom: e.target.value } }))} />
+                <Input label="Date de naissance" type="date" value={data.identite.dateNaissance}
+                  onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, dateNaissance: e.target.value } }))} />
+                <Input label="Nationalité" value={data.identite.nationalite}
+                  onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nationalite: e.target.value } }))} />
+              </div>
+            </Card>
 
-          {active === "cmr" && (
-            <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Chômage / Mutuelle / Remplacement</h2>
-          
-              <Card title={
-                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  Chômage
-                  <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905"
-                    target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                    style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
-                    📋
-                  </a>
-                </span>
-              }>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  <Input label="Montant mensuel réel" type="number" value={data.cmr.chomage.mensuelReel}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, mensuelReel: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Montant/jour (sur 26 jours)" type="number" value={data.cmr.chomage.montantJour26}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, montantJour26: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Montant/jour (annuel)" type="number" value={data.cmr.chomage.montantJourAnnuel}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, montantJourAnnuel: safeNumber(e.target.value, 0) } } }))} />
-                </div>
-              </Card>
-          
-              <Card title={
-                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  Mutuelle
-                  <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905"
-                    target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                    style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
-                    📋
-                  </a>
-                </span>
-              }>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  <Input label="Montant mensuel réel" type="number" value={data.cmr.mutuelle.mensuelReel}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, mensuelReel: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Montant/jour (sur 26 jours)" type="number" value={data.cmr.mutuelle.montantJour26}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, montantJour26: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Montant/jour (annuel)" type="number" value={data.cmr.mutuelle.montantJourAnnuel}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, montantJourAnnuel: safeNumber(e.target.value, 0) } } }))} />
-                </div>
-              </Card>
-          
-              <Card title="Remplacement">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  <Input label="Pension (mensuel)" type="number" value={data.cmr.remplacement.pensionMensuel}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, pensionMensuel: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Droit passerelle (mensuel)" type="number" value={data.cmr.remplacement.droitPasserelleMensuel}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, droitPasserelleMensuel: safeNumber(e.target.value, 0) } } }))} />
-                  <Input
-                    label={
-                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        Allocation d'Handicapé ARR (mensuel)
-                        <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684880"
-                          target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                          style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
-                          📋
-                        </a>
-                      </span>
-                    }
-                    type="number" value={data.cmr.remplacement.allocationHandicapeMensuel}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, allocationHandicapeMensuel: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Indemnisation 'accident' pour perte de revenus (mensuel)" type="number" value={data.cmr.remplacement.indemnisation_perte_revenus}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, indemnisation_perte_revenus: safeNumber(e.target.value, 0) } } }))} />
-                  <Input
-                    label={
-                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        Autre revenu de remplacement (mensuel)
-                        <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684904"
-                          target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                          style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
-                          📋
-                        </a>
-                      </span>
-                    }
-                    type="number" value={data.cmr.remplacement.autres_revenus}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, autres_revenus: safeNumber(e.target.value, 0) } } }))} />
-                </div>
-              </Card>
-            </section>
-          )}
-          {active === "avantages" && (
-            <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Avantages en nature</h2>
-              <Card title="🏠 Avantages en nature">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  <Input label="Charges locatives prises en charge par un tiers (€/mois)" type="number"
-                    value={data.avantages.chargesLocativesTiers}
-                    onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, chargesLocativesTiers: safeNumber(e.target.value, 0) } }))} />
-                  <Input label="Loyer fictif évalué par un professionnel (€/mois)" type="number"
-                    value={data.avantages.loyerFictifProfessionnel}
-                    onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifProfessionnel: safeNumber(e.target.value, 0) } }))} />
-                  <Input label="Loyer fictif évalué via simulateur ou grille de loyers (€/mois)" type="number"
-                    value={data.avantages.loyerFictifSimulateur}
-                    onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifSimulateur: safeNumber(e.target.value, 0) } }))} />
-                  <Input label="Prêt hypothécaire pris en charge par un tiers (€/mois)" type="number"
-                    value={data.avantages.pretHypothecaireTiers}
-                    onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, pretHypothecaireTiers: safeNumber(e.target.value, 0) } }))} />
-                </div>
-              </Card>
-            </section>
-          )}
+            <Card title="🏠 Ménage">
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+                <Input label="Situation" type="select" value={data.menage.situation}
+                  onChange={(e) => setData(d => ({ ...d, menage: { ...d.menage, situation: e.target.value } }))}>
+                  <option value="isolé">Isolé (Cat. 2)</option>
+                  <option value="cohabitant">Cohabitant (Cat. 1)</option>
+                  <option value="famille">Famille (Cat. 3)</option>
+                </Input>
+                <Input label="Nombre d'enfants à charge" type="number" min="0" value={data.menage.nbEnfants}
+                  onChange={(e) => setData(d => ({ ...d, menage: { ...d.menage, nbEnfants: safeNumber(e.target.value, 0) } }))} />
+              </div>
+            </Card>
+          </div>
+        )}
 
-          {active === "cessions_biens" && (
-            <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Cessions de biens</h2>
-              <CessionsBiensTable 
-                rows={data.cessionsBiens.rows}
-                categorie={data.menage.situation === "isolé" ? 2 : data.menage.situation === "cohabitant" ? 1 : 3}
-                onChangeRows={(rows) => setData(d => ({ ...d, cessionsBiens: { rows } }))} 
-              />
-            </section>
-          )}
-          {active === "exoneration" && (
-            <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Exonération</h2>
+        {/* ── Revenus nets ── */}
+        {active === "revenus_nets" && (
+          <section style={{ display: "grid", gap: 12 }}>
+            <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
+              Revenus nets
+              <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684897"
+                target="_blank" rel="noopener noreferrer"
+                style={{ color: "var(--text-muted)", textDecoration: "none", fontSize: "12px" }}>📋</a>
+            </h2>
+            <RowsTable title="Demandeur" rows={data.revenusNets.demandeur.rows}
+              onChangeRows={(rows) => setData(d => ({ ...d, revenusNets: { ...d.revenusNets, demandeur: { ...d.revenusNets.demandeur, rows } } }))} />
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <input type="checkbox" checked={data.revenusNets.conjoint.enabled}
+                onChange={(e) => setData(d => ({ ...d, revenusNets: { ...d.revenusNets, conjoint: { ...d.revenusNets.conjoint, enabled: e.target.checked } } }))} />
+              <span>Encoder aussi les revenus nets du conjoint</span>
+            </div>
+            {data.revenusNets.conjoint.enabled && (
+              <RowsTable title="Conjoint" rows={data.revenusNets.conjoint.rows}
+                onChangeRows={(rows) => setData(d => ({ ...d, revenusNets: { ...d.revenusNets, conjoint: { ...d.revenusNets.conjoint, rows } } }))} />
+            )}
+          </section>
+        )}
 
-              {/* Résumé calculé (Excel-like) */}
-              {(() => {
-                const exoCalc = computeExonerationExcel({
-                  dateISO: data.reference.dateISO || "2025-02-01",
-                  exo: data.exoneration,
-                });
+        {/* ── Chômage / Mutuelle / Remplacement ── */}
+        {active === "cmr" && (
+          <section style={{ display: "grid", gap: 12 }}>
+            <h2 style={{ marginTop: 0 }}>Chômage / Mutuelle / Remplacement</h2>
+            <Card title={<span style={{ display: "flex", alignItems: "center", gap: 8 }}>Chômage <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-muted)", textDecoration: "none", fontSize: "12px" }}>📋</a></span>}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                <Input label="Montant mensuel réel" type="number" value={data.cmr.chomage.mensuelReel}
+                  onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, mensuelReel: safeNumber(e.target.value, 0) } } }))} />
+                <Input label="Montant/jour (sur 26 jours)" type="number" value={data.cmr.chomage.montantJour26}
+                  onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, montantJour26: safeNumber(e.target.value, 0) } } }))} />
+                <Input label="Montant/jour (annuel)" type="number" value={data.cmr.chomage.montantJourAnnuel}
+                  onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, montantJourAnnuel: safeNumber(e.target.value, 0) } } }))} />
+              </div>
+            </Card>
+            <Card title={<span style={{ display: "flex", alignItems: "center", gap: 8 }}>Mutuelle <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-muted)", textDecoration: "none", fontSize: "12px" }}>📋</a></span>}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                <Input label="Montant mensuel réel" type="number" value={data.cmr.mutuelle.mensuelReel}
+                  onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, mensuelReel: safeNumber(e.target.value, 0) } } }))} />
+                <Input label="Montant/jour (sur 26 jours)" type="number" value={data.cmr.mutuelle.montantJour26}
+                  onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, montantJour26: safeNumber(e.target.value, 0) } } }))} />
+                <Input label="Montant/jour (annuel)" type="number" value={data.cmr.mutuelle.montantJourAnnuel}
+                  onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, montantJourAnnuel: safeNumber(e.target.value, 0) } } }))} />
+              </div>
+            </Card>
+            <Card title="Remplacement">
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                <Input label="Pension (mensuel)" type="number" value={data.cmr.remplacement.pensionMensuel}
+                  onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, pensionMensuel: safeNumber(e.target.value, 0) } } }))} />
+                <Input label="Droit passerelle (mensuel)" type="number" value={data.cmr.remplacement.droitPasserelleMensuel}
+                  onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, droitPasserelleMensuel: safeNumber(e.target.value, 0) } } }))} />
+                <Input label="Allocation d'Handicapé ARR (mensuel)" type="number" value={data.cmr.remplacement.allocationHandicapeMensuel}
+                  onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, allocationHandicapeMensuel: safeNumber(e.target.value, 0) } } }))} />
+                <Input label="Indemnisation perte de revenus (mensuel)" type="number" value={data.cmr.remplacement.indemnisation_perte_revenus}
+                  onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, indemnisation_perte_revenus: safeNumber(e.target.value, 0) } } }))} />
+                <Input label="Autre revenu de remplacement (mensuel)" type="number" value={data.cmr.remplacement.autres_revenus}
+                  onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, autres_revenus: safeNumber(e.target.value, 0) } } }))} />
+              </div>
+            </Card>
+          </section>
+        )}
 
-                return (
-                  <div style={{ padding: 10, background: "#f5f5f5", borderRadius: 8 }}>
+        {/* ── Avantages en nature ── */}
+        {active === "avantages" && (
+          <section style={{ display: "grid", gap: 12 }}>
+            <h2 style={{ marginTop: 0 }}>Avantages en nature</h2>
+            <Card title="🏠 Avantages en nature">
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                <Input label="Charges locatives prises en charge par un tiers (€/mois)" type="number"
+                  value={data.avantages.chargesLocativesTiers}
+                  onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, chargesLocativesTiers: safeNumber(e.target.value, 0) } }))} />
+                <Input label="Loyer fictif évalué par un professionnel (€/mois)" type="number"
+                  value={data.avantages.loyerFictifProfessionnel}
+                  onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifProfessionnel: safeNumber(e.target.value, 0) } }))} />
+                <Input label="Loyer fictif évalué via simulateur ou grille de loyers (€/mois)" type="number"
+                  value={data.avantages.loyerFictifSimulateur}
+                  onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifSimulateur: safeNumber(e.target.value, 0) } }))} />
+                <Input label="Prêt hypothécaire pris en charge par un tiers (€/mois)" type="number"
+                  value={data.avantages.pretHypothecaireTiers}
+                  onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, pretHypothecaireTiers: safeNumber(e.target.value, 0) } }))} />
+              </div>
+            </Card>
+          </section>
+        )}
+
+        {/* ── Cessions de biens ── */}
+        {active === "cessions_biens" && (
+          <section style={{ display: "grid", gap: 12 }}>
+            <h2 style={{ marginTop: 0 }}>Cessions de biens</h2>
+            <CessionsBiensTable
+              rows={data.cessionsBiens.rows}
+              categorie={data.menage.situation === "isolé" ? 2 : data.menage.situation === "cohabitant" ? 1 : 3}
+              onChangeRows={(rows) => setData(d => ({ ...d, cessionsBiens: { rows } }))}
+            />
+          </section>
+        )}
+
+        {/* ── Biens mobiliers ── */}
+        {active === "biens_mobiliers" && (
+          <section style={{ display: "grid", gap: 12 }}>
+            <Card title="💰 Biens mobiliers">
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                <Input label="Montant du capital (B5)" type="number" value={data.biensMobiliers.montantCapital}
+                  onChange={(e) => setData(d => ({ ...d, biensMobiliers: { ...d.biensMobiliers, montantCapital: safeNumber(e.target.value, 0) } }))} />
+                <Input label="Part concernée (%) (C5)" type="number" value={data.biensMobiliers.partConcernee}
+                  onChange={(e) => setData(d => ({ ...d, biensMobiliers: { ...d.biensMobiliers, partConcernee: safeNumber(e.target.value, 100) } }))} />
+              </div>
+              <div className="summary-box" style={{ marginTop: 16 }}>
+                {(() => {
+                  const bm = computeBiensMobiliersExcel(data.biensMobiliers);
+                  return (
+                    <>
+                      <div><b>Total annuel :</b> <Money value={bm.totalAnnuel} /></div>
+                      <div><b>Total mensuel :</b> <Money value={bm.totalMensuel} /></div>
+                    </>
+                  );
+                })()}
+              </div>
+            </Card>
+          </section>
+        )}
+
+        {/* ── Biens immobiliers ── */}
+        {active === "biens_immobiliers" && (
+          <section style={{ display: "grid", gap: 12 }}>
+            <h2 style={{ marginTop: 0 }}>Biens immobiliers</h2>
+            <BiensImmobiliersTable rows={data.biensImmobiliers.rows}
+              onChangeRows={(rows) => setData(d => ({ ...d, biensImmobiliers: { rows } }))} />
+          </section>
+        )}
+
+        {/* ── Ressources diverses ── */}
+        {active === "ressources_diverses" && (
+          <section style={{ display: "grid", gap: 12 }}>
+            <Card title="📦 Ressources diverses générales">
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                {data.ressourcesDiverses.generales.map((r, i) => (
+                  <Input key={i} label={r.label} type="number" value={r.montant}
+                    onChange={(e) => {
+                      const next = [...data.ressourcesDiverses.generales];
+                      next[i] = { ...next[i], montant: safeNumber(e.target.value, 0) };
+                      setData(d => ({ ...d, ressourcesDiverses: { ...d.ressourcesDiverses, generales: next } }));
+                    }} />
+                ))}
+              </div>
+            </Card>
+            <Card title="🤝 Ressources diverses — Bénévoles">
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                {data.ressourcesDiverses.benevoles.map((r, i) => (
+                  <Input key={i} label={r.label} type="number" value={r.montant}
+                    onChange={(e) => {
+                      const next = [...data.ressourcesDiverses.benevoles];
+                      next[i] = { ...next[i], montant: safeNumber(e.target.value, 0) };
+                      setData(d => ({ ...d, ressourcesDiverses: { ...d.ressourcesDiverses, benevoles: next } }));
+                    }} />
+                ))}
+              </div>
+            </Card>
+          </section>
+        )}
+
+        {/* ── Exonération ── */}
+        {active === "exoneration" && (
+          <section style={{ display: "grid", gap: 12 }}>
+            <h2 style={{ marginTop: 0 }}>Exonération</h2>
+            {(() => {
+              const exoCalc = computeExonerationExcel({ dateISO: data.reference.dateISO || "2025-02-01", exo: data.exoneration });
+              return (
+                <div className="summary-box">
+                  <div><b>Total exonération mensuelle :</b> <Money value={exoCalc.totalMensuel} /></div>
+                  <div style={{ opacity: 0.75, fontSize: 12 }}>(Total annuel : <b><Money value={exoCalc.totalAnnuel} /></b>)</div>
+                  <hr style={{ margin: "10px 0", borderColor: "var(--border)" }} />
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <div>
-                      <b>Total exonération mensuelle :</b>{" "}
-                      <Money value={exoCalc.totalMensuel} />
-                    </div>
-                    <div style={{ opacity: 0.75, fontSize: 12 }}>
-                      (Total annuel : <b><Money value={exoCalc.totalAnnuel} /></b>)
-                    </div>
-
-                    <hr style={{ margin: "10px 0" }} />
-
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                      <div>
-                        <div><b>Demandeur</b></div>
-                        <div style={{ fontSize: 12, opacity: 0.75 }}>
-                          Général: <Money value={exoCalc.demandeur.exoGeneralMens} /> / mois — Étudiant:{" "}
-                          <Money value={exoCalc.demandeur.exoEtudMens} /> / mois — Pénurie:{" "}
-                          <Money value={exoCalc.demandeur.exoPenurieMens} /> / mois — Artiste:{" "}
-                          <Money value={exoCalc.demandeur.exoArtisteAnnuel} /> / an
-                        </div>
+                      <div><b>Demandeur</b></div>
+                      <div style={{ fontSize: 12, opacity: 0.75 }}>
+                        Général: <Money value={exoCalc.demandeur.exoGeneralMens} /> / mois — Étudiant: <Money value={exoCalc.demandeur.exoEtudMens} /> / mois — Pénurie: <Money value={exoCalc.demandeur.exoPenurieMens} /> / mois — Artiste: <Money value={exoCalc.demandeur.exoArtisteAnnuel} /> / an
                       </div>
-
-                      <div>
-                        <div><b>Conjoint</b></div>
-                        <div style={{ fontSize: 12, opacity: 0.75 }}>
-                          Général: <Money value={exoCalc.conjoint.exoGeneralMens} /> / mois — Étudiant:{" "}
-                          <Money value={exoCalc.conjoint.exoEtudMens} /> / mois — Pénurie:{" "}
-                          <Money value={exoCalc.conjoint.exoPenurieMens} /> / mois — Artiste:{" "}
-                          <Money value={exoCalc.conjoint.exoArtisteAnnuel} /> / an
-                        </div>
+                    </div>
+                    <div>
+                      <div><b>Conjoint</b></div>
+                      <div style={{ fontSize: 12, opacity: 0.75 }}>
+                        Général: <Money value={exoCalc.conjoint.exoGeneralMens} /> / mois — Étudiant: <Money value={exoCalc.conjoint.exoEtudMens} /> / mois — Pénurie: <Money value={exoCalc.conjoint.exoPenurieMens} /> / mois — Artiste: <Money value={exoCalc.conjoint.exoArtisteAnnuel} /> / an
                       </div>
                     </div>
                   </div>
-                );
-              })()}
-
-              {/* Formulaire (les champs Excel C5/C6/C7/C8/C11 et H5/H6/H7/H8/H11) */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                {/* DEMANDEUR */}
-                <div style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12 }}>
-                  <h3 style={{ marginTop: 0 }}>Demandeur</h3>
-
-                  <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <input
-                      type="checkbox"
-                      checked={!!data.exoneration.demandeur.general}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            demandeur: { ...d.exoneration.demandeur, general: e.target.checked },
-                          },
-                        }))
-                      }
-                    />
-                    Exonération générale
-                    <a 
-                      href="https://myportal.vandenbroeleconnect.be/perma/149746886634684907" 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      title="Documentation CPASConnect"
-                      style={{ 
-                        color: colors.textLight,
-                        textDecoration: "none",
-                        fontSize: "12px"
-                      }}
-                    >
-                      📋
-                    </a>
-                  </label>
-
-                  <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!data.exoneration.demandeur.etudiant}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            demandeur: { ...d.exoneration.demandeur, etudiant: e.target.checked },
-                          },
-                        }))
-                      }
-                    />
-                    Exonération étudiants
-                    <a 
-                      href="https://myportal.vandenbroeleconnect.be/perma/149746886634684907" 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      title="Documentation CPASConnect"
-                      style={{ 
-                        color: colors.textLight,
-                        textDecoration: "none",
-                        fontSize: "12px"
-                      }}
-                    >
-                      📋
-                    </a>
-                  </label>
-
-                  <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!data.exoneration.demandeur.penurie}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            demandeur: { ...d.exoneration.demandeur, penurie: e.target.checked },
-                          },
-                        }))
-                      }
-                    />
-                    Exonération pénurie
-                    <a 
-                      href="https://myportal.vandenbroeleconnect.be/perma/149746886634385151" 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      title="Documentation CPASConnect"
-                      style={{ 
-                        color: colors.textLight,
-                        textDecoration: "none",
-                        fontSize: "12px"
-                      }}
-                    >
-                      📋
-                    </a>
-                  </label>
-
-                  <Field label={
-                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      Jours (si compteur dépassé)
-                      <a 
-                        href="https://myportal.vandenbroeleconnect.be/perma/149746886634684897" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        title="Documentation CPASConnect"
-                        style={{ 
-                          color: colors.textLight,
-                          textDecoration: "none",
-                          fontSize: "12px"
-                        }}
-                      >
-                        📋
-                      </a>
-                    </span>
-                  }>
-                    <input
-                      type="number"
-                      value={data.exoneration.demandeur.joursCompteur}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            demandeur: {
-                              ...d.exoneration.demandeur,
-                              joursCompteur: safeNumber(e.target.value, 0),
-                            },
-                          },
-                        }))
-                      }
-                    />
-                  </Field>
-
-                  <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!data.exoneration.demandeur.artisteSP}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            demandeur: { ...d.exoneration.demandeur, artisteSP: e.target.checked },
-                          },
-                        }))
-                      }
-                    />
-                    Activité artistique socio-prof (annuel)
-                  </label>
                 </div>
-
-                {/* CONJOINT */}
-                <div style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12 }}>
-                  <h3 style={{ marginTop: 0 }}>Conjoint</h3>
-
-                  <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <input
-                      type="checkbox"
-                      checked={!!data.exoneration.conjoint.general}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            conjoint: { ...d.exoneration.conjoint, general: e.target.checked },
-                          },
-                        }))
-                      }
-                    />
-                    Exonération générale
-                  </label>
-
-                  <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!data.exoneration.conjoint.etudiant}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            conjoint: { ...d.exoneration.conjoint, etudiant: e.target.checked },
-                          },
-                        }))
-                      }
-                    />
-                    Exonération étudiant
-                  </label>
-
-                  <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!data.exoneration.conjoint.penurie}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            conjoint: { ...d.exoneration.conjoint, penurie: e.target.checked },
-                          },
-                        }))
-                      }
-                    />
-                    Exonération pénurie
-                  </label>
-                  <Field label={
-                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      Jours (si compteur dépassé)
-                      <a 
-                        href="https://myportal.vandenbroeleconnect.be/perma/149746886634684897" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        title="Documentation CPASConnect"
-                        style={{ 
-                          color: colors.textLight,
-                          textDecoration: "none",
-                          fontSize: "12px"
-                        }}
-                      >
-                        📋
-                      </a>
-                    </span>
-                  }>
-                    <input
-                      type="number"
-                      value={data.exoneration.conjoint.joursCompteur}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            conjoint: {
-                              ...d.exoneration.conjoint,
-                              joursCompteur: safeNumber(e.target.value, 0),
-                            },
-                          },
-                        }))
-                      }
-                    />
-                  </Field>
-
-                  <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!data.exoneration.conjoint.artisteSP}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            conjoint: { ...d.exoneration.conjoint, artisteSP: e.target.checked },
-                          },
-                        }))
-                      }
-                    />
-                    Activité artistique socio-prof (annuel) (H11)
-                  </label>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {active === "biens_immobiliers" && (
-            <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Biens immobiliers</h2>
-              <BiensImmobiliersTable rows={data.biensImmobiliers.rows}
-                onChangeRows={(rows) => setData(d => ({ ...d, biensImmobiliers: { rows } }))} />
-            </section>
-          )}
-
-          {active === "ressources_diverses" && (
-            <section style={{ display: "grid", gap: 12 }}>
-              <Card title="📦 Ressources diverses générales">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  {data.ressourcesDiverses.generales.map((r, i) => (
-                    <Input key={i} label={r.label} type="number" value={r.montant}
-                      onChange={(e) => {
-                        const next = [...data.ressourcesDiverses.generales];
-                        next[i] = { ...next[i], montant: safeNumber(e.target.value, 0) };
-                        setData(d => ({ ...d, ressourcesDiverses: { ...d.ressourcesDiverses, generales: next } }));
-                      }} />
-                  ))}
-                </div>
+              );
+            })()}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {/* Demandeur */}
+              <Card title="Demandeur">
+                <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <input type="checkbox" checked={!!data.exoneration.demandeur.general}
+                    onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration, demandeur: { ...d.exoneration.demandeur, general: e.target.checked } } }))} />
+                  Exonération générale
+                </label>
+                <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
+                  <input type="checkbox" checked={!!data.exoneration.demandeur.etudiant}
+                    onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration, demandeur: { ...d.exoneration.demandeur, etudiant: e.target.checked } } }))} />
+                  Exonération étudiants
+                </label>
+                <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
+                  <input type="checkbox" checked={!!data.exoneration.demandeur.penurie}
+                    onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration, demandeur: { ...d.exoneration.demandeur, penurie: e.target.checked } } }))} />
+                  Exonération pénurie
+                </label>
+                <Field label="Jours (si compteur dépassé)" style={{ marginTop: 8 }}>
+                  <input type="number" value={data.exoneration.demandeur.joursCompteur}
+                    onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration, demandeur: { ...d.exoneration.demandeur, joursCompteur: safeNumber(e.target.value, 0) } } }))} />
+                </Field>
+                <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
+                  <input type="checkbox" checked={!!data.exoneration.demandeur.artisteSP}
+                    onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration, demandeur: { ...d.exoneration.demandeur, artisteSP: e.target.checked } } }))} />
+                  Activité artistique socio-prof (annuel)
+                </label>
               </Card>
-          
-              <Card title="🤝 Ressources diverses — Bénévoles">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  {data.ressourcesDiverses.benevoles.map((r, i) => (
-                    <Input key={i} label={r.label} type="number" value={r.montant}
-                      onChange={(e) => {
-                        const next = [...data.ressourcesDiverses.benevoles];
-                        next[i] = { ...next[i], montant: safeNumber(e.target.value, 0) };
-                        setData(d => ({ ...d, ressourcesDiverses: { ...d.ressourcesDiverses, benevoles: next } }));
-                      }} />
-                  ))}
-                </div>
+              {/* Conjoint */}
+              <Card title="Conjoint">
+                <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <input type="checkbox" checked={!!data.exoneration.conjoint.general}
+                    onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration, conjoint: { ...d.exoneration.conjoint, general: e.target.checked } } }))} />
+                  Exonération générale
+                </label>
+                <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
+                  <input type="checkbox" checked={!!data.exoneration.conjoint.etudiant}
+                    onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration, conjoint: { ...d.exoneration.conjoint, etudiant: e.target.checked } } }))} />
+                  Exonération étudiant
+                </label>
+                <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
+                  <input type="checkbox" checked={!!data.exoneration.conjoint.penurie}
+                    onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration, conjoint: { ...d.exoneration.conjoint, penurie: e.target.checked } } }))} />
+                  Exonération pénurie
+                </label>
+                <Field label="Jours (si compteur dépassé)" style={{ marginTop: 8 }}>
+                  <input type="number" value={data.exoneration.conjoint.joursCompteur}
+                    onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration, conjoint: { ...d.exoneration.conjoint, joursCompteur: safeNumber(e.target.value, 0) } } }))} />
+                </Field>
+                <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
+                  <input type="checkbox" checked={!!data.exoneration.conjoint.artisteSP}
+                    onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration, conjoint: { ...d.exoneration.conjoint, artisteSP: e.target.checked } } }))} />
+                  Activité artistique socio-prof (annuel)
+                </label>
               </Card>
-            </section>
-          )}
-          {active === "cohabitants" && (
-            <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Revenus des cohabitants</h2>
-              <CohabitantsTable 
-                rows={data.cohabitants.rows}
-                referenceDate={data.reference.dateISO}
-                onChangeRows={(rows) => setData(d => ({
-                  ...d, 
-                  cohabitants: { ...d.cohabitants, rows }
-                }))} 
-              />
-            </section>
-          )}
-
-         {active === "apercu" && (
-          <section style={{ display: "grid", gap: 12 }}>
-            {/* Titre et bouton d'export */}
-            <div style={{ 
-              display: "flex", 
-              justifyContent: "space-between", 
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: "10px"
-            }}>
-              <h2 style={{ marginTop: 0 }}>Aperçu</h2>
-              
-              <button
-                onClick={handleExportPDF}
-                disabled={isGeneratingPDF}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  padding: "10px 20px",
-                  background: isGeneratingPDF ? "#ccc" : colors.primary,
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  cursor: isGeneratingPDF ? "not-allowed" : "pointer",
-                  fontWeight: "600",
-                  fontSize: "14px",
-                  fontFamily: "'Source Sans Pro', sans-serif",
-                  transition: "all 0.2s"
-                }}
-                onMouseOver={(e) => {
-                  if (!isGeneratingPDF) e.target.style.transform = "translateY(-1px)";
-                }}
-                onMouseOut={(e) => {
-                  if (!isGeneratingPDF) e.target.style.transform = "translateY(0)";
-                }}
-              >
-                {isGeneratingPDF ? "⏳ Génération..." : "📄 Exporter en PDF"}
-              </button>
-            </div>
-
-            <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 14 }}>
-              <div style={{ fontSize: 13, opacity: 0.7 }}>Statut</div>
-              <div style={{ fontSize: 24, fontWeight: 750 }}>
-                {result.eligible ? "Éligible" : "Non éligible"}
-              </div>
-
-              <hr style={{ margin: "12px 0" }} />
-
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: "left", padding: "6px 8px", borderBottom: "1px solid #ddd" }}>Rubrique</th>
-                    <th style={{ textAlign: "right", padding: "6px 8px", borderBottom: "1px solid #ddd" }}>Mensuel</th>
-                    <th style={{ textAlign: "right", padding: "6px 8px", borderBottom: "1px solid #ddd" }}>Annuel</th>
-                    <th style={{ textAlign: "right", padding: "6px 8px", borderBottom: "1px solid #ddd" }}>Total</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {/* Ressources professionnelles */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Ressources professionnelles</td></tr>
-
-                  <Row label="Revenu net demandeur" mensuel={apercu.pro.D4_netDem_Annuel / 12} annuel={apercu.pro.D4_netDem_Annuel} total={apercu.pro.D4_netDem_Annuel} />
-                  <Row label="Revenu net conjoint" mensuel={apercu.pro.D5_netConj_Annuel / 12} annuel={apercu.pro.D5_netConj_Annuel} total={apercu.pro.D5_netConj_Annuel} />
-
-                  <Row label="Montant net (avant exonération SP) - demandeur" mensuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel / 12} annuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel} total={apercu.pro.D6_netAvantExoSP_Dem_Annuel} />
-                  <Row label="Montant net (avant exonération SP) - conjoint" mensuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel / 12} annuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel} total={apercu.pro.D7_netAvantExoSP_Conj_Annuel} />
-
-                  <Row label="Montant net avec exonérations artistique - demandeur" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
-                  <Row label="Montant net avec exonérations artistique - conjoint" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
-
-                  <Row label="Allocation de chômage" mensuel={apercu.pro.D9_chom_Annuel / 12} annuel={apercu.pro.D9_chom_Annuel} total={apercu.pro.D9_chom_Annuel} />
-                  <Row label="Mutuelle" mensuel={apercu.pro.D10_mut_Annuel / 12} annuel={apercu.pro.D10_mut_Annuel} total={apercu.pro.D10_mut_Annuel} />
-                  <Row label="Revenus de remplacement" mensuel={apercu.pro.D11_rem_Annuel / 12} annuel={apercu.pro.D11_rem_Annuel} total={apercu.pro.D11_rem_Annuel} />
-
-                  <Row label="Total ressources proratisables" 
-                    mensuel={apercu.pro.totalProratisables_M} 
-                    annuel={apercu.pro.totalProratisables_M * 12} 
-                    total={apercu.pro.totalProratisables_M * 12} />
-
-                  <Row label="Critère du montant du revenu d’intégration (proratisé)" mensuel={apercu.pro.critereRIProrata_M} annuel={apercu.pro.critereRIProrata_M * 12} total={apercu.pro.critereRIProrata_M * 12} />
-
-                  <Row label="TOTAL des Ressources professionnelles ou assimilées (mensuel)" mensuel={apercu.pro.F14_totalRessourcesProAssim_M} annuel={apercu.pro.F14_totalRessourcesProAssim_M * 12} total={apercu.pro.F14_totalRessourcesProAssim_M * 12} />
-
-                  {/* Ressources diverses */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Ressources diverses</td></tr>
-                  <Row label="Montant total des ressources diverses" mensuel={apercu.autres.D17_diverses_Annuel / 12} annuel={apercu.autres.D17_diverses_Annuel} total={apercu.autres.D17_diverses_Annuel} />
-
-                  {/* Ressources de biens immobiliers */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Ressources de biens immobiliers</td></tr>
-                  <Row label="Montant des biens immobiliers" mensuel={apercu.autres.D23_immobiliers_Annuel / 12} annuel={apercu.autres.D23_immobiliers_Annuel} total={apercu.autres.D23_immobiliers_Annuel} />
-
-                  {/* Ressources de biens mobiliers */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Ressources de biens mobiliers</td></tr>
-                  <Row label="Montant des biens mobiliers" mensuel={apercu.autres.D20_mobiliers_Annuel / 12} annuel={apercu.autres.D20_mobiliers_Annuel} total={apercu.autres.D20_mobiliers_Annuel} />
-
-                  {/* Cessions de biens */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Cessions de biens</td></tr>
-                  <Row label="Montant total des cessions" mensuel={apercu.autres.D26_cessions_Annuel / 12} annuel={apercu.autres.D26_cessions_Annuel} total={apercu.autres.D26_cessions_Annuel} />
-
-                  {/* Avantages en nature */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Avantages en nature</td></tr>
-                  <Row label="Montant total des avantages en nature" mensuel={apercu.autres.D29_avantages_Annuel / 12} annuel={apercu.autres.D29_avantages_Annuel} total={apercu.autres.D29_avantages_Annuel} />
-
-                  {/* Co-habitants */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Cohabitants</td></tr>
-                  <Row 
-                    label="Total des revenus des cohabitants" 
-                    mensuel={result.apercu.autres.D32_cohabitants_Annuel / 12}  // ← Division par 12 pour obtenir le mensuel
-                    annuel={result.apercu.autres.D32_cohabitants_Annuel}        // ← Annuel directement
-                    total={result.apercu.autres.D32_cohabitants_Annuel}         // ← Annuel aussi dans le total
-                  />
-                  {/* ================= C39 ================= */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>
-                    Exonération supplémentaire annuelle (C39)
-                  </td></tr>
-
-                  <Row
-                    label="Exonération supplémentaire annuelle"
-                    mensuel={null}
-                    annuel={result.apercu.ri.C39_exoSupplAnnuelle}
-                    total={result.apercu.ri.C39_exoSupplAnnuelle}
-                  />
-
-                  {/* ================= C41 ================= */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>
-                    Total annuel après exonération (C41)
-                  </td></tr>
-
-                  <Row
-                    label="Total annuel après exonération"
-                    mensuel={null}
-                    annuel={result.apercu.ri.C41_ressourcesApresExo}
-                    total={result.apercu.ri.C41_ressourcesApresExo}
-                  />
-
-                  {/* ================= C43 ================= */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>
-                    Revenu d’intégration annuel (C43)
-                  </td></tr>
-
-                  <Row
-                    label="Revenu d’intégration annuel"
-                    mensuel={null}
-                    annuel={result.apercu.ri.C43_riAnnuelNet}
-                    total={result.apercu.ri.C43_riAnnuelNet}
-                  />
-
-                  {/* ================= E45 ================= */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>
-                    Revenu d’intégration (mois) (E45)
-                  </td></tr>
-
-                  <Row
-                    label="Revenu d’intégration (mois)"
-                    mensuel={result.apercu.ri.E45_montantMensuel}
-                    annuel={null}
-                    total={result.apercu.ri.E45_montantMensuel * 12}
-                    />
-                  {/* ===== Calcul du RI pour un mois incomplet (Excel) ===== */}
-                  <tr>
-                    <td colSpan={4} style={{ paddingTop: 16 }}>
-                      <div style={{ border: "2px solid #1f6feb", borderRadius: 10, padding: 14 }}>
-                        <div style={{ fontWeight: 800, marginBottom: 10 }}>
-                          Calcul du revenu d'intégration pour un mois incomplet
-                        </div>
-                        <div style={{ display: "grid", gap: 10, fontSize: 13 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                            <div>Nbre de jours pris en compte dans la période concernée :</div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <input
-                                style={{ width: 70, padding: "6px 8px" }}
-                                type="number"
-                                min={0}
-                                value={data.reference.joursPrisEnCompte ?? 0}
-                                onChange={(e) =>
-                                  setData((prev) => ({
-                                    ...prev,
-                                    reference: {
-                                      ...prev.reference,
-                                      joursPrisEnCompte: e.target.value === "" ? 0 : Number(e.target.value),
-                                    },
-                                  }))
-                                }
-                              />
-                              <span>sur</span>
-                              <input
-                                style={{ width: 70, padding: "6px 8px", background: "#f5f5f5" }}
-                                type="number"
-                                value={result.apercu.ri.joursMois}
-                                readOnly
-                              />
-                              <span>jours</span>
-                            </div>
-                          </div>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                            <div style={{ fontWeight: 700 }}>
-                              Revenu d'intégration mensuel en tenant compte du nombre de jours
-                            </div>
-                            <div style={{ fontSize: 16, fontWeight: 900 }}>
-                              <Money value={result.apercu.ri.montantMensuelProrata} />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
             </div>
           </section>
         )}
-          {active === "biens_mobiliers" && (
-            <section style={{ display: "grid", gap: 12 }}>
-              <Card title="💰 Biens mobiliers">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  <Input label="Montant du capital (B5)" type="number"
-                    value={data.biensMobiliers.montantCapital}
-                    onChange={(e) => setData((d) => ({
-                      ...d,
-                      biensMobiliers: { ...d.biensMobiliers, montantCapital: safeNumber(e.target.value, 0) },
-                    }))} />
-                  <Input label="Part concernée (%) (C5)" type="number"
-                    value={data.biensMobiliers.partConcernee}
-                    onChange={(e) => setData((d) => ({
-                      ...d,
-                      biensMobiliers: { ...d.biensMobiliers, partConcernee: safeNumber(e.target.value, 100) },
-                    }))} />
-                </div>
-                <div style={{ marginTop: 12, padding: 10, background: "#f5f5f5", borderRadius: 8 }}>
-                  {(() => {
-                    const bm = computeBiensMobiliersExcel(data.biensMobiliers);
-                    return (
-                      <>
-                        <div><b>Total annuel :</b> <Money value={bm.totalAnnuel} /></div>
-                        <div><b>Total mensuel :</b> <Money value={bm.totalMensuel} /></div>
-                      </>
-                    );
-                  })()}
-                </div>
-              </Card>
-            </section>
-          )}
-        </main>
-      </div>
 
-      <footer style={{ marginTop: 16, fontSize: 12, opacity: 0.65 }}>
-        Vanden Broele - CPASConnect Tool
-      </footer>
+        {/* ── Cohabitants ── */}
+        {active === "cohabitants" && (
+          <section style={{ display: "grid", gap: 12 }}>
+            <h2 style={{ marginTop: 0 }}>Revenus des cohabitants</h2>
+            <CohabitantsTable
+              rows={data.cohabitants.rows}
+              referenceDate={data.reference.dateISO}
+              onChangeRows={(rows) => setData(d => ({ ...d, cohabitants: { ...d.cohabitants, rows } }))}
+            />
+          </section>
+        )}
+
+        {/* ── Aperçu ── */}
+        {active === "apercu" && (
+          <section style={{ display: "grid", gap: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+              <h2 style={{ margin: 0 }}>Aperçu du calcul</h2>
+              <span className={`status-badge ${result.eligible ? "status-badge--eligible" : "status-badge--ineligible"}`}>
+                {result.eligible ? "✓ Éligible" : "✗ Non éligible"}
+              </span>
+            </div>
+
+            <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+              <table className="apercu-table">
+                <thead>
+                  <tr>
+                    <th>Rubrique</th>
+                    <th>Mensuel</th>
+                    <th>Annuel</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="section-header"><td colSpan={4}>Ressources professionnelles</td></tr>
+                  <Row label="Revenu net demandeur" mensuel={apercu.pro.D4_netDem_Annuel / 12} annuel={apercu.pro.D4_netDem_Annuel} total={apercu.pro.D4_netDem_Annuel} />
+                  <Row label="Revenu net conjoint" mensuel={apercu.pro.D5_netConj_Annuel / 12} annuel={apercu.pro.D5_netConj_Annuel} total={apercu.pro.D5_netConj_Annuel} />
+                  <Row label="Montant net (avant exo. SP) — demandeur" mensuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel / 12} annuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel} total={apercu.pro.D6_netAvantExoSP_Dem_Annuel} />
+                  <Row label="Montant net (avant exo. SP) — conjoint" mensuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel / 12} annuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel} total={apercu.pro.D7_netAvantExoSP_Conj_Annuel} />
+                  <Row label="Montant net avec exo. artistique — demandeur" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
+                  <Row label="Montant net avec exo. artistique — conjoint" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
+                  <Row label="Allocation de chômage" mensuel={apercu.pro.D9_chom_Annuel / 12} annuel={apercu.pro.D9_chom_Annuel} total={apercu.pro.D9_chom_Annuel} />
+                  <Row label="Mutuelle" mensuel={apercu.pro.D10_mut_Annuel / 12} annuel={apercu.pro.D10_mut_Annuel} total={apercu.pro.D10_mut_Annuel} />
+                  <Row label="Revenus de remplacement" mensuel={apercu.pro.D11_rem_Annuel / 12} annuel={apercu.pro.D11_rem_Annuel} total={apercu.pro.D11_rem_Annuel} />
+                  <Row label="Total ressources proratisables" mensuel={apercu.pro.totalProratisables_M} annuel={apercu.pro.totalProratisables_M * 12} total={apercu.pro.totalProratisables_M * 12} />
+                  <Row label="TOTAL ressources professionnelles (mensuel)" mensuel={apercu.pro.F14_totalRessourcesProAssim_M} annuel={apercu.pro.F14_totalRessourcesProAssim_M * 12} total={apercu.pro.F14_totalRessourcesProAssim_M * 12} />
+
+                  <tr className="section-header"><td colSpan={4}>Ressources diverses</td></tr>
+                  <Row label="Total ressources diverses" mensuel={apercu.autres.D17_diverses_Annuel / 12} annuel={apercu.autres.D17_diverses_Annuel} total={apercu.autres.D17_diverses_Annuel} />
+
+                  <tr className="section-header"><td colSpan={4}>Biens immobiliers</td></tr>
+                  <Row label="Montant des biens immobiliers" mensuel={apercu.autres.D23_immobiliers_Annuel / 12} annuel={apercu.autres.D23_immobiliers_Annuel} total={apercu.autres.D23_immobiliers_Annuel} />
+
+                  <tr className="section-header"><td colSpan={4}>Biens mobiliers</td></tr>
+                  <Row label="Montant des biens mobiliers" mensuel={apercu.autres.D20_mobiliers_Annuel / 12} annuel={apercu.autres.D20_mobiliers_Annuel} total={apercu.autres.D20_mobiliers_Annuel} />
+
+                  <tr className="section-header"><td colSpan={4}>Cessions de biens</td></tr>
+                  <Row label="Montant total des cessions" mensuel={apercu.autres.D26_cessions_Annuel / 12} annuel={apercu.autres.D26_cessions_Annuel} total={apercu.autres.D26_cessions_Annuel} />
+
+                  <tr className="section-header"><td colSpan={4}>Avantages en nature</td></tr>
+                  <Row label="Total avantages en nature" mensuel={apercu.autres.D29_avantages_Annuel / 12} annuel={apercu.autres.D29_avantages_Annuel} total={apercu.autres.D29_avantages_Annuel} />
+
+                  <tr className="section-header"><td colSpan={4}>Cohabitants</td></tr>
+                  <Row label="Total revenus cohabitants" mensuel={apercu.autres.D32_cohabitants_Annuel / 12} annuel={apercu.autres.D32_cohabitants_Annuel} total={apercu.autres.D32_cohabitants_Annuel} />
+
+                  <tr className="section-header"><td colSpan={4}>Calcul du RI</td></tr>
+                  <Row label="Exonération supplémentaire annuelle (C39)" mensuel={null} annuel={result.apercu.ri.C39_exoSupplAnnuelle} total={result.apercu.ri.C39_exoSupplAnnuelle} />
+                  <Row label="Total annuel après exonération (C41)" mensuel={null} annuel={result.apercu.ri.C41_ressourcesApresExo} total={result.apercu.ri.C41_ressourcesApresExo} />
+                  <Row label="Revenu d'intégration annuel (C43)" mensuel={null} annuel={result.apercu.ri.C43_riAnnuelNet} total={result.apercu.ri.C43_riAnnuelNet} />
+                  <Row label="Revenu d'intégration mensuel (E45)" mensuel={result.apercu.ri.E45_montantMensuel} annuel={null} total={result.apercu.ri.E45_montantMensuel * 12} />
+                </tbody>
+              </table>
+            </div>
+
+            {/* Bloc mois incomplet */}
+            <div className="card summary-box summary-box--primary">
+              <div style={{ fontWeight: 700, marginBottom: 12, color: "var(--color-primary)", fontSize: 15 }}>
+                Calcul pour un mois incomplet
+              </div>
+              <div style={{ display: "grid", gap: 10, fontSize: 13 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <span>Nbre de jours pris en compte :</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <input style={{ width: 70 }} type="number" min={0}
+                      value={data.reference.joursPrisEnCompte ?? 0}
+                      onChange={(e) => setData(prev => ({ ...prev, reference: { ...prev.reference, joursPrisEnCompte: e.target.value === "" ? 0 : Number(e.target.value) } }))} />
+                    <span>sur</span>
+                    <input style={{ width: 70, background: "var(--bg-subtle)" }} type="number"
+                      value={result.apercu.ri.joursMois} readOnly />
+                    <span>jours</span>
+                  </div>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+                  <span style={{ fontWeight: 600 }}>RI mensuel tenant compte du nombre de jours</span>
+                  <span style={{ fontSize: 20, fontWeight: 900, color: "var(--color-primary)" }}>
+                    <Money value={result.apercu.ri.montantMensuelProrata} />
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+      </main>
     </div>
-  );
-}
+
+    {/* ── Footer ── */}
+    <footer className="app-footer">
+      © 2026 Simulateur de Revenu d'Intégration — Développé par{" "}
+      <a href="https://www.cpasconnect.be/" target="_blank" rel="noopener noreferrer">
+        Vanden Broele · CPASConnect
+      </a>
+    </footer>
+
+  </div>
+);
