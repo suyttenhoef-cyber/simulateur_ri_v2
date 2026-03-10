@@ -342,12 +342,17 @@
 }
 
 /* ===== Inputs ===== */
+input,
 input[type="text"],
 input[type="number"],
 input[type="date"],
+input[type="email"],
+input[type="tel"],
+input[type="search"],
 select,
-textarea {
-  font-family: 'Source Sans Pro', sans-serif;
+textarea,
+option {
+  font-family: 'Source Sans Pro', sans-serif !important;
   font-size: 14px;
   padding: 9px 12px;
   border: 1.5px solid var(--border);
@@ -360,6 +365,25 @@ textarea {
 input:focus, select:focus, textarea:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(22, 62, 103, 0.08);
+}
+
+/* Force la police sur le texte interne des inputs (placeholder inclus) */
+input::placeholder,
+textarea::placeholder {
+  font-family: 'Source Sans Pro', sans-serif;
+  color: var(--text-light);
+}
+
+/* Correction spécifique pour input[type="date"] dont le navigateur
+   impose sa propre police sur la valeur affichée */
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+  font-family: 'Source Sans Pro', sans-serif;
+  color: var(--text);
 }
 
 /* ===== Footer ===== */
