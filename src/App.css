@@ -386,6 +386,55 @@ input[type="date"]::-webkit-datetime-edit-year-field {
   color: var(--text);
 }
 
+/* ===== Boutons d'action dans les tableaux ===== */
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--bg-subtle);
+  color: var(--color-primary);
+  border: 1.5px dashed var(--color-accent);
+  border-radius: 99px;
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.2px;
+}
+.btn-add:hover {
+  background: var(--color-accent);
+  border-style: solid;
+  border-color: var(--color-accent);
+  color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(43, 235, 206, 0.3);
+}
+
+.btn-remove {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: #FEF2F2;
+  color: #E74C3C;
+  border: 1.5px solid #FECACA;
+  border-radius: 99px;
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-remove:hover {
+  background: #E74C3C;
+  color: #fff;
+  border-color: #E74C3C;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(231, 76, 60, 0.25);
+}
+
 /* ===== Footer ===== */
 .app-footer {
   margin-top: 32px;
