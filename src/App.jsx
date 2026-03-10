@@ -28,24 +28,30 @@ const colors = {
 function computeCohabitantsMonthly(rows) {
   return rows.reduce((acc, row) => acc + safeNumber(row.mensuel, 0), 0);
 }
-function Row({ label, mensuel, annuel, total }) {
+function Row({ label, mensuel, annuel, total, highlight = false }) {
   const renderMoney = (v) => {
     if (v === null || v === undefined) return "";
     return <Money value={v} />;
   };
 
+  const cellStyle = {
+    padding: "6px 8px",
+    ...(highlight && {
+      color: "#163E67",
+      fontStyle: "italic",
+      fontWeight: 700,
+      background: "#EEF4FA",
+      borderTop: "1px solid #C5D8EE",
+      borderBottom: "1px solid #C5D8EE",
+    }),
+  };
+
   return (
     <tr>
-      <td style={{ padding: "6px 8px" }}>{label}</td>
-      <td style={{ padding: "6px 8px", textAlign: "right" }}>
-        {renderMoney(mensuel)}
-      </td>
-      <td style={{ padding: "6px 8px", textAlign: "right" }}>
-        {renderMoney(annuel)}
-      </td>
-      <td style={{ padding: "6px 8px", textAlign: "right" }}>
-        {renderMoney(total)}
-      </td>
+      <td style={cellStyle}>{label}</td>
+      <td style={{ ...cellStyle, textAlign: "right" }}>{renderMoney(mensuel)}</td>
+      <td style={{ ...cellStyle, textAlign: "right" }}>{renderMoney(annuel)}</td>
+      <td style={{ ...cellStyle, textAlign: "right" }}>{renderMoney(total)}</td>
     </tr>
   );
 }
@@ -2798,11 +2804,11 @@ export default function App() {
                   <Row label="Revenu net demandeur" mensuel={apercu.pro.D4_netDem_Annuel / 12} annuel={apercu.pro.D4_netDem_Annuel} total={apercu.pro.D4_netDem_Annuel} />
                   <Row label="Revenu net conjoint" mensuel={apercu.pro.D5_netConj_Annuel / 12} annuel={apercu.pro.D5_netConj_Annuel} total={apercu.pro.D5_netConj_Annuel} />
 
-                  <Row label="Montant net (avant exonération SP) - demandeur" mensuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel / 12} annuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel} total={apercu.pro.D6_netAvantExoSP_Dem_Annuel} />
-                  <Row label="Montant net (avant exonération SP) - conjoint" mensuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel / 12} annuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel} total={apercu.pro.D7_netAvantExoSP_Conj_Annuel} />
+                  <Row label="Montant net (avant exo.) - Demandeur" mensuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel / 12} annuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel} total={apercu.pro.D6_netAvantExoSP_Dem_Annuel} />
+                  <Row label="Montant net (avant exo.) - Conjoint" mensuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel / 12} annuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel} total={apercu.pro.D7_netAvantExoSP_Conj_Annuel} />
 
-                  <Row label="Montant net avec exonérations artistique - demandeur" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
-                  <Row label="Montant net avec exonérations artistique - conjoint" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
+                  <Row label="Montant net (avec exo. artistique) - Demandeur" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
+                  <Row label="Montant net (avec exo. artistique) - Conjoint" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
 
                   <Row label="Allocation de chômage" mensuel={apercu.pro.D9_chom_Annuel / 12} annuel={apercu.pro.D9_chom_Annuel} total={apercu.pro.D9_chom_Annuel} />
                   <Row label="Mutuelle" mensuel={apercu.pro.D10_mut_Annuel / 12} annuel={apercu.pro.D10_mut_Annuel} total={apercu.pro.D10_mut_Annuel} />
@@ -2815,7 +2821,7 @@ export default function App() {
 
                   <Row label="Critère du montant du revenu d’intégration (proratisé)" mensuel={apercu.pro.critereRIProrata_M} annuel={apercu.pro.critereRIProrata_M * 12} total={apercu.pro.critereRIProrata_M * 12} />
 
-                  <Row label="TOTAL des Ressources professionnelles ou assimilées (mensuel)" mensuel={apercu.pro.F14_totalRessourcesProAssim_M} annuel={apercu.pro.F14_totalRessourcesProAssim_M * 12} total={apercu.pro.F14_totalRessourcesProAssim_M * 12} />
+                  <Row highlight label="TOTAL des ressources professionnelles ou assimilées (mensuel)" mensuel={apercu.pro.F14_totalRessourcesProAssim_M} annuel={apercu.pro.F14_totalRessourcesProAssim_M * 12} total={apercu.pro.F14_totalRessourcesProAssim_M * 12} />
 
                   {/* Ressources diverses */}
                   <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Ressources diverses</td></tr>
@@ -2840,14 +2846,14 @@ export default function App() {
                   {/* Co-habitants */}
                   <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Cohabitants</td></tr>
                   <Row 
-                    label="Total des revenus des cohabitants" 
+                    highlight label="Total des revenus des cohabitants" 
                     mensuel={result.apercu.autres.D32_cohabitants_Annuel / 12}  // ← Division par 12 pour obtenir le mensuel
                     annuel={result.apercu.autres.D32_cohabitants_Annuel}        // ← Annuel directement
                     total={result.apercu.autres.D32_cohabitants_Annuel}         // ← Annuel aussi dans le total
                   />
                   {/* ================= C39 ================= */}
                   <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>
-                    Exonération supplémentaire annuelle (C39)
+                    Exonération supplémentaire annuelle
                   </td></tr>
 
                   <Row
@@ -2859,7 +2865,7 @@ export default function App() {
 
                   {/* ================= C41 ================= */}
                   <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>
-                    Total annuel après exonération (C41)
+                    Total annuel après exonération
                   </td></tr>
 
                   <Row
@@ -2871,7 +2877,7 @@ export default function App() {
 
                   {/* ================= C43 ================= */}
                   <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>
-                    Revenu d’intégration annuel (C43)
+                    Revenu d’intégration annuel
                   </td></tr>
 
                   <Row
@@ -2883,7 +2889,7 @@ export default function App() {
 
                   {/* ================= E45 ================= */}
                   <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>
-                    Revenu d’intégration (mois) (E45)
+                    Revenu d’intégration (mensuel)
                   </td></tr>
 
                   <Row
