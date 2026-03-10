@@ -1294,7 +1294,7 @@ function Input({ label, type = "text", value, onChange, placeholder, hint }) {
     </Field>
   );
 }
-unction Sidebar({ active, onSelect }) {
+function Sidebar({ active, onSelect }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
