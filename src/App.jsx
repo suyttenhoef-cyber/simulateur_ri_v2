@@ -186,6 +186,7 @@ const RI_ANNUEL_TABLE = [
   { date: "2023-11-01", cat1: 10105.38, cat2: 15158.08, cat3: 20485.33 },
   { date: "2024-05-01", cat1: 10307.68, cat2: 15461.53, cat3: 20895.43 },
   { date: "2025-02-01", cat1: 10513.60, cat2: 15770.41, cat3: 21312.87 },
+  { date: "2026-03-01", cat1: 10723.75, cat2: 16085.64, cat3: 21738.88 },
 ];
 
 // VLOOKUP Données!K3:O (exonérations) : date -> montants (mensuel/annuel)
@@ -194,7 +195,8 @@ const EXO_TABLE = [
   { date: "2023-11-01", generalMensuel: 297.46, artistiqueAnnuel: 3569.56, etudiantMensuel: 297.46, penurieMensuel: null },
   { date: "2024-01-01", generalMensuel: 297.46, artistiqueAnnuel: 3569.56, etudiantMensuel: 297.46, penurieMensuel: null },
   { date: "2024-05-01", generalMensuel: 303.42, artistiqueAnnuel: 3641.02, etudiantMensuel: 303.42, penurieMensuel: 434.83 },
-  { date: "2024-05-02", generalMensuel: 309.48, artistiqueAnnuel: 3713.76, etudiantMensuel: 309.48, penurieMensuel: 443.52 },
+  { date: "2025-02-01", generalMensuel: 309.48, artistiqueAnnuel: 3713.76, etudiantMensuel: 309.48, penurieMensuel: 443.52 },
+  { date: "2026-03-01", generalMensuel: 315.67, artistiqueAnnuel: 3787.99, etudiantMensuel: 315.67, penurieMensuel: 452.39 },
 ];
 
 // Données!Q3:S3 (Exonération supplémentaire annuelle ©)
