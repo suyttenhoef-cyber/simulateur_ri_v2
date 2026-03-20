@@ -1618,7 +1618,7 @@ function round2(n) {
   return Number.isFinite(x) ? Math.round(x * 100) / 100 : 0;
 }
 
-const EXO_BATI = 875;    // Exoneration!C16
+const EXO_BATI = 750;    // Exoneration!C16
 const EXO_NON_BATI = 30; // Exoneration!C17
 
 function computeImmoAnnualExcelLike(rows) {
