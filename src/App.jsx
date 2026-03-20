@@ -65,8 +65,8 @@ const TRANCHE_1 = 1250;             // Tranche 1 pour cession
 const TRANCHE_2 = 2000;             // Tranche 2 pour cession
 const TRANCHE_3 = 2500;             // Tranche 3 pour cession
 
-const EXO_BATI_X2 = 875;            // Exonération pour Bâti (à adapter selon ton Excel)
-const EXO_NON_BATI_X2 = 30;        // Exonération pour Non-Bâti (à adapter selon ton Excel)
+const EXO_BATI = 750;            // Exonération pour Bâti (à adapter selon ton Excel)
+const EXO_NON_BATI = 30;        // Exonération pour Non-Bâti (à adapter selon ton Excel)
 
 const MONTANT_FORFAITAIRE_CESSION_AN = 37200; // Tranche immunisée
 
@@ -1855,7 +1855,7 @@ function computeImmoExcel(rows) {
 
     // Calculs spécifiques à Excel
     const K = H !== 0 ? round2(H * J) : null;
-    const L = H !== 0 && countRCPos > 0 ? round2((EXO_BATI_X2 * J) / countRCPos) : null;
+    const L = H !== 0 && countRCPos > 0 ? round2((EXO_BATI * J) / countRCPos) : null;
     const M = H !== 0 && K !== null && L !== null ? (K >= L ? round2((K - L) * 3) : 0) : null;
     const U = I !== 0 ? round2(I * J) : "s. o.";
     const V = isFiniteNumber(U) && isFiniteNumber(M) && U > M ? U : "s. o.";
