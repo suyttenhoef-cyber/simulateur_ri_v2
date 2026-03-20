@@ -1981,7 +1981,9 @@ function computeFromForm(data) {
   const cessionsResult = computeCessionsTotalAnnuel(data.cessionsBiens?.rows || [], categorie);
 
   // --- Immobiliers (annuel) - Calcul correct avec computeImmoExcel
-  const immoTotals = computeImmoExcel(data.biensImmobiliers?.rows || []);
+  const immoTotals = computeImmoExcel(data.biensImmobiliers?.rows || [],
+  data.menage.nbEnfants
+);
   
   // ✅ bm : adapte selon ton modèle (si tu as déjà computeBiensMobiliersExcel, utilise-le)
   // Sinon, on prend l’objet stocké dans data (au minimum il faut bm.totalAnnuel)
