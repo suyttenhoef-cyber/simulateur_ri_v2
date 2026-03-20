@@ -1816,7 +1816,7 @@ function monthsPExcel(dateCession, dateRI) {
 }
 
 
-function computeImmoExcel(rows) {
+function computeImmoExcel(rows, nbEnfants = 0) {
   const list = (rows || []).map((r) => ({
     type: r.typeBien || "", // "Bâti" | "Non bâti" | "Étranger"
     localisation: r.localisation || "",
@@ -1852,7 +1852,11 @@ function computeImmoExcel(rows) {
 
     // Calculs spécifiques à Excel
     const K = H !== 0 ? round2(H * J) : null;
-    const L = H !== 0 && countRCPos > 0 ? round2((EXO_BATI * J) / countRCPos) : null;
+    const exoBase = r.type === "Bâti" ? EXO_BATI : EXO_NON_BATI;
+const exoTotal = exoBase + safeNumber(nbEnfants, 0) * 125;
+const L = H !== 0 && countRCPos > 0
+  ? round2((exoTotal * J) / countRCPos)
+  : null;
     const M = H !== 0 && K !== null && L !== null ? (K >= L ? round2((K - L) * 3) : 0) : null;
     const U = I !== 0 ? round2(I * J) : "s. o.";
     const V = isFiniteNumber(U) && isFiniteNumber(M) && U > M ? U : "s. o.";
