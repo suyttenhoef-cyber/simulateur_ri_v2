@@ -75,17 +75,17 @@ const TITRE_USUFRUIT = 0.4;         // Coefficient Usufruit (40%)
 const TITRE_NU_PROPRIETE = 0.6;     // Coefficient Nu-Propriété (60%)
 
 const SECTIONS = [
-  { id: "informations", label: "Informations", icon: "📋" },
-  { id: "revenus_nets", label: "Revenus nets", icon: "💰" },
-  { id: "cmr", label: "Chômage / Mutuelle", icon: "🏥" },
-  { id: "avantages", label: "Avantages", icon: "🎁" },
-  { id: "cessions_biens", label: "Cessions", icon: "🏢" },
-  { id: "biens_mobiliers", label: "Biens mobiliers", icon: "💎" },
-  { id: "biens_immobiliers", label: "Immobiliers", icon: "🏘️" },
-  { id: "ressources_diverses", label: "Ressources diverses", icon: "📊" },
-  { id: "exoneration", label: "Exonération", icon: "✨" },
-  { id: "cohabitants", label: "Revenus cohabitants", icon: "👤" },
-  { id: "apercu", label: "Aperçu", icon: "📋" },
+  { id: "informations",      label: "Informations",         icon: "fa-address-card" },
+  { id: "revenus_nets",      label: "Revenus nets",          icon: "fa-sack-dollar" },
+  { id: "cmr",               label: "Chômage / Mutuelle",   icon: "fa-file-medical" },
+  { id: "avantages",         label: "Avantages en nature",  icon: "fa-house-user" },
+  { id: "cessions_biens",    label: "Cessions",             icon: "fa-building" },
+  { id: "biens_mobiliers",   label: "Biens mobiliers",      icon: "fa-coins" },
+  { id: "biens_immobiliers", label: "Immobiliers",          icon: "fa-house" },
+  { id: "ressources_diverses", label: "Ressources diverses", icon: "fa-chart-bar" },
+  { id: "exoneration",       label: "Exonération",          icon: "fa-shield-halved" },
+  { id: "cohabitants",       label: "Revenus cohabitants",  icon: "fa-people-group" },
+  { id: "apercu",            label: "Aperçu",               icon: "fa-table-list" },
 ];
 
 const defaultRow = () => ({
@@ -457,7 +457,7 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
   function removeRow(i) { onChangeRows(rows.filter((_, idx) => idx !== i)); }
 
   return (
-    <Card title="👥 Revenus des cohabitants">
+    <Card title="Revenus des cohabitants">
       {rows.length === 0 ? (
         <p style={{ opacity: 0.6 }}>Aucun cohabitant enregistré</p>
       ) : (
@@ -468,10 +468,13 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
               <Card key={i} title={
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
                   <span>Cohabitant #{i + 1}</span>
-                  <button onClick={() => removeRow(i)} style={{
-                    cursor: "pointer", background: "#dc3545", color: "white",
-                    border: "none", borderRadius: 4, padding: "4px 8px"
-                  }}>× Supprimer</button>
+                  <button
+                    onClick={() => removeRow(i)}
+                    className="btn-remove"
+                    aria-label={`Supprimer cohabitant ${i + 1}`}
+                  >
+                    <i className="fas fa-trash" aria-hidden="true" /> Supprimer
+                  </button>
                 </div>
               }>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10 }}>
@@ -508,10 +511,7 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                   </Input>
                 </div>
 
-                <div style={{
-                  background: "#f5f5f5", padding: 10, borderRadius: 6,
-                  fontSize: 12, marginTop: 10
-                }}>
+                <div className="summary-box" style={{ marginTop: 10, fontSize: 12 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8 }}>
                     <div><strong>Seuil RI (catégorie {calc.categorie}):</strong> <Money value={calc.seuilRI} /></div>
                     <div><strong>Excédent:</strong> <Money value={calc.excedent} /></div>
@@ -519,11 +519,9 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                     <div><strong>Montant reporté:</strong> <Money value={calc.montantReporte} /></div>
                   </div>
                   {calc.message && (
-                    <div style={{
-                      marginTop: 8, padding: 8, background: "#fff3cd",
-                      borderRadius: 4, color: "#856404", fontSize: 11
-                    }}>
-                      {calc.message}
+                    <div className="alert alert--warning" style={{ marginTop: 8 }}>
+                      <i className="fas fa-triangle-exclamation" aria-hidden="true" />
+                      <span>{calc.message}</span>
                     </div>
                   )}
                 </div>
@@ -534,13 +532,7 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
       )}
 
       {/* Totaux — à l'intérieur du return, après la liste */}
-      <div style={{ 
-        marginTop: 10, 
-        padding: 10, 
-        background: "#e8f4f8", 
-        borderRadius: 5, 
-        border: "1px solid #0066cc" 
-      }}>
+      <div className="summary-box" style={{ marginTop: 12 }}>
         <div><b>Total annuel des cohabitants : <Money value={totals.totalAnnuel} /></b></div>
         <div><b>Total mensuel des cohabitants : <Money value={totals.totalMensuel} /></b></div>
       </div>
@@ -609,9 +601,9 @@ function RowsTable({ title, rows, onChangeRows }) {
   }
 
   return (
-    <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
-        <h3 style={{ margin: 0 }}>{title}</h3>
+    <div className="card" style={{ padding: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 12, borderBottom: `2px solid #F0F4F8` }}>
+        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: colors.primary }}>{title}</h3>
         <button onClick={addRow} className="btn-add">+ Ajouter</button>
       </div>
 
@@ -751,20 +743,11 @@ function RowsTable({ title, rows, onChangeRows }) {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             <button
               onClick={() => removeRow(i)}
-              style={{
-                cursor: "pointer",
-                fontSize: "20px",
-                color: "#E74C3C",
-                border: "none",
-                background: "transparent",
-                padding: "4px 8px",
-                borderRadius: "4px",
-                transition: "all 0.2s"
-              }}
-              onMouseOver={(e) => e.target.style.background = "#FFEBEE"}
-              onMouseOut={(e) => e.target.style.background = "transparent"}
+              className="btn-remove"
+              aria-label="Supprimer cette ligne"
+              style={{ padding: "5px 8px" }}
             >
-              ×
+              <i className="fas fa-trash" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -858,9 +841,9 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
   }, [calculations]);
 
   return (
-    <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
-        <h3 style={{ margin: 0 }}>Cessions de biens</h3>
+    <div className="card" style={{ padding: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 12, borderBottom: `2px solid #F0F4F8` }}>
+        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: colors.primary }}>Cessions de biens</h3>
         <button onClick={addRow} className="btn-add">+ Ajouter</button>
       </div>
 
@@ -870,16 +853,20 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
         <>
           {calculations.map((cession, i) => (
             <div key={i} style={{ 
-              border: "1px solid #e0e0e0", 
+              border: `1px solid ${colors.border}`,
               borderRadius: 8, 
-              padding: 12, 
-              marginBottom: 15,
-              background: "#fafafa"
+              padding: 14, 
+              marginBottom: 12,
+              background: "#FAFBFC"
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
                 <strong>Cession #{i + 1}</strong>
-                <button onClick={() => removeRow(i)} style={{ cursor: "pointer", background: "#dc3545", color: "white", border: "none", borderRadius: 4, padding: "4px 8px" }}>
-                  × Supprimer
+                <button
+                  onClick={() => removeRow(i)}
+                  className="btn-remove"
+                  aria-label={`Supprimer cession ${i + 1}`}
+                >
+                  <i className="fas fa-trash" aria-hidden="true" /> Supprimer
                 </button>
               </div>
 
@@ -982,7 +969,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
 
               {/* Détail du calcul */}
               {cession.calc && (
-                <div style={{ background: "#fff", padding: 10, borderRadius: 6, border: "1px solid #ddd", fontSize: 12 }}>
+                <div style={{ background: colors.white, padding: 10, borderRadius: 6, border: `1px solid ${colors.border}`, fontSize: 12 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8 }}>
                     <div><strong>Montant vénal:</strong> <Money value={cession.calc.montantVenal} /></div>
                     <div><strong>Tranche immunisée:</strong> <Money value={cession.calc.trancheImmunisee} /></div>
@@ -999,7 +986,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
         </>
       )}
       
-      <div style={{ marginTop: 10, padding: 10, background: "#e8f4f8", borderRadius: 5, border: "1px solid #0066cc" }}>
+      <div className="summary-box" style={{ marginTop: 12 }}>
         <div><b>Total annuel : <Money value={totaux.annuel} /></b></div>
         <div><b>Total mensuel : <Money value={totaux.mensuel} /></b></div>
       </div>
@@ -1017,9 +1004,9 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
   const immo = useMemo(() => computeImmoExcel(rows), [rows]);
 
   return (
-    <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
-        <h3 style={{ margin: 0 }}>Biens immobiliers</h3>
+    <div className="card" style={{ padding: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 12, borderBottom: `2px solid #F0F4F8` }}>
+        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: colors.primary }}>Biens immobiliers</h3>
         <button onClick={addRow} className="btn-add">+ Ajouter</button>
       </div>
 
@@ -1029,23 +1016,20 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
         <>
           {rows.map((r, i) => (
             <div key={i} style={{ 
-              border: "1px solid #e0e0e0", 
+              border: `1px solid ${colors.border}`,
               borderRadius: 8, 
-              padding: 12, 
-              marginBottom: 15,
-              background: "#fafafa"
+              padding: 14, 
+              marginBottom: 12,
+              background: "#FAFBFC"
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
                 <strong>Bien immobilier #{i + 1}</strong>
-                <button onClick={() => removeRow(i)} style={{ 
-                  cursor: "pointer", 
-                  background: "#dc3545", 
-                  color: "white", 
-                  border: "none", 
-                  borderRadius: 4, 
-                  padding: "4px 8px" 
-                }}>
-                  × Supprimer
+                <button
+                  onClick={() => removeRow(i)}
+                  className="btn-remove"
+                  aria-label={`Supprimer bien immobilier ${i + 1}`}
+                >
+                  <i className="fas fa-trash" aria-hidden="true" /> Supprimer
                 </button>
               </div>
 
@@ -1310,7 +1294,8 @@ function Button({ children, onClick, variant = "primary", icon, disabled = false
     </button>
   );
 }
-function Card({ title, children }) {
+function Card({ title, children, level = 3 }) {
+  const Tag = `h${level}`;
   return (
     <div style={{
       border: `1px solid ${colors.border}`,
@@ -1319,15 +1304,17 @@ function Card({ title, children }) {
       background: colors.white,
       boxShadow: "0 2px 8px rgba(0,0,0,0.04)"
     }}>
-      <h3 style={{
+      <Tag style={{
         marginTop: 0,
         marginBottom: "16px",
-        fontSize: "16px",
-        fontWeight: "600",
-        color: colors.primary
+        fontSize: level === 2 ? "20px" : "16px",
+        fontWeight: "700",
+        color: colors.primary,
+        paddingBottom: "12px",
+        borderBottom: `2px solid #F0F4F8`
       }}>
         {title}
-      </h3>
+      </Tag>
       {children}
     </div>
   );
@@ -1373,15 +1360,17 @@ function Sidebar({ active, onSelect }) {
         marginBottom: "16px"
       }}>
         {!isCollapsed && (
-          <h2 style={{
+          <p style={{
             margin: 0,
-            fontSize: "16px",
+            fontSize: "11px",
             fontWeight: "700",
-            color: colors.white,
+            color: "rgba(255,255,255,0.5)",
+            textTransform: "uppercase",
+            letterSpacing: "1px",
             fontFamily: "'Source Sans Pro', sans-serif"
           }}>
-            Menu
-          </h2>
+            Navigation
+          </p>
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
@@ -1420,7 +1409,7 @@ function Sidebar({ active, onSelect }) {
             transition: "all 0.2s"
           }}
         >
-          <span style={{ fontSize: "18px" }}>{s.icon}</span>
+          <i className={`fas ${s.icon}`} aria-hidden="true" style={{ width: 20, textAlign: "center", fontSize: 15, flexShrink: 0 }} />
           {!isCollapsed && <span>{s.label}</span>}
         </button>
       ))}
@@ -2097,37 +2086,16 @@ export default function App() {
   }
 
   return (
-    <div style={{
-      background: colors.background,
-      minHeight: "100vh",
-      fontFamily: "system-ui, -apple-system, sans-serif",
-      maxWidth: "100vw",      // ← AJOUT : Limite la largeur maximale
-      overflowX: "hidden",    // ← AJOUT : Cache le scroll horizontal
-      boxSizing: "border-box" // ← AJOUT : Inclut padding dans le calcul
-    }}>
-      <div style={{ 
-      display: "grid", 
-      gridTemplateColumns: "280px 1fr", 
-      gap: 16, 
-      marginTop: 16,
-      maxWidth: "100%",      // ← AJOUT
-      overflowX: "hidden"    // ← AJOUT
-    }}>
+    <div className="app-layout-wrapper">
+      <div className="app-layout">
         <Sidebar active={active} onSelect={setActive} />
 
-        <main style={{ 
-          border: "1px solid #ddd", 
-          borderRadius: 10, 
-          padding: 16, 
-          width: "100%",
-          maxWidth: "100%",     // ← AJOUT
-          overflowX: "auto",    // ← AJOUT : permet le scroll interne si nécessaire
-          boxSizing: "border-box" // ← AJOUT
-        }}>
+        <main className="app-main">
           {active === "informations" && (
             <div style={{ display: "grid", gap: "24px" }}>
+              <h2 style={{ marginTop: 0, marginBottom: 0, fontSize: 20, fontWeight: 800, color: colors.primary }}>Informations</h2>
               {/* Carte Référence */}
-              <Card title="📅 Référence">
+              <Card title="Référence">
                 <div style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
@@ -2168,7 +2136,7 @@ export default function App() {
               </Card>
 
               {/* Carte Identité */}
-              <Card title="👤 Identité">
+              <Card title="Identité">
                 <div style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
@@ -2199,7 +2167,7 @@ export default function App() {
               </Card>
 
               {/* Carte Ménage */}
-               <Card title="🏠 Ménage">
+               <Card title="Ménage">
                  <div style={{
                    display: "grid",
                    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
@@ -2352,7 +2320,7 @@ export default function App() {
           {active === "avantages" && (
             <section style={{ display: "grid", gap: 12 }}>
               <h2 style={{ marginTop: 0 }}>Avantages en nature</h2>
-              <Card title="🏠 Avantages en nature">
+              <Card title="Avantages en nature">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
                   <Input label="Charges locatives prises en charge par un tiers (€/mois)" type="number"
                     value={data.avantages.chargesLocativesTiers}
@@ -2393,7 +2361,7 @@ export default function App() {
                 });
 
                 return (
-                  <div style={{ padding: 10, background: "#f5f5f5", borderRadius: 8 }}>
+                  <div className="summary-box" style={{ marginBottom: 16 }}>
                     <div>
                       <b>Total exonération mensuelle :</b>{" "}
                       <Money value={exoCalc.totalMensuel} />
@@ -2432,8 +2400,8 @@ export default function App() {
               {/* Formulaire (les champs Excel C5/C6/C7/C8/C11 et H5/H6/H7/H8/H11) */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {/* DEMANDEUR */}
-                <div style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12 }}>
-                  <h3 style={{ marginTop: 0 }}>Demandeur</h3>
+                <div className="card" style={{ padding: 16 }}>
+                  <h3 style={{ marginTop: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>Demandeur</h3>
 
                   <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
                     <input
@@ -2580,8 +2548,8 @@ export default function App() {
                 </div>
 
                 {/* CONJOINT */}
-                <div style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12 }}>
-                  <h3 style={{ marginTop: 0 }}>Conjoint</h3>
+                <div className="card" style={{ padding: 16 }}>
+                  <h3 style={{ marginTop: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>Conjoint</h3>
 
                   <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
                     <input
@@ -2700,7 +2668,8 @@ export default function App() {
 
           {active === "ressources_diverses" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <Card title="📦 Ressources diverses générales">
+              <h2 style={{ marginTop: 0 }}>Ressources diverses</h2>
+              <Card title="Ressources diverses générales">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
                   {data.ressourcesDiverses.generales.map((r, i) => (
                     <Input key={i} label={r.label} type="number" value={r.montant}
@@ -2713,7 +2682,7 @@ export default function App() {
                 </div>
               </Card>
           
-              <Card title="🤝 Ressources diverses — Bénévoles">
+              <Card title="Ressources diverses — Bénévoles">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
                   {data.ressourcesDiverses.benevoles.map((r, i) => (
                     <Input key={i} label={r.label} type="number" value={r.montant}
@@ -2782,7 +2751,7 @@ export default function App() {
               </button>
             </div>
 
-            <div style={{ border: "1px solid #ddd", borderRadius: 10, padding: 14 }}>
+            <div className="card" style={{ padding: 16 }}>
               <div style={{ fontSize: 13, opacity: 0.7 }}>Statut</div>
               <div style={{ fontSize: 24, fontWeight: 750 }}>
                 {result.eligible ? "Éligible" : "Non éligible"}
@@ -2904,7 +2873,7 @@ export default function App() {
                   {/* ===== Calcul du RI pour un mois incomplet (Excel) ===== */}
                   <tr>
                     <td colSpan={4} style={{ paddingTop: 16 }}>
-                      <div style={{ border: "2px solid #1f6feb", borderRadius: 10, padding: 14 }}>
+                      <div style={{ border: `2px solid ${colors.primary}`, borderRadius: 10, padding: 14 }}>
                         <div style={{ fontWeight: 800, marginBottom: 10 }}>
                           Calcul du revenu d'intégration pour un mois incomplet
                         </div>
@@ -2956,7 +2925,7 @@ export default function App() {
         )}
           {active === "biens_mobiliers" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <Card title="💰 Biens mobiliers">
+              <Card title="Biens mobiliers">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
                   <Input label="Montant du capital" type="number"
                     value={data.biensMobiliers.montantCapital}
@@ -2971,7 +2940,7 @@ export default function App() {
                       biensMobiliers: { ...d.biensMobiliers, partConcernee: safeNumber(e.target.value, 100) },
                     }))} />
                 </div>
-                <div style={{ marginTop: 12, padding: 10, background: "#f5f5f5", borderRadius: 8 }}>
+                <div className="summary-box" style={{ marginTop: 12 }}>
                   {(() => {
                     const bm = computeBiensMobiliersExcel(data.biensMobiliers);
                     return (
