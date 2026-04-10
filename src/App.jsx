@@ -22,6 +22,119 @@ if (!document.getElementById('fa-cdn')) {
   document.head.appendChild(link);
 }
 
+// ── Injecter Source Sans Pro si pas déjà présent ──
+if (!document.getElementById('ssp-cdn')) {
+  const link = document.createElement('link');
+  link.id = 'ssp-cdn';
+  link.rel = 'stylesheet';
+  link.href = 'https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700;800&display=swap';
+  document.head.appendChild(link);
+}
+
+// ── Composant Topbar CPASConnect ──
+function Topbar() {
+  const handleRefresh = () => {
+    if (!window.confirm("Toutes les données non sauvegardées seront perdues. Continuer ?")) return;
+    window.location.reload();
+  };
+
+  const handleFullscreen = () => {
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    if (req) req.call(el);
+  };
+
+  const topbarStyle = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    background: "linear-gradient(135deg, #163E67 0%, #234268 100%)",
+    borderRadius: "12px",
+    padding: "14px 24px",
+    position: "relative",
+    overflow: "hidden",
+    flexShrink: 0,
+    flexWrap: "wrap",
+    gap: "10px",
+    fontFamily: "'Source Sans Pro', -apple-system, sans-serif",
+    marginBottom: "10px",
+  };
+
+  const brandStyle = { display: "flex", alignItems: "center", gap: "14px", position: "relative", zIndex: 1 };
+  const logoStyle = { height: "32px", filter: "brightness(0) invert(1)", display: "block" };
+  const sepStyle = { width: "1px", height: "28px", background: "rgba(255,255,255,.2)", flexShrink: 0 };
+  const titlesH1 = { color: "#fff", fontSize: "16px", fontWeight: 800, margin: "0 0 2px", lineHeight: 1.2 };
+  const titlesP = { color: "rgba(255,255,255,.75)", fontSize: "12px", fontWeight: 500, margin: 0 };
+  const actionsStyle = { display: "flex", alignItems: "center", gap: "8px", position: "relative", zIndex: 1 };
+
+  const btnBase = {
+    display: "inline-flex", alignItems: "center", gap: "7px",
+    padding: "8px 16px", borderRadius: "8px",
+    fontFamily: "'Source Sans Pro', sans-serif", fontSize: "13px", fontWeight: 700,
+    cursor: "pointer", border: "none", transition: "all .18s ease",
+    textDecoration: "none", whiteSpace: "nowrap", lineHeight: 1,
+  };
+  const btnGhost = { ...btnBase, background: "rgba(255,255,255,.12)", color: "#fff", border: "1px solid rgba(255,255,255,.22)" };
+  const btnAccent = { ...btnBase, background: "#2BEBCE", color: "#163E67", boxShadow: "0 2px 10px rgba(43,235,206,.3)" };
+
+  const infoBarStyle = {
+    display: "flex", alignItems: "center", gap: "10px",
+    background: "#fff", border: "1px solid #E1E8ED", borderLeft: "4px solid #2BEBCE",
+    borderRadius: "8px", padding: "10px 16px", marginBottom: "10px",
+    fontSize: "14px", color: "#384142",
+    fontFamily: "'Source Sans Pro', -apple-system, sans-serif",
+  };
+
+  return (
+    <>
+      <header style={topbarStyle}>
+        {/* Halo décoratif */}
+        <div style={{
+          position: "absolute", right: -30, top: -40,
+          width: 180, height: 180, borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(43,235,206,.12) 0%, transparent 70%)",
+          pointerEvents: "none",
+        }} />
+        <div style={brandStyle}>
+          <img
+            src="https://www.cpasconnect.be/img/cpasconnect/logo.svg"
+            alt="CPASConnect"
+            style={logoStyle}
+            onError={(e) => {
+              e.target.style.display = "none";
+              e.target.nextSibling.style.display = "flex";
+            }}
+          />
+          {/* Fallback texte si le logo ne charge pas */}
+          <div style={{ display: "none", alignItems: "center", gap: 6, color: "#fff", fontSize: 15, fontWeight: 800 }}>
+            <span style={{ background: "#2BEBCE", color: "#163E67", borderRadius: 5, padding: "2px 7px", fontSize: 13 }}>CPAS</span>
+            Connect
+          </div>
+          <div style={sepStyle} />
+          <div>
+            <h1 style={titlesH1}>Simulateur de Revenu d'Intégration</h1>
+            <p style={titlesP}>Bibliothèque digitale pour les CPAS · Calcul local et sécurisé</p>
+          </div>
+        </div>
+        <div style={actionsStyle}>
+          <button style={btnGhost} onClick={handleRefresh} type="button" aria-label="Rafraîchir le simulateur">
+            <i className="fas fa-sync-alt" aria-hidden="true" />
+            <span>Rafraîchir</span>
+          </button>
+          <button style={btnAccent} onClick={handleFullscreen} type="button" aria-label="Afficher en plein écran">
+            <i className="fas fa-expand" aria-hidden="true" />
+            <span>Plein écran</span>
+          </button>
+        </div>
+      </header>
+      <div style={infoBarStyle}>
+        <i className="fas fa-info-circle" style={{ color: "#1BC9B0", fontSize: 14, flexShrink: 0 }} aria-hidden="true" />
+        <span><strong style={{ color: "#2C3E50" }}>Outil d'aide à la décision.</strong> Les résultats sont indicatifs et doivent être validés par les services compétents du CPAS.</span>
+      </div>
+    </>
+  );
+}
+
 // Palette de couleurs
 const colors = {
   primary: "#163E67",      // Bleu foncé
@@ -2110,6 +2223,7 @@ export default function App() {
 
   return (
     <div className="app-layout-wrapper">
+      <Topbar />
       <div className="app-layout">
         <Sidebar active={active} onSelect={setActive} />
 
