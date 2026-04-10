@@ -408,8 +408,7 @@ input[type="email"],
 input[type="tel"],
 input[type="search"],
 select,
-textarea,
-option {
+textarea {
   font-family: 'Source Sans Pro', sans-serif !important;
   font-size: 14px;
   padding: 9px 12px;
@@ -419,21 +418,40 @@ option {
   color: var(--text);
   transition: border-color 150ms, box-shadow 150ms;
   outline: none;
+  width: 100%;
+  box-sizing: border-box;
 }
+
+/* Select : flèche native + padding droit pour ne pas chevaucher */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23163E67' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
 input:focus, select:focus, textarea:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(22, 62, 103, 0.08);
 }
 
-/* Force la police sur le texte interne des inputs (placeholder inclus) */
+/* Placeholder : contraste suffisant (WCAG AA ≥ 4.5:1 sur blanc) */
 input::placeholder,
 textarea::placeholder {
   font-family: 'Source Sans Pro', sans-serif;
-  color: var(--text-light);
+  color: #6B7A8D;  /* ~4.6:1 sur blanc */
+  opacity: 1;
 }
 
-/* Correction spécifique pour input[type="date"] dont le navigateur
-   impose sa propre police sur la valeur affichée */
+/* Option "Choisir..." / placeholder dans les selects */
+select option[value=""],
+select option:first-child:not([value]):not([selected]) {
+  color: #6B7A8D;
+}
+
+/* Correction spécifique pour input[type="date"] */
 input[type="date"]::-webkit-datetime-edit,
 input[type="date"]::-webkit-datetime-edit-fields-wrapper,
 input[type="date"]::-webkit-datetime-edit-text,
@@ -443,6 +461,14 @@ input[type="date"]::-webkit-datetime-edit-year-field {
   font-family: 'Source Sans Pro', sans-serif;
   color: var(--text);
 }
+
+/* Suppression des flèches spinner sur number inputs */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] { -moz-appearance: textfield; }
 
 /* ===== Boutons d'action dans les tableaux ===== */
 .btn-add {
