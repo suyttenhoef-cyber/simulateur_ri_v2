@@ -2,6 +2,47 @@
    App.css — Layout & composants visuels CPASConnect
    ============================================================ */
 
+/* ===== Variables globales ===== */
+:root {
+  /* Couleurs principales */
+  --color-primary:      #163E67;
+  --color-primary-dark: #0f2d4d;
+  --color-accent:       #2BEBCE;
+  --color-accent-dark:  #1BC9B0;
+  --color-danger:       #E74C3C;
+
+  /* Fonds */
+  --bg-page:    #F5F8FA;
+  --bg-surface: #FFFFFF;
+  --bg-subtle:  #EEF4FA;
+
+  /* Texte */
+  --text:       #2C3E50;
+  --text-muted: #7F8C8D;
+  --text-light: #A0AEB8;
+
+  /* Bordure */
+  --border: #E1E8ED;
+
+  /* Rayons */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Ombres */
+  --shadow-sm: 0 1px 4px rgba(22,62,103,.06);
+  --shadow-md: 0 4px 12px rgba(22,62,103,.10);
+  --shadow-lg: 0 8px 24px rgba(22,62,103,.14);
+
+  /* Couleurs warning (charte Vanden Broele) */
+  --warning-red:        #BF2222;
+  --warning-red-bg:     #F9E9E9;
+  --warning-yellow:     #966900;
+  --warning-yellow-bg:  #fff8ea;
+  --warning-yellow-bar: #be8603;
+}
+
 /* ===== Racine ===== */
 #root {
   max-width: 1400px;
@@ -10,23 +51,29 @@
   text-align: left;
 }
 
-/* ===== Variables de couleurs warning (charte Vanden Broele) ===== */
-:root {
-  --warning-red:        #BF2222;
-  --warning-red-bg:     #F9E9E9;
-  --warning-yellow:     #966900;
-  --warning-yellow-bg:  #fff8ea;
-  --warning-yellow-bar: #be8603;
-}
-
 /* ===== Wrapper global de l'App ===== */
 .app-layout-wrapper {
-  background: var(--bg-page, #F5F8FA);
+  background: var(--bg-page);
   min-height: 100vh;
   font-family: 'Source Sans Pro', system-ui, -apple-system, sans-serif;
   max-width: 100vw;
   overflow-x: hidden;
   box-sizing: border-box;
+}
+
+/* ===== Layout principal (sidebar + contenu) ===== */
+.app-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 20px;
+  align-items: start;
+  margin-top: 16px;
+  padding: 0 20px 40px;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* ===== Header principal ===== */
@@ -100,14 +147,6 @@
   position: relative;
   z-index: 1;
   flex-wrap: wrap;
-}
-
-/* ===== Layout principal ===== */
-.app-layout {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 20px;
-  align-items: start;
 }
 
 /* ===== Sidebar ===== */
