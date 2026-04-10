@@ -220,6 +220,42 @@ function Topbar() {
   );
 }
 
+// ── Composant titre de section uniforme ──
+// Le lien documentaire est placé À CÔTÉ du titre, jamais imbriqué dedans
+function SectionTitle({ children, docHref }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 0, marginBottom: 0 }}>
+      <h2 style={{
+        margin: 0,
+        fontSize: 20,
+        fontWeight: 800,
+        color: "#163E67",
+        lineHeight: 1.2,
+      }}>
+        {children}
+      </h2>
+      {docHref && (
+        <a
+          href={docHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Consulter la documentation CPASConnect (nouvel onglet)"
+          title="Documentation CPASConnect"
+          style={{
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            width: 28, height: 28, borderRadius: 6,
+            background: "#EEF4FA", color: "#163E67",
+            textDecoration: "none", fontSize: 13, flexShrink: 0,
+            transition: "background .15s",
+          }}
+        >
+          <i className="fas fa-book-open" aria-hidden="true" />
+        </a>
+      )}
+    </div>
+  );
+}
+
 // Palette de couleurs
 const colors = {
   primary: "#163E67",      // Bleu foncé
@@ -2315,7 +2351,7 @@ export default function App() {
         <main className="app-main">
           {active === "informations" && (
             <div style={{ display: "grid", gap: "24px" }}>
-              <h2 style={{ marginTop: 0, marginBottom: 0, fontSize: 20, fontWeight: 800, color: colors.primary }}>Informations</h2>
+              <SectionTitle>Informations</SectionTitle>
               {/* Carte Référence */}
               <Card title="Référence">
                 <div style={{
@@ -2338,7 +2374,7 @@ export default function App() {
                             fontSize: "12px"
                           }}
                         >
-                          <i class="fa-solid fa-link"></i>
+                          📋
                         </a>
                       </div>
                     }
@@ -2419,22 +2455,9 @@ export default function App() {
 
           {active === "revenus_nets" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
+              <SectionTitle docHref="https://myportal.vandenbroeleconnect.be/perma/149746886634684897">
                 Revenus nets
-                <a 
-                  href="https://myportal.vandenbroeleconnect.be/perma/149746886634684897" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  title="Documentation CPASConnect"
-                  style={{ 
-                    color: colors.textLight,
-                    textDecoration: "none",
-                    fontSize: "12px"
-                  }}
-                >
-                  <i class="fa-solid fa-link"></i>
-                </a>
-              </h2>
+              </SectionTitle>
               <RowsTable title="Demandeur" rows={data.revenusNets.demandeur.rows}
                 onChangeRows={(rows) => setData(d => ({
                   ...d, revenusNets: { ...d.revenusNets, demandeur: { ...d.revenusNets.demandeur, rows } }
@@ -2459,7 +2482,7 @@ export default function App() {
 
           {active === "cmr" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Chômage / Mutuelle / Remplacement</h2>
+              <SectionTitle>Chômage / Mutuelle / Remplacement</SectionTitle>
           
               <Card title={
                 <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -2467,7 +2490,7 @@ export default function App() {
                   <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905"
                     target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
                     style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
-                    <i class="fa-solid fa-link"></i>
+                    📋
                   </a>
                 </span>
               }>
@@ -2487,7 +2510,7 @@ export default function App() {
                   <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905"
                     target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
                     style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
-                    <i class="fa-solid fa-link"></i>
+                    📋
                   </a>
                 </span>
               }>
@@ -2514,7 +2537,7 @@ export default function App() {
                         <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684880"
                           target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
                           style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
-                          <i class="fa-solid fa-link"></i>
+                          📋
                         </a>
                       </span>
                     }
@@ -2529,7 +2552,7 @@ export default function App() {
                         <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684904"
                           target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
                           style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
-                          <i class="fa-solid fa-link"></i>
+                          📋
                         </a>
                       </span>
                     }
@@ -2541,7 +2564,7 @@ export default function App() {
           )}
           {active === "avantages" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Avantages en nature</h2>
+              <SectionTitle>Avantages en nature</SectionTitle>
               <Card title="Avantages en nature">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
                   <Input label="Charges locatives prises en charge par un tiers (€/mois)" type="number"
@@ -2563,7 +2586,7 @@ export default function App() {
 
           {active === "cessions_biens" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Cessions de biens</h2>
+              <SectionTitle>Cessions de biens</SectionTitle>
               <CessionsBiensTable 
                 rows={data.cessionsBiens.rows}
                 categorie={data.menage.situation === "isolé" ? 2 : data.menage.situation === "cohabitant" ? 1 : 3}
@@ -2573,7 +2596,7 @@ export default function App() {
           )}
           {active === "exoneration" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Exonération</h2>
+              <SectionTitle>Exonération</SectionTitle>
 
               {/* Résumé calculé (Excel-like) */}
               {(() => {
@@ -2651,7 +2674,7 @@ export default function App() {
                         fontSize: "12px"
                       }}
                     >
-                      <i class="fa-solid fa-link"></i>
+                      📋
                     </a>
                   </label>
 
@@ -2681,7 +2704,7 @@ export default function App() {
                         fontSize: "12px"
                       }}
                     >
-                      <i class="fa-solid fa-link"></i>
+                      📋
                     </a>
                   </label>
 
@@ -2711,7 +2734,7 @@ export default function App() {
                         fontSize: "12px"
                       }}
                     >
-                      <i class="fa-solid fa-link"></i>
+                      📋
                     </a>
                   </label>
 
@@ -2729,7 +2752,7 @@ export default function App() {
                           fontSize: "12px"
                         }}
                       >
-                        <i class="fa-solid fa-link"></i>
+                        📋
                       </a>
                     </span>
                   }>
@@ -2837,7 +2860,7 @@ export default function App() {
                           fontSize: "12px"
                         }}
                       >
-                        <i class="fa-solid fa-link"></i>
+                        📋
                       </a>
                     </span>
                   }>
@@ -2882,7 +2905,7 @@ export default function App() {
 
           {active === "biens_immobiliers" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Biens immobiliers</h2>
+              <SectionTitle>Biens immobiliers</SectionTitle>
               <BiensImmobiliersTable rows={data.biensImmobiliers.rows}
                 onChangeRows={(rows) => setData(d => ({ ...d, biensImmobiliers: { rows } }))} />
             </section>
@@ -2890,7 +2913,7 @@ export default function App() {
 
           {active === "ressources_diverses" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Ressources diverses</h2>
+              <SectionTitle>Ressources diverses</SectionTitle>
               <Card title="Ressources diverses générales">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
                   {data.ressourcesDiverses.generales.map((r, i) => (
@@ -2920,7 +2943,7 @@ export default function App() {
           )}
           {active === "cohabitants" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Revenus des cohabitants</h2>
+              <SectionTitle>Revenus des cohabitants</SectionTitle>
               <CohabitantsTable 
                 rows={data.cohabitants.rows}
                 referenceDate={data.reference.dateISO}
@@ -2942,7 +2965,7 @@ export default function App() {
               flexWrap: "wrap",
               gap: "10px"
             }}>
-              <h2 style={{ marginTop: 0 }}>Aperçu</h2>
+              <SectionTitle>Aperçu</SectionTitle>
               
               <button
                 onClick={handleExportPDF}
