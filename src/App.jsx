@@ -31,10 +31,71 @@ if (!document.getElementById('ssp-cdn')) {
   document.head.appendChild(link);
 }
 
+// ── Composant modale de confirmation ──
+function ConfirmModal({ message, onConfirm, onCancel }) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-modal-title"
+      style={{
+        position: "fixed", inset: 0, zIndex: 9999,
+        background: "rgba(22,62,103,0.55)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "16px",
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+    >
+      <div style={{
+        background: "#fff", borderRadius: "12px",
+        padding: "28px 32px", maxWidth: 420, width: "100%",
+        boxShadow: "0 8px 32px rgba(22,62,103,.18)",
+        fontFamily: "'Source Sans Pro', -apple-system, sans-serif",
+      }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 20 }}>
+          <i className="fas fa-triangle-exclamation" aria-hidden="true"
+            style={{ color: "#D97706", fontSize: 22, flexShrink: 0, marginTop: 2 }} />
+          <div>
+            <p id="confirm-modal-title" style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 16, color: "#163E67" }}>
+              Rafraîchir le simulateur
+            </p>
+            <p style={{ margin: 0, fontSize: 14, color: "#2C3E50", lineHeight: 1.5 }}>{message}</p>
+          </div>
+        </div>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+          <button
+            onClick={onCancel}
+            autoFocus
+            style={{
+              padding: "9px 18px", borderRadius: "8px", border: "1px solid #C5D8EE",
+              background: "#fff", color: "#163E67", fontWeight: 700, fontSize: 14,
+              cursor: "pointer", fontFamily: "'Source Sans Pro', sans-serif",
+            }}
+          >
+            Annuler
+          </button>
+          <button
+            onClick={onConfirm}
+            style={{
+              padding: "9px 18px", borderRadius: "8px", border: "none",
+              background: "#163E67", color: "#fff", fontWeight: 700, fontSize: 14,
+              cursor: "pointer", fontFamily: "'Source Sans Pro', sans-serif",
+            }}
+          >
+            Confirmer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Composant Topbar CPASConnect ──
 function Topbar() {
-  const handleRefresh = () => {
-    if (!window.confirm("Toutes les données non sauvegardées seront perdues. Continuer ?")) return;
+  const [showRefreshModal, setShowRefreshModal] = useState(false);
+
+  const handleRefreshConfirm = () => {
+    setShowRefreshModal(false);
     window.location.reload();
   };
 
@@ -74,19 +135,28 @@ function Topbar() {
     cursor: "pointer", border: "none", transition: "all .18s ease",
     textDecoration: "none", whiteSpace: "nowrap", lineHeight: 1,
   };
+  // Plein écran : action secondaire → ghost
   const btnGhost = { ...btnBase, background: "rgba(255,255,255,.12)", color: "#fff", border: "1px solid rgba(255,255,255,.22)" };
+  // Rafraîchir : action primaire → accent
   const btnAccent = { ...btnBase, background: "#2BEBCE", color: "#163E67", boxShadow: "0 2px 10px rgba(43,235,206,.3)" };
 
   const infoBarStyle = {
     display: "flex", alignItems: "center", gap: "10px",
-    background: "#fff", border: "1px solid #E1E8ED", borderLeft: "4px solid #2BEBCE",
+    background: "#fff", border: "1px solid #C8D6E0", borderLeft: "4px solid #2BEBCE",
     borderRadius: "8px", padding: "10px 16px", marginBottom: "10px",
-    fontSize: "14px", color: "#384142",
+    fontSize: "14px", color: "#1A2C3A",
     fontFamily: "'Source Sans Pro', -apple-system, sans-serif",
   };
 
   return (
     <>
+      {showRefreshModal && (
+        <ConfirmModal
+          message="Toutes les données saisies seront perdues. Voulez-vous vraiment rafraîchir le simulateur ?"
+          onConfirm={handleRefreshConfirm}
+          onCancel={() => setShowRefreshModal(false)}
+        />
+      )}
       <header style={topbarStyle}>
         {/* Halo décoratif */}
         <div style={{
@@ -96,40 +166,55 @@ function Topbar() {
           pointerEvents: "none",
         }} />
         <div style={brandStyle}>
-          <img
-            src="https://www.cpasconnect.be/img/cpasconnect/logo.svg"
-            alt="CPASConnect"
-            style={logoStyle}
-            onError={(e) => {
-              e.target.style.display = "none";
-              e.target.nextSibling.style.display = "flex";
-            }}
-          />
-          {/* Fallback texte si le logo ne charge pas */}
-          <div style={{ display: "none", alignItems: "center", gap: 6, color: "#fff", fontSize: 15, fontWeight: 800 }}>
-            <span style={{ background: "#2BEBCE", color: "#163E67", borderRadius: 5, padding: "2px 7px", fontSize: 13 }}>CPAS</span>
-            Connect
-          </div>
+          {/* Logo cliquable et focusable */}
+          <a
+            href="https://www.cpasconnect.be/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Aller vers le site CPASConnect (nouvel onglet)"
+            style={{ display: "flex", alignItems: "center", outline: "none", borderRadius: 4 }}
+          >
+            <img
+              src="https://www.cpasconnect.be/img/cpasconnect/logo.svg"
+              alt="CPASConnect"
+              style={logoStyle}
+              onError={(e) => {
+                e.target.style.display = "none";
+                e.target.nextSibling.style.display = "flex";
+              }}
+            />
+            {/* Fallback texte si le logo ne charge pas */}
+            <div style={{ display: "none", alignItems: "center", gap: 6, color: "#fff", fontSize: 15, fontWeight: 800 }}>
+              <span style={{ background: "#2BEBCE", color: "#163E67", borderRadius: 5, padding: "2px 7px", fontSize: 13 }}>CPAS</span>
+              Connect
+            </div>
+          </a>
           <div style={sepStyle} />
           <div>
-            <h1 style={titlesH1}>Simulateur de Revenu d'Intégration</h1>
+            <h1 style={titlesH1}>Simulateur de revenu d'intégration</h1>
             <p style={titlesP}>Bibliothèque digitale pour les CPAS · Calcul local et sécurisé</p>
           </div>
         </div>
         <div style={actionsStyle}>
-          <button style={btnAccent} onClick={handleRefresh} type="button" aria-label="Rafraîchir le simulateur">
-            <i className="fas fa-sync-alt" aria-hidden="true" />
-            <span>Réinitiliser les données</span>
-          </button>
-          <button style={btnAccent} onClick={handleFullscreen} type="button" aria-label="Afficher en plein écran">
+          {/* Plein écran : action secondaire, à gauche */}
+          <button style={btnGhost} onClick={handleFullscreen} type="button" aria-label="Afficher en plein écran">
             <i className="fas fa-expand" aria-hidden="true" />
             <span>Plein écran</span>
+          </button>
+          {/* Rafraîchir : action primaire, à droite */}
+          <button style={btnAccent} onClick={() => setShowRefreshModal(true)} type="button" aria-label="Rafraîchir le simulateur">
+            <i className="fas fa-sync-alt" aria-hidden="true" />
+            <span>Rafraîchir</span>
           </button>
         </div>
       </header>
       <div style={infoBarStyle}>
-        <i className="fas fa-info-circle" style={{ color: "#1BC9B0", fontSize: 14, flexShrink: 0 }} aria-hidden="true" />
-        <span><strong style={{ color: "#2C3E50" }}>Outil d'aide à la décision.</strong> Les résultats sont indicatifs et doivent être validés par les services compétents du CPAS.</span>
+        <i className="fas fa-info-circle" aria-hidden="true"
+          style={{ color: "#0E7A6E", fontSize: 16, flexShrink: 0 }} />
+        <span>
+          <strong style={{ color: "#163E67" }}>Outil d'aide à la décision.</strong>{" "}
+          Les résultats sont indicatifs et doivent être validés par les services compétents du CPAS.
+        </span>
       </div>
     </>
   );
@@ -3093,6 +3178,32 @@ export default function App() {
           )}
         </main>
       </div>
+
+      <footer style={{
+        textAlign: "center",
+        fontSize: "14px",
+        color: "#2C3E50",
+        padding: "12px 0 4px",
+        fontFamily: "'Source Sans Pro', -apple-system, sans-serif",
+        flexShrink: 0,
+      }}>
+        © 2026{" "}
+        <a
+          href="https://www.cpasconnect.be/"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: "#163E67", fontWeight: 600, textDecoration: "none" }}
+        >
+          Vanden Broele · CPASConnect
+        </a>
+        {" · "}
+        <a
+          href="mailto:info@vandenbroele.be"
+          style={{ color: "#163E67", fontWeight: 600, textDecoration: "none" }}
+        >
+          Contact
+        </a>
+      </footer>
     </div>
   );
 }
