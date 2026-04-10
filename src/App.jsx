@@ -2338,7 +2338,7 @@ export default function App() {
                             fontSize: "12px"
                           }}
                         >
-                          📋
+                          <i class="fa-solid fa-link"></i>
                         </a>
                       </div>
                     }
