@@ -117,9 +117,9 @@ function Topbar() {
           </div>
         </div>
         <div style={actionsStyle}>
-          <button style={btnGhost} onClick={handleRefresh} type="button" aria-label="Rafraîchir le simulateur">
+          <button style={btnAccent} onClick={handleRefresh} type="button" aria-label="Rafraîchir le simulateur">
             <i className="fas fa-sync-alt" aria-hidden="true" />
-            <span>Rafraîchir</span>
+            <span>Réinitiliser les données</span>
           </button>
           <button style={btnAccent} onClick={handleFullscreen} type="button" aria-label="Afficher en plein écran">
             <i className="fas fa-expand" aria-hidden="true" />
