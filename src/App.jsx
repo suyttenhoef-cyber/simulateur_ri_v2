@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { generatePDF } from './utils/pdfExport.js';
 import './App.css';
 
-// Ajouter juste après les imports
+// Injection Font Awesome + styles globaux dans le <head>
 const globalStyles = `
   * { box-sizing: border-box; }
   body, html { 
@@ -12,6 +12,15 @@ const globalStyles = `
     max-width: 100vw !important;
   }
 `;
+
+// Injecter Font Awesome si pas déjà présent
+if (!document.getElementById('fa-cdn')) {
+  const link = document.createElement('link');
+  link.id = 'fa-cdn';
+  link.rel = 'stylesheet';
+  link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+  document.head.appendChild(link);
+}
 
 // Palette de couleurs
 const colors = {
@@ -1375,15 +1384,28 @@ function Sidebar({ active, onSelect }) {
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-label={isCollapsed ? "Déplier le menu" : "Replier le menu"}
           style={{
-            background: "transparent",
+            background: "rgba(255,255,255,0.1)",
             border: "none",
             color: colors.white,
             cursor: "pointer",
-            fontSize: "20px"
+            fontSize: "14px",
+            width: 32,
+            height: 32,
+            borderRadius: "6px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            transition: "background 0.2s"
           }}
         >
-          {isCollapsed ? "→" : "←"}
+          {isCollapsed ? (
+            <i className="fas fa-chevron-right" aria-hidden="true" />
+          ) : (
+            <i className="fas fa-chevron-left" aria-hidden="true" />
+          )}
         </button>
       </div>
 
