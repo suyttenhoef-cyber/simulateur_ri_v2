@@ -2432,7 +2432,7 @@ export default function App() {
                     fontSize: "12px"
                   }}
                 >
-                  📋
+                  <i class="fa-solid fa-link"></i>
                 </a>
               </h2>
               <RowsTable title="Demandeur" rows={data.revenusNets.demandeur.rows}
@@ -2467,7 +2467,7 @@ export default function App() {
                   <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905"
                     target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
                     style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
-                    📋
+                    <i class="fa-solid fa-link"></i>
                   </a>
                 </span>
               }>
@@ -2487,7 +2487,7 @@ export default function App() {
                   <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905"
                     target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
                     style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
-                    📋
+                    <i class="fa-solid fa-link"></i>
                   </a>
                 </span>
               }>
@@ -2514,7 +2514,7 @@ export default function App() {
                         <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684880"
                           target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
                           style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
-                          📋
+                          <i class="fa-solid fa-link"></i>
                         </a>
                       </span>
                     }
@@ -2529,7 +2529,7 @@ export default function App() {
                         <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684904"
                           target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
                           style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
-                          📋
+                          <i class="fa-solid fa-link"></i>
                         </a>
                       </span>
                     }
@@ -2651,7 +2651,7 @@ export default function App() {
                         fontSize: "12px"
                       }}
                     >
-                      📋
+                      <i class="fa-solid fa-link"></i>
                     </a>
                   </label>
 
@@ -2681,7 +2681,7 @@ export default function App() {
                         fontSize: "12px"
                       }}
                     >
-                      📋
+                      <i class="fa-solid fa-link"></i>
                     </a>
                   </label>
 
@@ -2711,7 +2711,7 @@ export default function App() {
                         fontSize: "12px"
                       }}
                     >
-                      📋
+                      <i class="fa-solid fa-link"></i>
                     </a>
                   </label>
 
@@ -2729,7 +2729,7 @@ export default function App() {
                           fontSize: "12px"
                         }}
                       >
-                        📋
+                        <i class="fa-solid fa-link"></i>
                       </a>
                     </span>
                   }>
@@ -2837,7 +2837,7 @@ export default function App() {
                           fontSize: "12px"
                         }}
                       >
-                        📋
+                        <i class="fa-solid fa-link"></i>
                       </a>
                     </span>
                   }>
