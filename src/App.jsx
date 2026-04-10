@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { generatePDF } from './utils/pdfExport.js';
+import './App.css';
 
 // Ajouter juste après les imports
 const globalStyles = `
