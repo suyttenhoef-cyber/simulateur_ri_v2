@@ -67,7 +67,7 @@ function ConfirmModal({ message, onConfirm, onCancel }) {
             onClick={onCancel}
             autoFocus
             style={{
-              padding: "9px 18px", borderRadius: "8px", border: "1px solid #C5D8EE",
+              padding: "9px 18px", borderRadius: "8px", border: "1.5px solid #9BAAB5",
               background: "#fff", color: "#163E67", fontWeight: 700, fontSize: 14,
               cursor: "pointer", fontFamily: "'Source Sans Pro', sans-serif",
             }}
@@ -731,7 +731,7 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                     <option value="Conjoint">Conjoint</option>
                     <option value="Autre">Autre</option>
                   </Input>
-                  <Input label="Ressources totales (€/an)" type="number" value={r.ressourcesTotale}
+                  <Input label="Ressources totales (€/an)" type="number" money value={r.ressourcesTotale}
                     onChange={(e) => updateRow(i, { ressourcesTotale: safeNumber(e.target.value, 0) })} />
                   <Input label="Prise en charge" type="select" value={r.priseEnCharge}
                     onChange={(e) => updateRow(i, { priseEnCharge: e.target.value })}>
@@ -893,7 +893,7 @@ function RowsTable({ title, rows, onChangeRows }) {
                 width: "100%",
                 padding: "8px",
                 borderRadius: "6px",
-                border: "1px solid #ddd",
+                border: "1.5px solid #9BAAB5",
                 fontSize: "13px",
                 fontFamily: "'Source Sans Pro', sans-serif"
               }}
@@ -927,6 +927,7 @@ function RowsTable({ title, rows, onChangeRows }) {
           <div>
             <input
               type="number"
+              onFocus={(e) => e.target.select()}
               value={r.comptabilise}
               onChange={(e) => updateRow(i, { comptabilise: safeNumber(e.target.value, 0) })}
               placeholder="0.00"
@@ -934,7 +935,7 @@ function RowsTable({ title, rows, onChangeRows }) {
                 width: "100%",
                 padding: "8px",
                 borderRadius: "6px",
-                border: "1px solid #ddd",
+                border: "1.5px solid #9BAAB5",
                 fontSize: "13px",
                 fontFamily: "'Source Sans Pro', sans-serif"
               }}
@@ -950,7 +951,7 @@ function RowsTable({ title, rows, onChangeRows }) {
                 width: "100%",
                 padding: "8px",
                 borderRadius: "6px",
-                border: "1px solid #E1E8ED",
+                border: "1.5px solid #9BAAB5",
                 fontSize: "12px",
                 fontFamily: "'Source Sans Pro', sans-serif",
                 color: "#7F8C8D",
@@ -969,6 +970,7 @@ function RowsTable({ title, rows, onChangeRows }) {
           <div>
             <input
               type="number"
+              onFocus={(e) => e.target.select()}
               value={r.exonere}
               onChange={(e) => updateRow(i, { exonere: safeNumber(e.target.value, 0) })}
               placeholder="0.00"
@@ -976,7 +978,7 @@ function RowsTable({ title, rows, onChangeRows }) {
                 width: "100%",
                 padding: "8px",
                 borderRadius: "6px",
-                border: "1px solid #ddd",
+                border: "1.5px solid #9BAAB5",
                 fontSize: "13px",
                 fontFamily: "'Source Sans Pro', sans-serif"
               }}
@@ -1097,7 +1099,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
         <>
           {calculations.map((cession, i) => (
             <div key={i} style={{ 
-              border: `1px solid ${colors.border}`,
+              border: "1.5px solid #9BAAB5",
               borderRadius: 8, 
               padding: 14, 
               marginBottom: 12,
@@ -1134,6 +1136,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 12, fontWeight: 600 }}>Valeur vénale (€)</span>
                   <input type="number" value={cession.valeurVenale}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => updateRow(i, { valeurVenale: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }} />
                 </label>
@@ -1141,6 +1144,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 12, fontWeight: 600 }}>Part (%)</span>
                   <input type="number" value={cession.partConcernee}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => updateRow(i, { partConcernee: safeNumber(e.target.value, 100) })}
                     style={{ padding: "6px" }} min="0" max="100" />
                 </label>
@@ -1173,6 +1177,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
                   <span style={{ fontSize: 12, fontWeight: 600 }}>Dettes (€)</span>
                   <input 
                     type="number" 
+                    onFocus={(e) => e.target.select()}
                     value={cession.dettesPersonnelles}
                     onChange={(e) => updateRow(i, { dettesPersonnelles: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px", opacity: cession.natureCession === "Cession à titre gratuit" ? 0.5 : 1 }}
@@ -1185,6 +1190,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 12, fontWeight: 600 }}>Dettes (€)</span>
                   <input type="number" value={cession.dettesPersonnelles}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => updateRow(i, { dettesPersonnelles: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }} />
                 </label>
@@ -1192,6 +1198,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 12, fontWeight: 600 }}>Dispense d'équité (€)</span>
                   <input type="number" value={cession.dispenseEquite}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => updateRow(i, { dispenseEquite: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }} />
                 </label>
@@ -1213,7 +1220,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
 
               {/* Détail du calcul */}
               {cession.calc && (
-                <div style={{ background: colors.white, padding: 10, borderRadius: 6, border: `1px solid ${colors.border}`, fontSize: 12 }}>
+                <div style={{ background: colors.white, padding: 10, borderRadius: 6, border: "1.5px solid #9BAAB5", fontSize: 12 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8 }}>
                     <div><strong>Montant vénal:</strong> <Money value={cession.calc.montantVenal} /></div>
                     <div><strong>Tranche immunisée:</strong> <Money value={cession.calc.trancheImmunisee} /></div>
@@ -1260,7 +1267,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
         <>
           {rows.map((r, i) => (
             <div key={i} style={{ 
-              border: `1px solid ${colors.border}`,
+              border: "1.5px solid #9BAAB5",
               borderRadius: 8, 
               padding: 14, 
               marginBottom: 12,
@@ -1306,6 +1313,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                   <span style={{ fontSize: 12, fontWeight: 600 }}>RC non indexé (€)</span>
                   <input
                     type="number"
+                    onFocus={(e) => e.target.select()}
                     value={r.rcNonIndexe}
                     onChange={(e) => updateRow(i, { rcNonIndexe: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }}
@@ -1316,6 +1324,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                   <span style={{ fontSize: 12, fontWeight: 600 }}>Quote-part (%)</span>
                   <input
                     type="number"
+                    onFocus={(e) => e.target.select()}
                     value={r.quotePart}
                     onChange={(e) => updateRow(i, { quotePart: safeNumber(e.target.value, 50) })}
                     style={{ padding: "6px" }}
@@ -1328,6 +1337,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                   <span style={{ fontSize: 12, fontWeight: 600 }}>Loyer annuel (€)</span>
                   <input
                     type="number"
+                    onFocus={(e) => e.target.select()}
                     value={r.loyerAnnuel}
                     onChange={(e) => updateRow(i, { loyerAnnuel: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }}
@@ -1338,6 +1348,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                   <span style={{ fontSize: 12, fontWeight: 600 }}>Intérêts payés (€)</span>
                   <input
                     type="number"
+                    onFocus={(e) => e.target.select()}
                     value={r.interetsPaye}
                     onChange={(e) => updateRow(i, { interetsPaye: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }}
@@ -1348,6 +1359,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                   <span style={{ fontSize: 12, fontWeight: 600 }}>Rente annuelle (€)</span>
                   <input
                     type="number"
+                    onFocus={(e) => e.target.select()}
                     value={r.renteAnnuelle}
                     onChange={(e) => updateRow(i, { renteAnnuelle: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }}
@@ -1358,6 +1370,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                   <span style={{ fontSize: 12, fontWeight: 600 }}>Revenu étranger (€)</span>
                   <input
                     type="number"
+                    onFocus={(e) => e.target.select()}
                     value={r.revenuImmoEtranger}
                     onChange={(e) => updateRow(i, { revenuImmoEtranger: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }}
@@ -1542,7 +1555,7 @@ function Card({ title, children, level = 3 }) {
   const Tag = `h${level}`;
   return (
     <div style={{
-      border: `1px solid ${colors.border}`,
+      border: "1.5px solid #9BAAB5",
       borderRadius: "12px",
       padding: "20px",
       background: colors.white,
@@ -1564,23 +1577,67 @@ function Card({ title, children, level = 3 }) {
   );
 }
 
-function Input({ label, type = "text", value, onChange, placeholder, hint }) {
+// ── CSS global : suppression spinners + contraste bordures ──
+if (!document.getElementById('input-global-css')) {
+  const s = document.createElement('style');
+  s.id = 'input-global-css';
+  s.textContent = `
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+    .inp-base {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1.5px solid #9BAAB5;
+      font-size: 14px;
+      width: 100%;
+      box-sizing: border-box;
+      font-family: 'Source Sans Pro', sans-serif;
+      background: #fff;
+      color: #2C3E50;
+      transition: border-color .15s;
+    }
+    .inp-base:focus { outline: none; border-color: #163E67; box-shadow: 0 0 0 3px rgba(22,62,103,.12); }
+    .inp-money { padding-left: 28px !important; }
+    .inp-wrapper { position: relative; }
+    .inp-prefix {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      font-size: 14px; color: #6B7E8F; pointer-events: none; user-select: none;
+    }
+    select.inp-base { padding-right: 32px; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7E8F' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+  `;
+  document.head.appendChild(s);
+}
+
+function Input({ label, type = "text", value, onChange, placeholder, hint, money = false }) {
+  // Sélectionne tout à la mise au focus → évite le "0" collant
+  const handleFocus = (e) => e.target.select();
+
+  // Date : bloquer la saisie à 10 caractères (YYYY-MM-DD)
+  const handleDateInput = (e) => {
+    if (type === "date") return; // le navigateur gère le format natif
+  };
+
+  const inputEl = (
+    <input
+      type={type}
+      value={value}
+      onChange={onChange}
+      onFocus={handleFocus}
+      placeholder={placeholder}
+      maxLength={type === "date" ? 10 : undefined}
+      className={`inp-base${money ? " inp-money" : ""}`}
+    />
+  );
+
   return (
     <Field label={label} hint={hint}>
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        style={{
-          padding: "10px 12px",
-          borderRadius: "8px",
-          border: `1px solid ${colors.border}`,
-          fontSize: "14px",
-          width: "100%",
-          boxSizing: "border-box"
-        }}
-      />
+      {money ? (
+        <div className="inp-wrapper">
+          <span className="inp-prefix">€</span>
+          {inputEl}
+        </div>
+      ) : inputEl}
     </Field>
   );
 }
@@ -2495,11 +2552,11 @@ export default function App() {
                 </span>
               }>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  <Input label="Montant mensuel réel" type="number" value={data.cmr.chomage.mensuelReel}
+                  <Input label="Montant mensuel réel" type="number" money value={data.cmr.chomage.mensuelReel}
                     onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, mensuelReel: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Montant/jour (sur 26 jours)" type="number" value={data.cmr.chomage.montantJour26}
+                  <Input label="Montant/jour (sur 26 jours)" type="number" money value={data.cmr.chomage.montantJour26}
                     onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, montantJour26: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Montant/jour (annuel)" type="number" value={data.cmr.chomage.montantJourAnnuel}
+                  <Input label="Montant/jour (annuel)" type="number" money value={data.cmr.chomage.montantJourAnnuel}
                     onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, montantJourAnnuel: safeNumber(e.target.value, 0) } } }))} />
                 </div>
               </Card>
@@ -2515,20 +2572,20 @@ export default function App() {
                 </span>
               }>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  <Input label="Montant mensuel réel" type="number" value={data.cmr.mutuelle.mensuelReel}
+                  <Input label="Montant mensuel réel" type="number" money value={data.cmr.mutuelle.mensuelReel}
                     onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, mensuelReel: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Montant/jour (sur 26 jours)" type="number" value={data.cmr.mutuelle.montantJour26}
+                  <Input label="Montant/jour (sur 26 jours)" type="number" money value={data.cmr.mutuelle.montantJour26}
                     onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, montantJour26: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Montant/jour (annuel)" type="number" value={data.cmr.mutuelle.montantJourAnnuel}
+                  <Input label="Montant/jour (annuel)" type="number" money value={data.cmr.mutuelle.montantJourAnnuel}
                     onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, montantJourAnnuel: safeNumber(e.target.value, 0) } } }))} />
                 </div>
               </Card>
           
               <Card title="Remplacement">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  <Input label="Pension (mensuel)" type="number" value={data.cmr.remplacement.pensionMensuel}
+                  <Input label="Pension (mensuel)" type="number" money value={data.cmr.remplacement.pensionMensuel}
                     onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, pensionMensuel: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Droit passerelle (mensuel)" type="number" value={data.cmr.remplacement.droitPasserelleMensuel}
+                  <Input label="Droit passerelle (mensuel)" type="number" money value={data.cmr.remplacement.droitPasserelleMensuel}
                     onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, droitPasserelleMensuel: safeNumber(e.target.value, 0) } } }))} />
                   <Input
                     label={
@@ -2543,7 +2600,7 @@ export default function App() {
                     }
                     type="number" value={data.cmr.remplacement.allocationHandicapeMensuel}
                     onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, allocationHandicapeMensuel: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Indemnisation 'accident' pour perte de revenus (mensuel)" type="number" value={data.cmr.remplacement.indemnisation_perte_revenus}
+                  <Input label="Indemnisation 'accident' pour perte de revenus (mensuel)" type="number" money value={data.cmr.remplacement.indemnisation_perte_revenus}
                     onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, indemnisation_perte_revenus: safeNumber(e.target.value, 0) } } }))} />
                   <Input
                     label={
@@ -2567,16 +2624,16 @@ export default function App() {
               <SectionTitle>Avantages en nature</SectionTitle>
               <Card title="Avantages en nature">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  <Input label="Charges locatives prises en charge par un tiers (€/mois)" type="number"
+                  <Input label="Charges locatives prises en charge par un tiers (€/mois)" type="number" money
                     value={data.avantages.chargesLocativesTiers}
                     onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, chargesLocativesTiers: safeNumber(e.target.value, 0) } }))} />
-                  <Input label="Loyer fictif évalué par un professionnel (€/mois)" type="number"
+                  <Input label="Loyer fictif évalué par un professionnel (€/mois)" type="number" money
                     value={data.avantages.loyerFictifProfessionnel}
                     onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifProfessionnel: safeNumber(e.target.value, 0) } }))} />
-                  <Input label="Loyer fictif évalué via simulateur ou grille de loyers (€/mois)" type="number"
+                  <Input label="Loyer fictif évalué via simulateur ou grille de loyers (€/mois)" type="number" money
                     value={data.avantages.loyerFictifSimulateur}
                     onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifSimulateur: safeNumber(e.target.value, 0) } }))} />
-                  <Input label="Prêt hypothécaire pris en charge par un tiers (€/mois)" type="number"
+                  <Input label="Prêt hypothécaire pris en charge par un tiers (€/mois)" type="number" money
                     value={data.avantages.pretHypothecaireTiers}
                     onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, pretHypothecaireTiers: safeNumber(e.target.value, 0) } }))} />
                 </div>
@@ -2758,6 +2815,7 @@ export default function App() {
                   }>
                     <input
                       type="number"
+                      onFocus={(e) => e.target.select()}
                       value={data.exoneration.demandeur.joursCompteur}
                       onChange={(e) =>
                         setData((d) => ({
@@ -2866,6 +2924,7 @@ export default function App() {
                   }>
                     <input
                       type="number"
+                      onFocus={(e) => e.target.select()}
                       value={data.exoneration.conjoint.joursCompteur}
                       onChange={(e) =>
                         setData((d) => ({
@@ -3129,6 +3188,7 @@ export default function App() {
                               <input
                                 style={{ width: 70, padding: "6px 8px" }}
                                 type="number"
+                                onFocus={(e) => e.target.select()}
                                 min={0}
                                 value={data.reference.joursPrisEnCompte ?? 0}
                                 onChange={(e) =>
@@ -3145,6 +3205,7 @@ export default function App() {
                               <input
                                 style={{ width: 70, padding: "6px 8px", background: "#f5f5f5" }}
                                 type="number"
+                                onFocus={(e) => e.target.select()}
                                 value={result.apercu.ri.joursMois}
                                 readOnly
                               />
@@ -3172,7 +3233,7 @@ export default function App() {
             <section style={{ display: "grid", gap: 12 }}>
               <Card title="Biens mobiliers">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  <Input label="Montant du capital" type="number"
+                  <Input label="Montant du capital" type="number" money
                     value={data.biensMobiliers.montantCapital}
                     onChange={(e) => setData((d) => ({
                       ...d,
