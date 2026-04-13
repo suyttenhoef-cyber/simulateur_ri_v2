@@ -369,8 +369,10 @@ const defaultCohabitantRow = () => ({
   categorie: 1
 });
 
+const todayISO = new Date().toISOString().slice(0, 10);
+
 const defaultData = {
-  reference: { dateISO: "2025-02-01", joursPrisEnCompte: "" },
+  reference: { dateISO: todayISO, joursPrisEnCompte: "" },
   identite: { nom: "", prenom: "", dateNaissance: "", nationalite: "" },
   menage: { situation: "", nbEnfants: 0 },
   revenusNets: {
@@ -1745,7 +1747,7 @@ function Sidebar({ active, onSelect }) {
     };
   }
 function computeApercuExcelLike({ data, pieces }) {
-  const dateISO = data.reference.dateISO || "2025-02-01";
+  const dateISO = data.reference.dateISO || todayISO;
   const dim = daysInMonth(dateISO);
 
   // Excel Informations!C18 : jours période (si 0 => mois complet)
@@ -2221,7 +2223,7 @@ function computeFromForm(data) {
     data.menage.situation === "isolé" ? 2 :
     data.menage.situation === "cohabitant" ? 1 : 3;
 
-  const dateISO = data.reference.dateISO || "2025-02-01";
+  const dateISO = data.reference.dateISO || todayISO;
   const [yearStr] = dateISO.split("-");
   const year = safeNumber(yearStr, 2025);
 
@@ -2683,7 +2685,7 @@ export default function App() {
               {/* Résumé calculé */}
               {(() => {
                 const exoCalc = computeExonerationExcel({
-                  dateISO: data.reference.dateISO || "2025-02-01",
+                  dateISO: data.reference.dateISO || todayISO,
                   exo: data.exoneration,
                 });
                 return (
