@@ -366,7 +366,8 @@ const defaultCohabitantRow = () => ({
   priseEnCharge: "Non",
   typeReport: "Report max",
   pctReport: 30,
-  categorie: 1
+  categorie: 1,
+  saisieMode: "mensuel",
 });
 
 const todayISO = new Date().toISOString().slice(0, 10);
@@ -742,20 +743,72 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                     <option value="Conjoint">Conjoint</option>
                     <option value="Autre">Autre</option>
                   </Input>
-                  <Input label="Ressources totales (€/an)" type="number" money value={r.ressourcesTotale}
-                    onChange={(e) => updateRow(i, { ressourcesTotale: safeNumber(e.target.value, 0) })} />
+
+                  {/* Ressources : choix mensuel ou annuel */}
+                  <div style={{ display: "grid", gap: 6 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: 13, opacity: 0.85 }}>Ressources totales</span>
+                      <div style={{ display: "flex", gap: 0, borderRadius: 6, overflow: "hidden", border: "1.5px solid #9BAAB5" }}>
+                        {["mensuel", "annuel"].map((mode) => (
+                          <button
+                            key={mode}
+                            type="button"
+                            onClick={() => updateRow(i, { saisieMode: mode })}
+                            style={{
+                              padding: "3px 10px", fontSize: 11, fontWeight: 600, border: "none", cursor: "pointer",
+                              background: (r.saisieMode || "annuel") === mode ? "#163E67" : "#fff",
+                              color: (r.saisieMode || "annuel") === mode ? "#fff" : "#163E67",
+                              transition: "background .15s",
+                            }}
+                          >
+                            {mode === "mensuel" ? "/mois" : "/an"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="inp-wrapper">
+                      <span className="inp-prefix">€</span>
+                      <input
+                        type="number"
+                        className="inp-base inp-money"
+                        onFocus={(e) => e.target.select()}
+                        value={(r.saisieMode || "annuel") === "mensuel"
+                          ? (r.ressourcesTotale / 12 || 0)
+                          : (r.ressourcesTotale || 0)}
+                        onChange={(e) => {
+                          const val = safeNumber(e.target.value, 0);
+                          updateRow(i, {
+                            ressourcesTotale: (r.saisieMode || "annuel") === "mensuel" ? val * 12 : val
+                          });
+                        }}
+                      />
+                    </div>
+                    <span style={{ fontSize: 11, opacity: 0.6 }}>
+                      {(r.saisieMode || "annuel") === "mensuel"
+                        ? `Annuel : ${new Intl.NumberFormat("fr-BE", { style: "currency", currency: "EUR" }).format(r.ressourcesTotale || 0)}`
+                        : `Mensuel : ${new Intl.NumberFormat("fr-BE", { style: "currency", currency: "EUR" }).format((r.ressourcesTotale || 0) / 12)}`
+                      }
+                    </span>
+                  </div>
+
                   <Input label="Prise en charge" type="select" value={r.priseEnCharge}
                     onChange={(e) => updateRow(i, { priseEnCharge: e.target.value })}>
                     <option value="Non">Non</option>
                     <option value="Oui">Oui</option>
                     <option value="MAX">MAX</option>
                   </Input>
-                  <Input label="Type de report" type="select" value={r.typeReport}
+                  <Input
+                    label="Type de report"
+                    hint="Le 'report' est la part des ressources excédentaires du cohabitant qui est imputée sur le RI du demandeur."
+                    type="select" value={r.typeReport}
                     onChange={(e) => updateRow(i, { typeReport: e.target.value })}>
-                    <option value="Report max">Report max</option>
-                    <option value="Partenaire">Partenaire</option>
+                    <option value="Report max">Report max (pourcentage légal)</option>
+                    <option value="Partenaire">Partenaire (50%)</option>
                   </Input>
-                  <Input label="% Report" type="number" value={r.pctReport}
+                  <Input
+                    label="% Report"
+                    hint="Part (%) de l'excédent du cohabitant reportée sur le demandeur. Par défaut : 30%."
+                    type="number" value={r.pctReport}
                     onChange={(e) => updateRow(i, { pctReport: safeNumber(e.target.value, 30) })}
                     min="0" max="100" />
                   <Input label="Catégorie" type="select" value={r.categorie}
@@ -803,6 +856,7 @@ const REVENUS_COMPTABILISES_SUGGESTIONS = [
   { value: "Allocation de formation Forem, VDAB ou Actiris", label: "Allocation de formation Forem, VDAB ou Actiris" },
   { value: "Allocation de stage d'insertion", label: "Allocation de stage d'insertion" },
   { value: "Allocation de stage Onem (ou Actiris)", label: "Allocation de stage Onem (ou Actiris)" },
+  { value: "Allocations familiales", label: "Allocations familiales" },
   { value: "Avance reçue", label: "Avance reçue" },
   { value: "Bonus de démarrage de l'Onem", label: "Bonus de démarrage de l'Onem" },
   { value: "Chèque-repas (part patronale)", label: "Chèque-repas (part patronale)" },
@@ -826,13 +880,14 @@ const REVENUS_COMPTABILISES_SUGGESTIONS = [
 const REVENUS_EXONERES_SUGGESTIONS = [
   { value: "", label: "Sélectionner un type d'exonération..." },
   { value: "Accueillante enfants - frais exposés", label: "Accueillante enfants - frais exposés" },
+  { value: "Allocation d'intégration", label: "Allocation d'intégration" },
   { value: "Chèque-repas (part perso)", label: "Chèque-repas (part perso)" },
   { value: "Indemnité à charge employeur", label: "Indemnité à charge employeur" },
   { value: "Indépendant - Cotisations sociales", label: "Indépendant - Cotisations sociales" },
   { value: "Indépendant - Dépenses professionnelles", label: "Indépendant - Dépenses professionnelles" },
   { value: "Montant divers à déduire", label: "Montant divers à déduire" },
   { value: "PFI - Forfait employeur (max 6 mois)", label: "PFI - Forfait employeur (max 6 mois)" },
-  { value: "Précompte professionnel", label: "Précompte professionnel" }
+  { value: "Précompte professionnel", label: "Précompte professionnel" },
 ];
 
 function RowsTable({ title, rows, onChangeRows }) {
