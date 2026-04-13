@@ -409,7 +409,7 @@ const defaultData = {
     },
   },
   cohabitants: {
-    rows: [defaultCohabitantRow()] // ← CHANGER de [] à [defaultCohabitantRow()]
+    rows: []
   },
   ressourcesDiverses: {
     generales: [
@@ -701,9 +701,18 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
   function removeRow(i) { onChangeRows(rows.filter((_, idx) => idx !== i)); }
 
   return (
-    <Card title="Revenus des cohabitants">
+    <Card>
+      {/* En-tête avec bouton Ajouter */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, paddingBottom: 12, borderBottom: "2px solid #F0F4F8" }}>
+        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>Revenus des cohabitants</h3>
+        <button onClick={addRow} className="btn-add">
+          <i className="fas fa-plus" aria-hidden="true" style={{ marginRight: 6 }} />
+          Ajouter un cohabitant
+        </button>
+      </div>
+
       {rows.length === 0 ? (
-        <p style={{ opacity: 0.6 }}>Aucun cohabitant enregistré</p>
+        <p style={{ opacity: 0.6, fontSize: 14 }}>Aucun cohabitant enregistré. Cliquez sur "Ajouter un cohabitant" pour commencer.</p>
       ) : (
         <>
           {rows.map((r, i) => {
@@ -721,7 +730,7 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                   </button>
                 </div>
               }>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10, alignItems: "start" }}>
                   <Input label="Nom" value={r.nom}
                     onChange={(e) => updateRow(i, { nom: e.target.value })}
                     placeholder="Nom du cohabitant" />
@@ -749,18 +758,18 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                     min="0" max="100" />
                   <Input label="Catégorie" type="select" value={r.categorie}
                     onChange={(e) => updateRow(i, { categorie: parseInt(e.target.value) })}>
-                    <option value={1}>1 - Cohabitant</option>
-                    <option value={2}>2 - Isolé</option>
-                    <option value={3}>3 - Famille</option>
+                    <option value={1}>1 — Cohabitant</option>
+                    <option value={2}>2 — Isolé</option>
+                    <option value={3}>3 — Famille</option>
                   </Input>
                 </div>
 
                 <div className="summary-box" style={{ marginTop: 10, fontSize: 12 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8 }}>
-                    <div><strong>Seuil RI (catégorie {calc.categorie}):</strong> <Money value={calc.seuilRI} /></div>
-                    <div><strong>Excédent:</strong> <Money value={calc.excedent} /></div>
-                    <div><strong>Montant mensuel:</strong> <Money value={calc.montantMensuel} /></div>
-                    <div><strong>Montant reporté:</strong> <Money value={calc.montantReporte} /></div>
+                    <div><strong>Seuil RI (catégorie {calc.categorie}) :</strong> <Money value={calc.seuilRI} /></div>
+                    <div><strong>Excédent :</strong> <Money value={calc.excedent} /></div>
+                    <div><strong>Montant mensuel :</strong> <Money value={calc.montantMensuel} /></div>
+                    <div><strong>Montant reporté :</strong> <Money value={calc.montantReporte} /></div>
                   </div>
                   {calc.message && (
                     <div className="alert alert--warning" style={{ marginTop: 8 }}>
@@ -775,15 +784,13 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
         </>
       )}
 
-      {/* Totaux — à l'intérieur du return, après la liste */}
-      <div className="summary-box" style={{ marginTop: 12 }}>
-        <div><b>Total annuel des cohabitants : <Money value={totals.totalAnnuel} /></b></div>
-        <div><b>Total mensuel des cohabitants : <Money value={totals.totalMensuel} /></b></div>
-      </div>
-
-      <button onClick={addRow} className="btn-add">
-        + Ajouter un cohabitant
-      </button>
+      {/* Totaux */}
+      {rows.length > 0 && (
+        <div className="summary-box" style={{ marginTop: 12 }}>
+          <div><b>Total annuel des cohabitants : <Money value={totals.totalAnnuel} /></b></div>
+          <div><b>Total mensuel des cohabitants : <Money value={totals.totalMensuel} /></b></div>
+        </div>
+      )}
     </Card>
   );
 }
