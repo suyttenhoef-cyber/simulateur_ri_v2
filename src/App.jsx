@@ -2575,6 +2575,25 @@ export default function App() {
               <SectionTitle docHref="https://myportal.vandenbroeleconnect.be/perma/149746886634684897">
                 Revenus nets
               </SectionTitle>
+
+              {/* Note d'aide contextuelle — cas AF */}
+              <div style={{
+                display: "flex", gap: 12, alignItems: "flex-start",
+                background: "#EEF4FA", border: "1px solid #C5D8EE", borderLeft: "4px solid #163E67",
+                borderRadius: 8, padding: "12px 16px", fontSize: 13, color: "#1A2C3A",
+              }}>
+                <i className="fas fa-circle-info" aria-hidden="true"
+                  style={{ color: "#163E67", fontSize: 15, flexShrink: 0, marginTop: 2 }} />
+                <div style={{ lineHeight: 1.6 }}>
+                  <strong style={{ display: "block", marginBottom: 4 }}>Allocations familiales et ressources perçues pour un enfant cohabitant</strong>
+                  Si le demandeur perçoit des allocations familiales <em>pour</em> un enfant qui cohabite avec lui
+                  (ex. mère qui perçoit les AF de son fils demandeur), ces allocations doivent être encodées
+                  ici comme revenu du <strong>demandeur lui-même</strong> — et non comme ressource du cohabitant.
+                  <br />
+                  De même, tout revenu perçu <em>au nom du demandeur</em> (même indirectement) doit figurer
+                  dans cette section, ligne par ligne.
+                </div>
+              </div>
               <RowsTable title="Demandeur" rows={data.revenusNets.demandeur.rows}
                 onChangeRows={(rows) => setData(d => ({
                   ...d, revenusNets: { ...d.revenusNets, demandeur: { ...d.revenusNets.demandeur, rows } }
