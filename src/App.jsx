@@ -319,17 +319,17 @@ const TITRE_USUFRUIT = 0.4;         // Coefficient Usufruit (40%)
 const TITRE_NU_PROPRIETE = 0.6;     // Coefficient Nu-Propriété (60%)
 
 const SECTIONS = [
-  { id: "informations",      label: "Informations",         icon: "fa-address-card" },
-  { id: "revenus_nets",      label: "Revenus nets",          icon: "fa-sack-dollar" },
-  { id: "cmr",               label: "Chômage / Mutuelle",   icon: "fa-file-medical" },
-  { id: "avantages",         label: "Avantages en nature",  icon: "fa-house-user" },
-  { id: "cessions_biens",    label: "Cessions",             icon: "fa-building" },
-  { id: "biens_mobiliers",   label: "Biens mobiliers",      icon: "fa-coins" },
-  { id: "biens_immobiliers", label: "Immobiliers",          icon: "fa-house" },
-  { id: "ressources_diverses", label: "Ressources diverses", icon: "fa-chart-bar" },
-  { id: "exoneration",       label: "Exonération",          icon: "fa-shield-halved" },
-  { id: "cohabitants",       label: "Revenus cohabitants",  icon: "fa-people-group" },
-  { id: "apercu",            label: "Aperçu",               icon: "fa-table-list" },
+  { id: "informations",        label: "Informations",               icon: "fa-address-card" },
+  { id: "revenus_nets",        label: "Revenus nets",               icon: "fa-sack-dollar" },
+  { id: "cmr",                 label: "Chômage / Mutuelle",         icon: "fa-file-medical" },
+  { id: "avantages",           label: "Avantages en nature",        icon: "fa-house-user" },
+  { id: "cessions_biens",      label: "Cessions de biens",          icon: "fa-building" },
+  { id: "biens_mobiliers",     label: "Biens mobiliers",            icon: "fa-coins" },
+  { id: "biens_immobiliers",   label: "Biens immobiliers",          icon: "fa-house" },
+  { id: "ressources_diverses", label: "Ressources diverses",        icon: "fa-chart-bar" },
+  { id: "exoneration",         label: "Exonération",                icon: "fa-shield-halved" },
+  { id: "cohabitants",         label: "Revenus des cohabitants",    icon: "fa-people-group" },
+  { id: "apercu",              label: "Aperçu",                     icon: "fa-list-check" },
 ];
 
 const defaultRow = () => ({
@@ -1642,91 +1642,78 @@ function Input({ label, type = "text", value, onChange, placeholder, hint, money
   );
 }
 function Sidebar({ active, onSelect }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
   return (
-    <nav style={{
-      background: colors.primary,
-      borderRadius: "12px",
-      padding: isCollapsed ? "16px 8px" : "16px",
-      height: "fit-content",
-      position: "sticky",
-      top: "20px",
-      transition: "all 0.3s"
-    }}>
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: "16px"
+    <nav
+      aria-label="Étapes du simulateur"
+      style={{
+        background: colors.primary,
+        borderRadius: "12px",
+        padding: "16px",
+        height: "fit-content",
+        position: "sticky",
+        top: "20px",
+        minWidth: 220,
+      }}
+    >
+      {/* Titre de navigation — hors liste, rôle purement visuel */}
+      <span style={{
+        display: "block",
+        marginBottom: "12px",
+        fontSize: "11px",
+        fontWeight: 700,
+        color: "rgba(255,255,255,0.5)",
+        textTransform: "uppercase",
+        letterSpacing: "1px",
+        fontFamily: "'Source Sans Pro', sans-serif",
+        paddingLeft: "4px",
       }}>
-        {!isCollapsed && (
-          <p style={{
-            margin: 0,
-            fontSize: "11px",
-            fontWeight: "700",
-            color: "rgba(255,255,255,0.5)",
-            textTransform: "uppercase",
-            letterSpacing: "1px",
-            fontFamily: "'Source Sans Pro', sans-serif"
-          }}>
-            Navigation
-          </p>
-        )}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          aria-label={isCollapsed ? "Déplier le menu" : "Replier le menu"}
-          style={{
-            background: "rgba(255,255,255,0.1)",
-            border: "none",
-            color: colors.white,
-            cursor: "pointer",
-            fontSize: "14px",
-            width: 32,
-            height: 32,
-            borderRadius: "6px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-            transition: "background 0.2s"
-          }}
-        >
-          {isCollapsed ? (
-            <i className="fas fa-chevron-right" aria-hidden="true" />
-          ) : (
-            <i className="fas fa-chevron-left" aria-hidden="true" />
-          )}
-        </button>
-      </div>
+        Navigation
+      </span>
 
-      {SECTIONS.map((s) => (
-        <button
-          key={s.id}
-          onClick={() => onSelect(s.id)}
-          style={{
-            width: "100%",
-            textAlign: "left",
-            padding: "12px",
-            marginBottom: "8px",
-            borderRadius: "8px",
-            border: "none",
-            background: active === s.id ? colors.secondary : "transparent",
-            color: active === s.id ? colors.primary : colors.white,
-            cursor: "pointer",
-            fontFamily: "'Source Sans Pro', sans-serif",
-            fontSize: "14px",
-            fontWeight: active === s.id ? "600" : "400",
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            transition: "all 0.2s"
-          }}
-        >
-          <i className={`fas ${s.icon}`} aria-hidden="true" style={{ width: 20, textAlign: "center", fontSize: 15, flexShrink: 0 }} />
-          {!isCollapsed && <span>{s.label}</span>}
-        </button>
-      ))}
+      {/* Liste ordonnée — l'ordre des étapes compte */}
+      <ol style={{ listStyle: "none", margin: 0, padding: 0 }}>
+        {SECTIONS.map((s) => {
+          const isActive = active === s.id;
+          return (
+            <li key={s.id} style={{ marginBottom: "4px" }}>
+              <button
+                onClick={() => onSelect(s.id)}
+                aria-current={isActive ? "page" : undefined}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  padding: "10px 12px",
+                  borderRadius: "8px",
+                  border: isActive ? "none" : "1px solid transparent",
+                  background: isActive ? colors.secondary : "transparent",
+                  color: isActive ? colors.primary : colors.white,
+                  cursor: "pointer",
+                  fontFamily: "'Source Sans Pro', sans-serif",
+                  fontSize: "14px",
+                  fontWeight: isActive ? 700 : 400,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  transition: "background 0.15s, color 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) e.currentTarget.style.background = "transparent";
+                }}
+              >
+                <i
+                  className={`fas ${s.icon}`}
+                  aria-hidden="true"
+                  style={{ width: 18, textAlign: "center", fontSize: 14, flexShrink: 0 }}
+                />
+                <span>{s.label}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
     </nav>
   );
 }
