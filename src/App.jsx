@@ -2371,7 +2371,8 @@ export default function App() {
                 <div style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                  gap: "16px"
+                  gap: "16px",
+                  alignItems: "start"
                 }}>
                   <Input
                     label={
@@ -2414,7 +2415,8 @@ export default function App() {
                 <div style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                  gap: "16px"
+                  gap: "16px",
+                  alignItems: "start"
                 }}>
                   <Input
                     label="Nom"
@@ -2463,7 +2465,8 @@ export default function App() {
                  <div style={{
                    display: "grid",
                    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                   gap: "16px"
+                   gap: "16px",
+                   alignItems: "start"
                  }}>
                    <Input
                      label="Situation familiale"
@@ -2536,7 +2539,7 @@ export default function App() {
                   </a>
                 </span>
               }>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, alignItems: "start" }}>
                   <Input label="Montant mensuel réel" type="number" money value={data.cmr.chomage.mensuelReel}
                     onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, mensuelReel: safeNumber(e.target.value, 0) } } }))} />
                   <Input label="Montant/jour (sur 26 jours)" type="number" money value={data.cmr.chomage.montantJour26}
@@ -2562,7 +2565,7 @@ export default function App() {
                   </a>
                 </span>
               }>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, alignItems: "start" }}>
                   <Input label="Montant mensuel réel" type="number" money value={data.cmr.mutuelle.mensuelReel}
                     onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, mensuelReel: safeNumber(e.target.value, 0) } } }))} />
                   <Input label="Montant/jour (sur 26 jours)" type="number" money value={data.cmr.mutuelle.montantJour26}
@@ -2573,7 +2576,7 @@ export default function App() {
               </Card>
           
               <Card title="Remplacement">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, alignItems: "start" }}>
                   <Input label="Pension (mensuel)" type="number" money value={data.cmr.remplacement.pensionMensuel}
                     onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, pensionMensuel: safeNumber(e.target.value, 0) } } }))} />
                   <Input label="Droit passerelle (mensuel)" type="number" money value={data.cmr.remplacement.droitPasserelleMensuel}
@@ -2626,7 +2629,7 @@ export default function App() {
             <section style={{ display: "grid", gap: 12 }}>
               <SectionTitle>Avantages en nature</SectionTitle>
               <Card>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, alignItems: "start" }}>
                   <Input
                     label="Charges locatives prises en charge par un tiers"
                     hint="Montant mensuel"
@@ -2809,7 +2812,7 @@ export default function App() {
             <section style={{ display: "grid", gap: 12 }}>
               <SectionTitle>Ressources diverses</SectionTitle>
               <Card title="Ressources diverses générales">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, alignItems: "start" }}>
                   {data.ressourcesDiverses.generales.map((r, i) => (
                     <Input key={i} label={r.label} type="number" value={r.montant}
                       onChange={(e) => {
@@ -2822,7 +2825,7 @@ export default function App() {
               </Card>
           
               <Card title="Ressources diverses — Bénévoles">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, alignItems: "start" }}>
                   {data.ressourcesDiverses.benevoles.map((r, i) => (
                     <Input key={i} label={r.label} type="number" value={r.montant}
                       onChange={(e) => {
@@ -3067,7 +3070,7 @@ export default function App() {
           {active === "biens_mobiliers" && (
             <section style={{ display: "grid", gap: 12 }}>
               <Card title="Biens mobiliers">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, alignItems: "start" }}>
                   <Input label="Montant du capital" type="number" money
                     value={data.biensMobiliers.montantCapital}
                     onChange={(e) => setData((d) => ({
