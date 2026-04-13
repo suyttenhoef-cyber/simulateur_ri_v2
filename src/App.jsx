@@ -924,21 +924,15 @@ function RowsTable({ title, rows, onChangeRows }) {
           </div>
 
           {/* Colonne 2: Montant comptabilisé */}
-          <div>
+          <div className="inp-wrapper">
+            <span className="inp-prefix">€</span>
             <input
-              type="number" money
+              type="number"
               onFocus={(e) => e.target.select()}
               value={r.comptabilise}
               onChange={(e) => updateRow(i, { comptabilise: safeNumber(e.target.value, 0) })}
               placeholder="0.00"
-              style={{
-                width: "100%",
-                padding: "8px",
-                borderRadius: "6px",
-                border: "1.5px solid #9BAAB5",
-                fontSize: "13px",
-                fontFamily: "'Source Sans Pro', sans-serif"
-              }}
+              className="inp-base inp-money"
             />
           </div>
 
@@ -969,7 +963,7 @@ function RowsTable({ title, rows, onChangeRows }) {
           {/* Colonne 4: Montant exonéré */}
           <div>
             <input
-              type="number" money
+              type="number"
               onFocus={(e) => e.target.select()}
               value={r.exonere}
               onChange={(e) => updateRow(i, { exonere: safeNumber(e.target.value, 0) })}
