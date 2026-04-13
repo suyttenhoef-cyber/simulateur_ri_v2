@@ -926,7 +926,7 @@ function RowsTable({ title, rows, onChangeRows }) {
           {/* Colonne 2: Montant comptabilisé */}
           <div>
             <input
-              type="number"
+              type="number" money
               onFocus={(e) => e.target.select()}
               value={r.comptabilise}
               onChange={(e) => updateRow(i, { comptabilise: safeNumber(e.target.value, 0) })}
@@ -969,7 +969,7 @@ function RowsTable({ title, rows, onChangeRows }) {
           {/* Colonne 4: Montant exonéré */}
           <div>
             <input
-              type="number"
+              type="number" money
               onFocus={(e) => e.target.select()}
               value={r.exonere}
               onChange={(e) => updateRow(i, { exonere: safeNumber(e.target.value, 0) })}
