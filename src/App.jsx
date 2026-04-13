@@ -249,7 +249,7 @@ function SectionTitle({ children, docHref }) {
             transition: "background .15s",
           }}
         >
-          <i className="fa-solid fa-link" aria-hidden="true" />
+          <i className="fas fa-book-open" aria-hidden="true" />
         </a>
       )}
     </div>
@@ -2390,7 +2390,7 @@ export default function App() {
                             textDecoration: "none", fontSize: 11, flexShrink: 0,
                           }}
                         >
-                          <i className="fa-solid fa-link" aria-hidden="true" />
+                          <i className="fas fa-book-open" aria-hidden="true" />
                         </a>
                       </div>
                     }
@@ -2532,7 +2532,7 @@ export default function App() {
                     textDecoration: "none", fontSize: 11,
                   }}
                 >
-                  <i className="fa-solid fa-link" aria-hidden="true" />
+                  <i className="fas fa-book-open" aria-hidden="true" />
                   </a>
                 </span>
               }>
@@ -2558,7 +2558,7 @@ export default function App() {
                     textDecoration: "none", fontSize: 11,
                   }}
                 >
-                  <i className="fa-solid fa-link" aria-hidden="true" />
+                  <i className="fas fa-book-open" aria-hidden="true" />
                   </a>
                 </span>
               }>
@@ -2591,7 +2591,7 @@ export default function App() {
                     textDecoration: "none", fontSize: 11,
                   }}
                 >
-                  <i className="fa-solid fa-link" aria-hidden="true" />
+                  <i className="fas fa-book-open" aria-hidden="true" />
                         </a>
                       </span>
                     }
@@ -2612,7 +2612,7 @@ export default function App() {
                     textDecoration: "none", fontSize: 11,
                   }}
                 >
-                  <i className="fa-solid fa-link" aria-hidden="true" />
+                  <i className="fas fa-book-open" aria-hidden="true" />
                         </a>
                       </span>
                     }
@@ -2730,21 +2730,22 @@ export default function App() {
                     },
                     { key: "artisteSP", label: "Activité artistique socio-professionnelle (annuel)" },
                   ].map(({ key, label, href }) => (
-                    <label key={key} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, fontSize: 14, cursor: "pointer" }}>
+                    <label key={key} style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 10, fontSize: 14, cursor: "pointer", width: "100%" }}>
                       <input
                         type="checkbox"
                         checked={!!data.exoneration.demandeur[key]}
+                        style={{ flexShrink: 0, width: 16, height: 16 }}
                         onChange={(e) => setData((d) => ({
                           ...d,
                           exoneration: { ...d.exoneration, demandeur: { ...d.exoneration.demandeur, [key]: e.target.checked } },
                         }))}
                       />
-                      <span>{label}</span>
+                      <span style={{ flex: 1 }}>{label}</span>
                       {href && (
                         <a href={href} target="_blank" rel="noopener noreferrer"
                           aria-label={`Documentation CPASConnect — ${label} (nouvel onglet)`}
                           style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 22, height: 22, borderRadius: 5, background: "#EEF4FA", color: "#163E67", textDecoration: "none", fontSize: 11, flexShrink: 0 }}>
-                          <i className="fa-solid fa-link" aria-hidden="true" />
+                          <i className="fas fa-book-open" aria-hidden="true" />
                         </a>
                       )}
                     </label>
@@ -2768,16 +2769,17 @@ export default function App() {
                     { key: "penurie",   label: "Exonération pénurie" },
                     { key: "artisteSP", label: "Activité artistique socio-professionnelle (annuel)" },
                   ].map(({ key, label }) => (
-                    <label key={key} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, fontSize: 14, cursor: "pointer" }}>
+                    <label key={key} style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 10, fontSize: 14, cursor: "pointer", width: "100%" }}>
                       <input
                         type="checkbox"
                         checked={!!data.exoneration.conjoint[key]}
+                        style={{ flexShrink: 0, width: 16, height: 16 }}
                         onChange={(e) => setData((d) => ({
                           ...d,
                           exoneration: { ...d.exoneration, conjoint: { ...d.exoneration.conjoint, [key]: e.target.checked } },
                         }))}
                       />
-                      <span>{label}</span>
+                      <span style={{ flex: 1 }}>{label}</span>
                     </label>
                   ))}
                   <Input
