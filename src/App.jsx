@@ -321,7 +321,7 @@ const TITRE_NU_PROPRIETE = 0.6;     // Coefficient Nu-Propriété (60%)
 const SECTIONS = [
   { id: "informations",        label: "Informations",               icon: "fa-address-card" },
   { id: "revenus_nets",        label: "Revenus nets",               icon: "fa-sack-dollar" },
-  { id: "cmr",                 label: "Revenus sociaux",         icon: "fa-file-medical" },
+  { id: "cmr",                 label: "Chômage / Mutuelle",         icon: "fa-file-medical" },
   { id: "avantages",           label: "Avantages en nature",        icon: "fa-house-user" },
   { id: "cessions_biens",      label: "Cessions de biens",          icon: "fa-building" },
   { id: "biens_mobiliers",     label: "Biens mobiliers",            icon: "fa-coins" },
@@ -712,7 +712,7 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
     <Card>
       {/* En-tête avec bouton Ajouter */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, paddingBottom: 12, borderBottom: "2px solid #F0F4F8" }}>
-        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>Liste des cohabitants</h3>
+        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>Revenus des cohabitants</h3>
         <button onClick={addRow} className="btn-add">
           <i className="fas fa-plus" aria-hidden="true" style={{ marginRight: 6 }} />
           Ajouter un cohabitant
@@ -2599,13 +2599,16 @@ export default function App() {
                   ...d, revenusNets: { ...d.revenusNets, demandeur: { ...d.revenusNets.demandeur, rows } }
                 }))} />
 
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <input type="checkbox" checked={data.revenusNets.conjoint.enabled}
+              <label style={{ display: "inline-flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14, width: "fit-content" }}>
+                <input
+                  type="checkbox"
+                  style={{ flexShrink: 0, width: 16, height: 16 }}
+                  checked={data.revenusNets.conjoint.enabled}
                   onChange={(e) => setData(d => ({
                     ...d, revenusNets: { ...d.revenusNets, conjoint: { ...d.revenusNets.conjoint, enabled: e.target.checked } }
                   }))} />
                 <span>Encoder aussi les revenus nets du conjoint</span>
-              </div>
+              </label>
 
               {data.revenusNets.conjoint.enabled && (
                 <RowsTable title="Conjoint" rows={data.revenusNets.conjoint.rows}
@@ -2618,7 +2621,7 @@ export default function App() {
 
           {active === "cmr" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <SectionTitle>Revenus sociaux</SectionTitle>
+              <SectionTitle>Chômage / Mutuelle / Remplacement</SectionTitle>
           
               <Card title={
                 <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
