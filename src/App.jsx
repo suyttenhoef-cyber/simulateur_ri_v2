@@ -372,7 +372,7 @@ const defaultCohabitantRow = () => ({
 const defaultData = {
   reference: { dateISO: "2025-02-01", joursPrisEnCompte: "" },
   identite: { nom: "", prenom: "", dateNaissance: "", nationalite: "" },
-  menage: { situation: "isolé", nbEnfants: 0 },
+  menage: { situation: "", nbEnfants: 0 },
   revenusNets: {
     demandeur: { rows: [defaultRow()] },
     conjoint: { enabled: false, rows: [defaultRow()] }
@@ -1609,14 +1609,24 @@ if (!document.getElementById('input-global-css')) {
   document.head.appendChild(s);
 }
 
-function Input({ label, type = "text", value, onChange, placeholder, hint, money = false }) {
+function Input({ label, type = "text", value, onChange, placeholder, hint, money = false, children }) {
   // Sélectionne tout à la mise au focus → évite le "0" collant
   const handleFocus = (e) => e.target.select();
 
-  // Date : bloquer la saisie à 10 caractères (YYYY-MM-DD)
-  const handleDateInput = (e) => {
-    if (type === "date") return; // le navigateur gère le format natif
-  };
+  // Cas select
+  if (type === "select") {
+    return (
+      <Field label={label} hint={hint}>
+        <select
+          value={value}
+          onChange={onChange}
+          className="inp-base"
+        >
+          {children}
+        </select>
+      </Field>
+    );
+  }
 
   const inputEl = (
     <input
@@ -2476,14 +2486,16 @@ export default function App() {
                    gap: "16px"
                  }}>
                    <Input
-                     label="Situation"
+                     label="Situation familiale"
                      type="select"
                      value={data.menage.situation}
+                     hint="Détermine la catégorie RI et le montant de l'exonération de base"
                      onChange={(e) => setData(d => ({ ...d, menage: { ...d.menage, situation: e.target.value } }))}
                    >
-                     <option value="isolé">Isolé (Cat. 2)</option>
-                     <option value="cohabitant">Cohabitant (Cat. 1)</option>
-                     <option value="famille">Famille (Cat. 3)</option>
+                     <option value="">— Sélectionner une situation —</option>
+                     <option value="cohabitant">Cohabitant (catégorie 1)</option>
+                     <option value="isolé">Isolé (catégorie 2)</option>
+                     <option value="famille">Personne avec famille à charge (catégorie 3)</option>
                    </Input>
                    <Input
                      label="Nombre d'enfants à charge"
