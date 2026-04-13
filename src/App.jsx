@@ -249,7 +249,7 @@ function SectionTitle({ children, docHref }) {
             transition: "background .15s",
           }}
         >
-          <i className="fa-solid fa-link" aria-hidden="true" />
+          <i className="fas fa-book-open" aria-hidden="true" />
         </a>
       )}
     </div>
@@ -811,7 +811,7 @@ const REVENUS_COMPTABILISES_SUGGESTIONS = [
   { value: "Revenus d'une activité artistique irrégulière", label: "Revenus d'une activité artistique irrégulière" },
   { value: "Revenus d'une activité artistique régulière", label: "Revenus d'une activité artistique régulière" },
   { value: "Simple pécule de vacances - régime ouvrier", label: "Simple pécule de vacances - régime ouvrier" },
-  { value: "Autre", label: "💡 Autre (saisie libre)" },
+  { value: "Autre", label: "Autre (saisie libre)" },
 ];
 
 const REVENUS_EXONERES_SUGGESTIONS = [
@@ -832,160 +832,150 @@ function RowsTable({ title, rows, onChangeRows }) {
   function updateRow(i, patch) {
     onChangeRows(rows.map((r, idx) => idx === i ? { ...r, ...patch } : r));
   }
-  
   function addRow() { onChangeRows([...rows, defaultRow()]); }
-  
   function removeRow(i) {
     const next = rows.filter((_, idx) => idx !== i);
     onChangeRows(next.length ? next : [defaultRow()]);
   }
-
   function handleLabelChange(i, value) {
     updateRow(i, { label: value, customLabel: value === "Autre" ? "" : null });
   }
 
+  // Colonnes : 2fr | 1.4fr | 2fr | 1.4fr | 36px
+  const COLS = "2fr 1.4fr 2fr 1.4fr 36px";
+
+  const colHeaderStyle = {
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#163E67",
+    padding: "0 4px 8px",
+    borderBottom: "2px solid #E1E8ED",
+  };
+
+  const selectStyle = {
+    width: "100%",
+    padding: "8px 10px",
+    borderRadius: "6px",
+    border: "1.5px solid #9BAAB5",
+    fontSize: "13px",
+    fontFamily: "'Source Sans Pro', sans-serif",
+    background: "#fff",
+    color: "#2C3E50",
+  };
+
   return (
     <div className="card" style={{ padding: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 12, borderBottom: `2px solid #F0F4F8` }}>
-        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: colors.primary }}>{title}</h3>
-        <button onClick={addRow} className="btn-add">+ Ajouter</button>
+      {/* Titre + bouton ajouter */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 12, borderBottom: "2px solid #F0F4F8" }}>
+        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>{title}</h3>
+        <button onClick={addRow} className="btn-add">
+          <i className="fas fa-plus" aria-hidden="true" style={{ marginRight: 6 }} />
+          Ajouter
+        </button>
       </div>
 
-      {/* En-têtes de colonnes */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "2fr 1.2fr 2fr 1.2fr 40px",
-        gap: "12px",
-        marginBottom: "12px",
-        padding: "0 4px",
-        fontWeight: "600",
-        fontSize: "13px",
-        color: "#163E67"
-      }}>
-        <div>Type de revenu comptabilisé</div>
-        <div>Montant comptabilisé (€/mois)</div>
-        <div>Type de revenu exonéré</div>
-        <div>Montant exonéré (€/mois)</div>
-        <div></div>
+      {/* En-têtes de colonnes — même grille que les lignes */}
+      <div style={{ display: "grid", gridTemplateColumns: COLS, gap: "12px", marginBottom: 4 }}>
+        <div style={colHeaderStyle}>Type de revenu comptabilisé</div>
+        <div style={colHeaderStyle}>Montant (€/mois)</div>
+        <div style={colHeaderStyle}>Type d'exonération</div>
+        <div style={colHeaderStyle}>Montant exonéré (€/mois)</div>
+        <div style={colHeaderStyle} />
       </div>
 
-      {/* Lignes de données */}
+      {/* Lignes */}
       {rows.map((r, i) => (
         <div
           key={i}
           style={{
             display: "grid",
-            gridTemplateColumns: "2fr 1.2fr 2fr 1.2fr 40px",
+            gridTemplateColumns: COLS,
             gap: "12px",
-            marginBottom: "12px",
-            padding: "8px 4px",
-            background: i % 2 === 0 ? "#FAFBFC" : "#FFFFFF",
-            borderRadius: "6px",
-            alignItems: "start"
+            padding: "8px 0",
+            borderBottom: "1px solid #F0F4F8",
+            alignItems: "start",
           }}
         >
-          {/* Colonne 1: Type de revenu comptabilisé */}
-          <div style={{ display: "grid", gap: "6px" }}>
+          {/* Col 1 : type comptabilisé */}
+          <div style={{ display: "grid", gap: 6 }}>
+            <label htmlFor={`rev-type-${i}`} className="sr-only">Type de revenu comptabilisé, ligne {i + 1}</label>
             <select
+              id={`rev-type-${i}`}
               value={r.customLabel !== undefined && r.customLabel !== null ? "Autre" : r.label}
               onChange={(e) => handleLabelChange(i, e.target.value)}
-              style={{
-                width: "100%",
-                padding: "8px",
-                borderRadius: "6px",
-                border: "1.5px solid #9BAAB5",
-                fontSize: "13px",
-                fontFamily: "'Source Sans Pro', sans-serif"
-              }}
+              className="inp-base"
+              style={{ fontSize: 13 }}
             >
               {REVENUS_COMPTABILISES_SUGGESTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
-            
             {r.label === "Autre" && (
               <input
                 value={r.customLabel || ""}
                 onChange={(e) => updateRow(i, { customLabel: e.target.value })}
-                placeholder="Précisez le type de revenu..."
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  borderRadius: "6px",
-                  border: "2px solid #2BEBCE",
-                  fontSize: "13px",
-                  fontFamily: "'Source Sans Pro', sans-serif",
-                  background: "#F0FFFE"
-                }}
+                placeholder="Précisez le type de revenu…"
+                aria-label="Type de revenu (saisie libre)"
+                className="inp-base"
+                style={{ fontSize: 13, borderColor: "#2BEBCE", background: "#F0FFFE" }}
               />
             )}
           </div>
 
-          {/* Colonne 2: Montant comptabilisé */}
+          {/* Col 2 : montant comptabilisé */}
           <div className="inp-wrapper">
             <span className="inp-prefix">€</span>
             <input
+              id={`rev-montant-${i}`}
               type="number"
               onFocus={(e) => e.target.select()}
               value={r.comptabilise}
               onChange={(e) => updateRow(i, { comptabilise: safeNumber(e.target.value, 0) })}
-              placeholder="0.00"
+              placeholder="0,00"
+              aria-label={`Montant comptabilisé, ligne ${i + 1}`}
               className="inp-base inp-money"
+              style={{ fontSize: 13 }}
             />
           </div>
 
-          {/* Colonne 3: Type de revenu exonéré */}
-          <div style={{ display: "grid", gap: "6px" }}>
+          {/* Col 3 : type exonéré */}
+          <div>
+            <label htmlFor={`rev-exo-type-${i}`} className="sr-only">Type d'exonération, ligne {i + 1}</label>
             <select
+              id={`rev-exo-type-${i}`}
               value={r.exonereType || ""}
               onChange={(e) => updateRow(i, { exonereType: e.target.value })}
-              style={{
-                width: "100%",
-                padding: "8px",
-                borderRadius: "6px",
-                border: "1.5px solid #9BAAB5",
-                fontSize: "12px",
-                fontFamily: "'Source Sans Pro', sans-serif",
-                color: "#7F8C8D",
-                background: "#FAFBFC"
-              }}
+              className="inp-base"
+              style={{ fontSize: 13 }}
             >
               {REVENUS_EXONERES_SUGGESTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
           </div>
 
-          {/* Colonne 4: Montant exonéré */}
-          <div>
+          {/* Col 4 : montant exonéré */}
+          <div className="inp-wrapper">
+            <span className="inp-prefix">€</span>
             <input
+              id={`rev-exo-montant-${i}`}
               type="number"
               onFocus={(e) => e.target.select()}
               value={r.exonere}
               onChange={(e) => updateRow(i, { exonere: safeNumber(e.target.value, 0) })}
-              placeholder="0.00"
-              style={{
-                width: "100%",
-                padding: "8px",
-                borderRadius: "6px",
-                border: "1.5px solid #9BAAB5",
-                fontSize: "13px",
-                fontFamily: "'Source Sans Pro', sans-serif"
-              }}
+              placeholder="0,00"
+              aria-label={`Montant exonéré, ligne ${i + 1}`}
+              className="inp-base inp-money"
+              style={{ fontSize: 13 }}
             />
           </div>
 
-          {/* Colonne 5: Bouton suppression */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {/* Col 5 : supprimer */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", paddingTop: 2 }}>
             <button
               onClick={() => removeRow(i)}
               className="btn-remove"
-              aria-label="Supprimer cette ligne"
-              style={{ padding: "5px 8px" }}
+              aria-label={`Supprimer la ligne ${i + 1}`}
             >
               <i className="fas fa-trash" aria-hidden="true" />
             </button>
@@ -993,43 +983,16 @@ function RowsTable({ title, rows, onChangeRows }) {
         </div>
       ))}
 
-      {/* Footer avec totaux */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "3.2fr 2fr 1.2fr 40px",
-        gap: "12px",
-        marginTop: "16px",
-        padding: "12px 4px",
-        background: "#F5F8FA",
-        borderRadius: "6px",
-        fontWeight: "600",
-        fontSize: "14px"
-      }}>
-        <div>Net mensuel</div>
-        <div></div>
-        <div style={{ color: "#163E67", fontSize: "15px" }}>
-          <Money value={totals.net} />
+      {/* Totaux */}
+      <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: COLS, gap: "12px" }}>
+        <div style={{ gridColumn: "1 / 3", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#F5F8FA", borderRadius: 6, padding: "10px 14px" }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "#163E67" }}>Net mensuel</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: "#163E67" }}><Money value={totals.net} /></span>
         </div>
-        <div></div>
-      </div>
-
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "3.2fr 2fr 1.2fr 40px",
-        gap: "12px",
-        marginTop: "8px",
-        padding: "12px 4px",
-        background: "#E8EFF5",
-        borderRadius: "6px",
-        fontWeight: "600",
-        fontSize: "14px"
-      }}>
-        <div>Net annuel</div>
-        <div></div>
-        <div style={{ color: "#163E67", fontSize: "15px" }}>
-          <Money value={totals.net * 12} />
+        <div style={{ gridColumn: "3 / 5", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#E8EFF5", borderRadius: 6, padding: "10px 14px" }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "#163E67" }}>Net annuel</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: "#163E67" }}><Money value={totals.net * 12} /></span>
         </div>
-        <div></div>
       </div>
     </div>
   );
@@ -1579,6 +1542,7 @@ if (!document.getElementById('input-global-css')) {
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
     .inp-base {
       padding: 10px 12px;
       border-radius: 8px;
@@ -2424,7 +2388,7 @@ export default function App() {
                             textDecoration: "none", fontSize: 11, flexShrink: 0,
                           }}
                         >
-                          <i className="fa-solid fa-link"></i>" aria-hidden="true" />
+                          <i className="fas fa-book-open" aria-hidden="true" />
                         </a>
                       </div>
                     }
@@ -2566,7 +2530,7 @@ export default function App() {
                     textDecoration: "none", fontSize: 11,
                   }}
                 >
-                  <i className="fa-solid fa-link" aria-hidden="true" />
+                  <i className="fas fa-book-open" aria-hidden="true" />
                   </a>
                 </span>
               }>
@@ -2592,7 +2556,7 @@ export default function App() {
                     textDecoration: "none", fontSize: 11,
                   }}
                 >
-                  <i className="fa-solid fa-link" aria-hidden="true" />
+                  <i className="fas fa-book-open" aria-hidden="true" />
                   </a>
                 </span>
               }>
@@ -2625,7 +2589,7 @@ export default function App() {
                     textDecoration: "none", fontSize: 11,
                   }}
                 >
-                  <i className="fa-solid fa-link" aria-hidden="true" />
+                  <i className="fas fa-book-open" aria-hidden="true" />
                         </a>
                       </span>
                     }
@@ -2646,7 +2610,7 @@ export default function App() {
                     textDecoration: "none", fontSize: 11,
                   }}
                 >
-                  <i className="fa-solid fa-link" aria-hidden="true" />
+                  <i className="fas fa-book-open" aria-hidden="true" />
                         </a>
                       </span>
                     }
@@ -2769,7 +2733,7 @@ export default function App() {
                         textDecoration: "none", fontSize: 11,
                       }}
                     >
-                      <i className="fa-solid fa-link" aria-hidden="true" />
+                      <i className="fas fa-book-open" aria-hidden="true" />
                     </a>
                   </label>
 
@@ -2800,7 +2764,7 @@ export default function App() {
                         textDecoration: "none", fontSize: 11,
                       }}
                     >
-                      <i className="fa-solid fa-link" aria-hidden="true" />
+                      <i className="fas fa-book-open" aria-hidden="true" />
                     </a>
                   </label>
 
@@ -2831,7 +2795,7 @@ export default function App() {
                         textDecoration: "none", fontSize: 11,
                       }}
                     >
-                      <i className="fa-solid fa-link" aria-hidden="true" />
+                      <i className="fas fa-book-open" aria-hidden="true" />
                     </a>
                   </label>
 
@@ -2850,7 +2814,7 @@ export default function App() {
                         textDecoration: "none", fontSize: 11,
                       }}
                     >
-                      <i className="fa-solid fa-link" aria-hidden="true" />
+                      <i className="fas fa-book-open" aria-hidden="true" />
                       </a>
                     </span>
                   }>
@@ -2960,7 +2924,7 @@ export default function App() {
                         textDecoration: "none", fontSize: 11,
                       }}
                     >
-                      <i className="fa-solid fa-link" aria-hidden="true" />
+                      <i className="fas fa-book-open" aria-hidden="true" />
                       </a>
                     </span>
                   }>
