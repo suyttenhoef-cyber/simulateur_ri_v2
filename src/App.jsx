@@ -249,7 +249,7 @@ function SectionTitle({ children, docHref }) {
             transition: "background .15s",
           }}
         >
-          <i className="fas fa-book-open" aria-hidden="true" />
+          <i className="fa-solid fa-link" aria-hidden="true" />
         </a>
       )}
     </div>
@@ -1518,17 +1518,19 @@ function Card({ title, children, level = 3 }) {
       background: colors.white,
       boxShadow: "0 2px 8px rgba(0,0,0,0.04)"
     }}>
-      <Tag style={{
-        marginTop: 0,
-        marginBottom: "16px",
-        fontSize: level === 2 ? "20px" : "16px",
-        fontWeight: "700",
-        color: colors.primary,
-        paddingBottom: "12px",
-        borderBottom: `2px solid #F0F4F8`
-      }}>
-        {title}
-      </Tag>
+      {title && (
+        <Tag style={{
+          marginTop: 0,
+          marginBottom: "16px",
+          fontSize: level === 2 ? "20px" : "16px",
+          fontWeight: "700",
+          color: colors.primary,
+          paddingBottom: "12px",
+          borderBottom: "2px solid #F0F4F8"
+        }}>
+          {title}
+        </Tag>
+      )}
       {children}
     </div>
   );
@@ -2388,7 +2390,7 @@ export default function App() {
                             textDecoration: "none", fontSize: 11, flexShrink: 0,
                           }}
                         >
-                          <i className="fas fa-book-open" aria-hidden="true" />
+                          <i className="fa-solid fa-link" aria-hidden="true" />
                         </a>
                       </div>
                     }
@@ -2530,7 +2532,7 @@ export default function App() {
                     textDecoration: "none", fontSize: 11,
                   }}
                 >
-                  <i className="fas fa-book-open" aria-hidden="true" />
+                  <i className="fa-solid fa-link" aria-hidden="true" />
                   </a>
                 </span>
               }>
@@ -2556,7 +2558,7 @@ export default function App() {
                     textDecoration: "none", fontSize: 11,
                   }}
                 >
-                  <i className="fas fa-book-open" aria-hidden="true" />
+                  <i className="fa-solid fa-link" aria-hidden="true" />
                   </a>
                 </span>
               }>
@@ -2589,7 +2591,7 @@ export default function App() {
                     textDecoration: "none", fontSize: 11,
                   }}
                 >
-                  <i className="fas fa-book-open" aria-hidden="true" />
+                  <i className="fa-solid fa-link" aria-hidden="true" />
                         </a>
                       </span>
                     }
@@ -2610,7 +2612,7 @@ export default function App() {
                     textDecoration: "none", fontSize: 11,
                   }}
                 >
-                  <i className="fas fa-book-open" aria-hidden="true" />
+                  <i className="fa-solid fa-link" aria-hidden="true" />
                         </a>
                       </span>
                     }
@@ -2623,18 +2625,30 @@ export default function App() {
           {active === "avantages" && (
             <section style={{ display: "grid", gap: 12 }}>
               <SectionTitle>Avantages en nature</SectionTitle>
-              <Card title="Avantages en nature">
+              <Card>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  <Input label="Charges locatives prises en charge par un tiers (€/mois)" type="number" money
+                  <Input
+                    label="Charges locatives prises en charge par un tiers"
+                    hint="Montant mensuel"
+                    type="number" money
                     value={data.avantages.chargesLocativesTiers}
                     onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, chargesLocativesTiers: safeNumber(e.target.value, 0) } }))} />
-                  <Input label="Loyer fictif évalué par un professionnel (€/mois)" type="number" money
+                  <Input
+                    label="Loyer fictif évalué par un professionnel"
+                    hint="Montant mensuel"
+                    type="number" money
                     value={data.avantages.loyerFictifProfessionnel}
                     onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifProfessionnel: safeNumber(e.target.value, 0) } }))} />
-                  <Input label="Loyer fictif évalué via simulateur ou grille de loyers (€/mois)" type="number" money
+                  <Input
+                    label="Loyer fictif évalué via simulateur ou grille de loyers"
+                    hint="Montant mensuel"
+                    type="number" money
                     value={data.avantages.loyerFictifSimulateur}
                     onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifSimulateur: safeNumber(e.target.value, 0) } }))} />
-                  <Input label="Prêt hypothécaire pris en charge par un tiers (€/mois)" type="number" money
+                  <Input
+                    label="Prêt hypothécaire pris en charge par un tiers"
+                    hint="Montant mensuel"
+                    type="number" money
                     value={data.avantages.pretHypothecaireTiers}
                     onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, pretHypothecaireTiers: safeNumber(e.target.value, 0) } }))} />
                 </div>
@@ -2733,7 +2747,7 @@ export default function App() {
                         textDecoration: "none", fontSize: 11,
                       }}
                     >
-                      <i className="fas fa-book-open" aria-hidden="true" />
+                      <i className="fa-solid fa-link" aria-hidden="true" />
                     </a>
                   </label>
 
@@ -2764,7 +2778,7 @@ export default function App() {
                         textDecoration: "none", fontSize: 11,
                       }}
                     >
-                      <i className="fas fa-book-open" aria-hidden="true" />
+                      <i className="fa-solid fa-link" aria-hidden="true" />
                     </a>
                   </label>
 
@@ -2795,7 +2809,7 @@ export default function App() {
                         textDecoration: "none", fontSize: 11,
                       }}
                     >
-                      <i className="fas fa-book-open" aria-hidden="true" />
+                      <i className="fa-solid fa-link" aria-hidden="true" />
                     </a>
                   </label>
 
@@ -2814,7 +2828,7 @@ export default function App() {
                         textDecoration: "none", fontSize: 11,
                       }}
                     >
-                      <i className="fas fa-book-open" aria-hidden="true" />
+                      <i className="fa-solid fa-link" aria-hidden="true" />
                       </a>
                     </span>
                   }>
@@ -2924,7 +2938,7 @@ export default function App() {
                         textDecoration: "none", fontSize: 11,
                       }}
                     >
-                      <i className="fas fa-book-open" aria-hidden="true" />
+                      <i className="fa-solid fa-link" aria-hidden="true" />
                       </a>
                     </span>
                   }>
