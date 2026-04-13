@@ -368,6 +368,7 @@ const defaultCohabitantRow = () => ({
   pctReport: 30,
   categorie: 1,
   saisieMode: "mensuel",
+  nbDemandeurs: 1,   // Nombre de demandeurs du RI ayant le même rang envers ce cohabitant (fratrie)
 });
 
 const todayISO = new Date().toISOString().slice(0, 10);
@@ -628,48 +629,52 @@ function computeNetMonthly(rows) {
   const sumE = rows.reduce((acc, r) => acc + safeNumber(r.exonere, 0), 0);
   return { sumComptabilise: sumC, sumExonere: sumE, net: sumC - sumE };
 }
-// 1. Ajouter la fonction de calcul pour un cohabitant individuel
+// Calcul du report d'un cohabitant sur le demandeur (art. 22 loi 26/05/2002)
 function computeCohabitantRow(row, referenceDate) {
   const ressourcesTotale = safeNumber(row.ressourcesTotale, 0);
   const categorie = row.categorie || 1;
-  
-  // I5: VLOOKUP pour obtenir le seuil RI selon la catégorie
+  const nbDemandeurs = Math.max(1, safeNumber(row.nbDemandeurs, 1));
+
+  // Seuil RI annuel selon catégorie
   const seuilRI = getRIAnnuel(referenceDate, categorie);
-  
-  // J5: Calcul de l'excédent
-  let excedent = 0;
-  let message = "";
-  
-  if (ressourcesTotale > seuilRI) {
-    excedent = ressourcesTotale - seuilRI;
-  } else {
-    message = "Le cohabitant a possiblement droit au RI";
+
+  // Excédent annuel = ressources - seuil (0 si ressources inférieures)
+  const excedent = Math.max(0, ressourcesTotale - seuilRI);
+  const message = excedent === 0 ? "Le cohabitant a possiblement droit au RI" : "";
+
+  // Excédent mensuel brut
+  const excedentMensuel = round2(excedent / 12);
+
+  // Part de l'excédent mensuel due à ce demandeur
+  // Si fratrie (nbDemandeurs > 1) : l'excédent est divisé entre les demandeurs du même rang
+  const excedentParDemandeur = round2(excedentMensuel / nbDemandeurs);
+
+  // Montant reporté selon type de report et prise en charge
+  let montantReporte = 0;
+
+  if (excedentParDemandeur > 0) {
+    if (row.priseEnCharge === "MAX") {
+      // Prise en charge MAX : on applique le % de report sur la part
+      montantReporte = round2(excedentParDemandeur * (safeNumber(row.pctReport, 30) / 100));
+    } else if (row.typeReport === "Partenaire") {
+      // Partenaire : 50% de la part
+      montantReporte = round2(excedentParDemandeur * 0.5);
+    } else {
+      // Report max (défaut) : % de report sur la part
+      montantReporte = round2(excedentParDemandeur * (safeNumber(row.pctReport, 30) / 100));
+    }
   }
-  
-  // K5: Montant mensuel (si excédent)
-  const montantMensuel = excedent > 0 ? round2(excedent / 12) : 0;
-  
-  // L5: Ressources prorata selon Excel formule =SI(OU(F5=Données!$U$15;F5=Données!$U$16);K5;K5*F5)
-  // F5 = pctReport, Données!$U$15 = "Oui", Données!$U$16 = "Non"
-  let ressourcesProrata = 0;
-  let montantReporte = 0; // ← AJOUTER CETTE LIGNE
-  
-  if (row.priseEnCharge === "Oui" || row.priseEnCharge === "Non") {
-    ressourcesProrata = montantMensuel;
-    montantReporte = montantMensuel; // ← AJOUTER CETTE LIGNE
-  } else if (row.priseEnCharge === "MAX") {
-    ressourcesProrata = round2(montantMensuel * (row.pctReport / 100));
-    montantReporte = round2(montantMensuel * (row.pctReport / 100)); // ← AJOUTER CETTE LIGNE
-  }
-  
+
   return {
     ...row,
     seuilRI,
     excedent,
-    montantMensuel,
-    ressourcesProrata,
-    montantReporte, // ← AJOUTER CETTE LIGNE
-    message
+    excedentMensuel,
+    excedentParDemandeur,
+    montantMensuel: excedentMensuel,
+    montantReporte,
+    ressourcesProrata: montantReporte,
+    message,
   };
 }
 
@@ -798,6 +803,12 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                     <option value="MAX">MAX</option>
                   </Input>
                   <Input
+                    label="Nombre de demandeurs du même rang"
+                    hint="Si plusieurs personnes font une demande RI avec le même lien de parenté envers ce cohabitant (ex. fratrie), indiquez ce nombre — l'excédent sera divisé en parts égales."
+                    type="number" value={r.nbDemandeurs || 1}
+                    onChange={(e) => updateRow(i, { nbDemandeurs: Math.max(1, safeNumber(e.target.value, 1)) })}
+                    min="1" />
+                  <Input
                     label="Type de report"
                     hint="Le 'report' est la part des ressources excédentaires du cohabitant qui est imputée sur le RI du demandeur."
                     type="select" value={r.typeReport}
@@ -822,9 +833,12 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                 <div className="summary-box" style={{ marginTop: 10, fontSize: 12 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8 }}>
                     <div><strong>Seuil RI (catégorie {calc.categorie}) :</strong> <Money value={calc.seuilRI} /></div>
-                    <div><strong>Excédent :</strong> <Money value={calc.excedent} /></div>
-                    <div><strong>Montant mensuel :</strong> <Money value={calc.montantMensuel} /></div>
-                    <div><strong>Montant reporté :</strong> <Money value={calc.montantReporte} /></div>
+                    <div><strong>Excédent annuel :</strong> <Money value={calc.excedent} /></div>
+                    <div><strong>Excédent mensuel :</strong> <Money value={calc.excedentMensuel} /></div>
+                    {(r.nbDemandeurs || 1) > 1 && (
+                      <div><strong>Part / demandeur ({r.nbDemandeurs}) :</strong> <Money value={calc.excedentParDemandeur} /></div>
+                    )}
+                    <div><strong>Montant reporté / mois :</strong> <Money value={calc.montantReporte} /></div>
                   </div>
                   {calc.message && (
                     <div className="alert alert--warning" style={{ marginTop: 8 }}>
