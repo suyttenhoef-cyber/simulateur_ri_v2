@@ -249,7 +249,7 @@ function SectionTitle({ children, docHref }) {
             transition: "background .15s",
           }}
         >
-          <i className="fas fa-book-open" aria-hidden="true" />
+          <i className="fa-solid fa-link" aria-hidden="true" />
         </a>
       )}
     </div>
@@ -2411,18 +2411,20 @@ export default function App() {
                     label={
                       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                         <span>Date de référence (barème)</span>
-                        <a 
-                          href="https://myportal.vandenbroeleconnect.be/perma/149746886634684678" 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
+                        <a
+                          href="https://myportal.vandenbroeleconnect.be/perma/149746886634684678"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="Consulter la documentation CPASConnect (nouvel onglet)"
                           title="Documentation CPASConnect"
-                          style={{ 
-                            color: colors.textLight,
-                            textDecoration: "none",
-                            fontSize: "12px"
+                          style={{
+                            display: "inline-flex", alignItems: "center", justifyContent: "center",
+                            width: 22, height: 22, borderRadius: 5,
+                            background: "#EEF4FA", color: "#163E67",
+                            textDecoration: "none", fontSize: 11, flexShrink: 0,
                           }}
                         >
-                          📋
+                          <i className="fa-solid fa-link"></i>" aria-hidden="true" />
                         </a>
                       </div>
                     }
@@ -2466,9 +2468,27 @@ export default function App() {
                   />
                   <Input
                     label="Nationalité"
+                    type="select"
                     value={data.identite.nationalite}
+                    hint="La nationalité conditionne l'accès au droit au RI (art. 1 loi 26/05/2002)"
                     onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nationalite: e.target.value } }))}
-                  />
+                  >
+                    <option value="">— Sélectionner —</option>
+                    <optgroup label="Droit au RI de plein droit">
+                      <option value="belge">Belge</option>
+                      <option value="ue">Ressortissant UE / EEE / Suisse</option>
+                      <option value="refugie">Réfugié reconnu</option>
+                      <option value="apatride">Apatride reconnu</option>
+                      <option value="subsidiaire">Protection subsidiaire</option>
+                    </optgroup>
+                    <optgroup label="Sous conditions">
+                      <option value="sejour_legal">Étranger en séjour légal (art. 57§2)</option>
+                      <option value="mineur_etranger">Mineur étranger non accompagné</option>
+                    </optgroup>
+                    <optgroup label="Autre">
+                      <option value="autre">Autre / À préciser</option>
+                    </optgroup>
+                  </Input>
                 </div>
               </Card>
 
@@ -2539,8 +2559,14 @@ export default function App() {
                   Chômage
                   <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905"
                     target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                    style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
-                    📋
+                    style={{
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    width: 22, height: 22, borderRadius: 5,
+                    background: "#EEF4FA", color: "#163E67",
+                    textDecoration: "none", fontSize: 11,
+                  }}
+                >
+                  <i className="fa-solid fa-link" aria-hidden="true" />
                   </a>
                 </span>
               }>
@@ -2559,8 +2585,14 @@ export default function App() {
                   Mutuelle
                   <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905"
                     target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                    style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
-                    📋
+                    style={{
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    width: 22, height: 22, borderRadius: 5,
+                    background: "#EEF4FA", color: "#163E67",
+                    textDecoration: "none", fontSize: 11,
+                  }}
+                >
+                  <i className="fa-solid fa-link" aria-hidden="true" />
                   </a>
                 </span>
               }>
@@ -2586,8 +2618,14 @@ export default function App() {
                         Allocation d'Handicapé ARR (mensuel)
                         <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684880"
                           target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                          style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
-                          📋
+                          style={{
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    width: 22, height: 22, borderRadius: 5,
+                    background: "#EEF4FA", color: "#163E67",
+                    textDecoration: "none", fontSize: 11,
+                  }}
+                >
+                  <i className="fa-solid fa-link" aria-hidden="true" />
                         </a>
                       </span>
                     }
@@ -2601,8 +2639,14 @@ export default function App() {
                         Autre revenu de remplacement (mensuel)
                         <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684904"
                           target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                          style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
-                          📋
+                          style={{
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    width: 22, height: 22, borderRadius: 5,
+                    background: "#EEF4FA", color: "#163E67",
+                    textDecoration: "none", fontSize: 11,
+                  }}
+                >
+                  <i className="fa-solid fa-link" aria-hidden="true" />
                         </a>
                       </span>
                     }
@@ -2718,13 +2762,14 @@ export default function App() {
                       target="_blank" 
                       rel="noopener noreferrer" 
                       title="Documentation CPASConnect"
-                      style={{ 
-                        color: colors.textLight,
-                        textDecoration: "none",
-                        fontSize: "12px"
+                      style={{
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                        width: 22, height: 22, borderRadius: 5,
+                        background: "#EEF4FA", color: "#163E67",
+                        textDecoration: "none", fontSize: 11,
                       }}
                     >
-                      📋
+                      <i className="fa-solid fa-link" aria-hidden="true" />
                     </a>
                   </label>
 
@@ -2748,13 +2793,14 @@ export default function App() {
                       target="_blank" 
                       rel="noopener noreferrer" 
                       title="Documentation CPASConnect"
-                      style={{ 
-                        color: colors.textLight,
-                        textDecoration: "none",
-                        fontSize: "12px"
+                      style={{
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                        width: 22, height: 22, borderRadius: 5,
+                        background: "#EEF4FA", color: "#163E67",
+                        textDecoration: "none", fontSize: 11,
                       }}
                     >
-                      📋
+                      <i className="fa-solid fa-link" aria-hidden="true" />
                     </a>
                   </label>
 
@@ -2778,13 +2824,14 @@ export default function App() {
                       target="_blank" 
                       rel="noopener noreferrer" 
                       title="Documentation CPASConnect"
-                      style={{ 
-                        color: colors.textLight,
-                        textDecoration: "none",
-                        fontSize: "12px"
+                      style={{
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                        width: 22, height: 22, borderRadius: 5,
+                        background: "#EEF4FA", color: "#163E67",
+                        textDecoration: "none", fontSize: 11,
                       }}
                     >
-                      📋
+                      <i className="fa-solid fa-link" aria-hidden="true" />
                     </a>
                   </label>
 
@@ -2796,13 +2843,14 @@ export default function App() {
                         target="_blank" 
                         rel="noopener noreferrer" 
                         title="Documentation CPASConnect"
-                        style={{ 
-                          color: colors.textLight,
-                          textDecoration: "none",
-                          fontSize: "12px"
-                        }}
-                      >
-                        📋
+                        style={{
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                        width: 22, height: 22, borderRadius: 5,
+                        background: "#EEF4FA", color: "#163E67",
+                        textDecoration: "none", fontSize: 11,
+                      }}
+                    >
+                      <i className="fa-solid fa-link" aria-hidden="true" />
                       </a>
                     </span>
                   }>
@@ -2905,13 +2953,14 @@ export default function App() {
                         target="_blank" 
                         rel="noopener noreferrer" 
                         title="Documentation CPASConnect"
-                        style={{ 
-                          color: colors.textLight,
-                          textDecoration: "none",
-                          fontSize: "12px"
-                        }}
-                      >
-                        📋
+                        style={{
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                        width: 22, height: 22, borderRadius: 5,
+                        background: "#EEF4FA", color: "#163E67",
+                        textDecoration: "none", fontSize: 11,
+                      }}
+                    >
+                      <i className="fa-solid fa-link" aria-hidden="true" />
                       </a>
                     </span>
                   }>
