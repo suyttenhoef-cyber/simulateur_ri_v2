@@ -2670,314 +2670,127 @@ export default function App() {
             <section style={{ display: "grid", gap: 12 }}>
               <SectionTitle>Exonération</SectionTitle>
 
-              {/* Résumé calculé (Excel-like) */}
+              {/* Résumé calculé */}
               {(() => {
                 const exoCalc = computeExonerationExcel({
                   dateISO: data.reference.dateISO || "2025-02-01",
                   exo: data.exoneration,
                 });
-
                 return (
-                  <div className="summary-box" style={{ marginBottom: 16 }}>
-                    <div>
-                      <b>Total exonération mensuelle :</b>{" "}
-                      <Money value={exoCalc.totalMensuel} />
-                    </div>
-                    <div style={{ opacity: 0.75, fontSize: 12 }}>
-                      (Total annuel : <b><Money value={exoCalc.totalAnnuel} /></b>)
-                    </div>
-
-                    <hr style={{ margin: "10px 0" }} />
-
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <Card title="Récapitulatif des exonérations">
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                       <div>
-                        <div><b>Demandeur</b></div>
-                        <div style={{ fontSize: 12, opacity: 0.75 }}>
-                          Général: <Money value={exoCalc.demandeur.exoGeneralMens} /> / mois — Étudiant:{" "}
-                          <Money value={exoCalc.demandeur.exoEtudMens} /> / mois — Pénurie:{" "}
-                          <Money value={exoCalc.demandeur.exoPenurieMens} /> / mois — Artiste:{" "}
-                          <Money value={exoCalc.demandeur.exoArtisteAnnuel} /> / an
+                        <div style={{ fontSize: 13, fontWeight: 700, color: colors.primary, marginBottom: 4 }}>Demandeur</div>
+                        <div style={{ fontSize: 13, color: colors.text, display: "grid", gap: 4 }}>
+                          <div>Général : <strong><Money value={exoCalc.demandeur.exoGeneralMens} /></strong> / mois</div>
+                          <div>Étudiant : <strong><Money value={exoCalc.demandeur.exoEtudMens} /></strong> / mois</div>
+                          <div>Pénurie : <strong><Money value={exoCalc.demandeur.exoPenurieMens} /></strong> / mois</div>
+                          <div>Artiste : <strong><Money value={exoCalc.demandeur.exoArtisteAnnuel} /></strong> / an</div>
                         </div>
                       </div>
-
                       <div>
-                        <div><b>Conjoint</b></div>
-                        <div style={{ fontSize: 12, opacity: 0.75 }}>
-                          Général: <Money value={exoCalc.conjoint.exoGeneralMens} /> / mois — Étudiant:{" "}
-                          <Money value={exoCalc.conjoint.exoEtudMens} /> / mois — Pénurie:{" "}
-                          <Money value={exoCalc.conjoint.exoPenurieMens} /> / mois — Artiste:{" "}
-                          <Money value={exoCalc.conjoint.exoArtisteAnnuel} /> / an
+                        <div style={{ fontSize: 13, fontWeight: 700, color: colors.primary, marginBottom: 4 }}>Conjoint</div>
+                        <div style={{ fontSize: 13, color: colors.text, display: "grid", gap: 4 }}>
+                          <div>Général : <strong><Money value={exoCalc.conjoint.exoGeneralMens} /></strong> / mois</div>
+                          <div>Étudiant : <strong><Money value={exoCalc.conjoint.exoEtudMens} /></strong> / mois</div>
+                          <div>Pénurie : <strong><Money value={exoCalc.conjoint.exoPenurieMens} /></strong> / mois</div>
+                          <div>Artiste : <strong><Money value={exoCalc.conjoint.exoArtisteAnnuel} /></strong> / an</div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                    <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid #F0F4F8", display: "flex", gap: 24 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: colors.primary }}>
+                        Total mensuel : <Money value={exoCalc.totalMensuel} />
+                      </div>
+                      <div style={{ fontSize: 13, color: colors.textLight }}>
+                        Total annuel : <strong><Money value={exoCalc.totalAnnuel} /></strong>
+                      </div>
+                    </div>
+                  </Card>
                 );
               })()}
 
-              {/* Formulaire (les champs Excel C5/C6/C7/C8/C11 et H5/H6/H7/H8/H11) */}
+              {/* Formulaire */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+
                 {/* DEMANDEUR */}
-                <div className="card" style={{ padding: 16 }}>
-                  <h3 style={{ marginTop: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>Demandeur</h3>
-
-                  <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <input
-                      type="checkbox"
-                      checked={!!data.exoneration.demandeur.general}
-                      onChange={(e) =>
-                        setData((d) => ({
+                <Card title="Demandeur">
+                  {[
+                    {
+                      key: "general", label: "Exonération générale",
+                      href: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907"
+                    },
+                    {
+                      key: "etudiant", label: "Exonération étudiants",
+                      href: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907"
+                    },
+                    {
+                      key: "penurie", label: "Exonération pénurie",
+                      href: "https://myportal.vandenbroeleconnect.be/perma/149746886634385151"
+                    },
+                    { key: "artisteSP", label: "Activité artistique socio-professionnelle (annuel)" },
+                  ].map(({ key, label, href }) => (
+                    <label key={key} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, fontSize: 14, cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={!!data.exoneration.demandeur[key]}
+                        onChange={(e) => setData((d) => ({
                           ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            demandeur: { ...d.exoneration.demandeur, general: e.target.checked },
-                          },
-                        }))
-                      }
-                    />
-                    Exonération générale
-                    <a 
-                      href="https://myportal.vandenbroeleconnect.be/perma/149746886634684907" 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      title="Documentation CPASConnect"
-                      style={{
-                        display: "inline-flex", alignItems: "center", justifyContent: "center",
-                        width: 22, height: 22, borderRadius: 5,
-                        background: "#EEF4FA", color: "#163E67",
-                        textDecoration: "none", fontSize: 11,
-                      }}
-                    >
-                      <i className="fa-solid fa-link" aria-hidden="true" />
-                    </a>
-                  </label>
-
-                  <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!data.exoneration.demandeur.etudiant}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            demandeur: { ...d.exoneration.demandeur, etudiant: e.target.checked },
-                          },
-                        }))
-                      }
-                    />
-                    Exonération étudiants
-                    <a 
-                      href="https://myportal.vandenbroeleconnect.be/perma/149746886634684907" 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      title="Documentation CPASConnect"
-                      style={{
-                        display: "inline-flex", alignItems: "center", justifyContent: "center",
-                        width: 22, height: 22, borderRadius: 5,
-                        background: "#EEF4FA", color: "#163E67",
-                        textDecoration: "none", fontSize: 11,
-                      }}
-                    >
-                      <i className="fa-solid fa-link" aria-hidden="true" />
-                    </a>
-                  </label>
-
-                  <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!data.exoneration.demandeur.penurie}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            demandeur: { ...d.exoneration.demandeur, penurie: e.target.checked },
-                          },
-                        }))
-                      }
-                    />
-                    Exonération pénurie
-                    <a 
-                      href="https://myportal.vandenbroeleconnect.be/perma/149746886634385151" 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      title="Documentation CPASConnect"
-                      style={{
-                        display: "inline-flex", alignItems: "center", justifyContent: "center",
-                        width: 22, height: 22, borderRadius: 5,
-                        background: "#EEF4FA", color: "#163E67",
-                        textDecoration: "none", fontSize: 11,
-                      }}
-                    >
-                      <i className="fa-solid fa-link" aria-hidden="true" />
-                    </a>
-                  </label>
-
-                  <Field label={
-                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      Jours (si compteur dépassé)
-                      <a 
-                        href="https://myportal.vandenbroeleconnect.be/perma/149746886634684897" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        title="Documentation CPASConnect"
-                        style={{
-                        display: "inline-flex", alignItems: "center", justifyContent: "center",
-                        width: 22, height: 22, borderRadius: 5,
-                        background: "#EEF4FA", color: "#163E67",
-                        textDecoration: "none", fontSize: 11,
-                      }}
-                    >
-                      <i className="fa-solid fa-link" aria-hidden="true" />
-                      </a>
-                    </span>
-                  }>
-                    <input
-                      type="number"
-                      onFocus={(e) => e.target.select()}
-                      value={data.exoneration.demandeur.joursCompteur}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            demandeur: {
-                              ...d.exoneration.demandeur,
-                              joursCompteur: safeNumber(e.target.value, 0),
-                            },
-                          },
-                        }))
-                      }
-                    />
-                  </Field>
-
-                  <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!data.exoneration.demandeur.artisteSP}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            demandeur: { ...d.exoneration.demandeur, artisteSP: e.target.checked },
-                          },
-                        }))
-                      }
-                    />
-                    Activité artistique socio-prof (annuel)
-                  </label>
-                </div>
+                          exoneration: { ...d.exoneration, demandeur: { ...d.exoneration.demandeur, [key]: e.target.checked } },
+                        }))}
+                      />
+                      <span>{label}</span>
+                      {href && (
+                        <a href={href} target="_blank" rel="noopener noreferrer"
+                          aria-label={`Documentation CPASConnect — ${label} (nouvel onglet)`}
+                          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 22, height: 22, borderRadius: 5, background: "#EEF4FA", color: "#163E67", textDecoration: "none", fontSize: 11, flexShrink: 0 }}>
+                          <i className="fa-solid fa-link" aria-hidden="true" />
+                        </a>
+                      )}
+                    </label>
+                  ))}
+                  <Input
+                    label="Jours (si compteur dépassé)"
+                    type="number"
+                    value={data.exoneration.demandeur.joursCompteur}
+                    onChange={(e) => setData((d) => ({
+                      ...d,
+                      exoneration: { ...d.exoneration, demandeur: { ...d.exoneration.demandeur, joursCompteur: safeNumber(e.target.value, 0) } },
+                    }))}
+                  />
+                </Card>
 
                 {/* CONJOINT */}
-                <div className="card" style={{ padding: 16 }}>
-                  <h3 style={{ marginTop: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>Conjoint</h3>
+                <Card title="Conjoint">
+                  {[
+                    { key: "general",   label: "Exonération générale" },
+                    { key: "etudiant",  label: "Exonération étudiants" },
+                    { key: "penurie",   label: "Exonération pénurie" },
+                    { key: "artisteSP", label: "Activité artistique socio-professionnelle (annuel)" },
+                  ].map(({ key, label }) => (
+                    <label key={key} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, fontSize: 14, cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={!!data.exoneration.conjoint[key]}
+                        onChange={(e) => setData((d) => ({
+                          ...d,
+                          exoneration: { ...d.exoneration, conjoint: { ...d.exoneration.conjoint, [key]: e.target.checked } },
+                        }))}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                  <Input
+                    label="Jours (si compteur dépassé)"
+                    type="number"
+                    value={data.exoneration.conjoint.joursCompteur}
+                    onChange={(e) => setData((d) => ({
+                      ...d,
+                      exoneration: { ...d.exoneration, conjoint: { ...d.exoneration.conjoint, joursCompteur: safeNumber(e.target.value, 0) } },
+                    }))}
+                  />
+                </Card>
 
-                  <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <input
-                      type="checkbox"
-                      checked={!!data.exoneration.conjoint.general}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            conjoint: { ...d.exoneration.conjoint, general: e.target.checked },
-                          },
-                        }))
-                      }
-                    />
-                    Exonération générale
-                  </label>
-
-                  <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!data.exoneration.conjoint.etudiant}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            conjoint: { ...d.exoneration.conjoint, etudiant: e.target.checked },
-                          },
-                        }))
-                      }
-                    />
-                    Exonération étudiant
-                  </label>
-
-                  <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!data.exoneration.conjoint.penurie}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            conjoint: { ...d.exoneration.conjoint, penurie: e.target.checked },
-                          },
-                        }))
-                      }
-                    />
-                    Exonération pénurie
-                  </label>
-                  <Field label={
-                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      Jours (si compteur dépassé)
-                      <a 
-                        href="https://myportal.vandenbroeleconnect.be/perma/149746886634684897" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        title="Documentation CPASConnect"
-                        style={{
-                        display: "inline-flex", alignItems: "center", justifyContent: "center",
-                        width: 22, height: 22, borderRadius: 5,
-                        background: "#EEF4FA", color: "#163E67",
-                        textDecoration: "none", fontSize: 11,
-                      }}
-                    >
-                      <i className="fa-solid fa-link" aria-hidden="true" />
-                      </a>
-                    </span>
-                  }>
-                    <input
-                      type="number"
-                      onFocus={(e) => e.target.select()}
-                      value={data.exoneration.conjoint.joursCompteur}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            conjoint: {
-                              ...d.exoneration.conjoint,
-                              joursCompteur: safeNumber(e.target.value, 0),
-                            },
-                          },
-                        }))
-                      }
-                    />
-                  </Field>
-
-                  <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
-                    <input
-                      type="checkbox"
-                      checked={!!data.exoneration.conjoint.artisteSP}
-                      onChange={(e) =>
-                        setData((d) => ({
-                          ...d,
-                          exoneration: {
-                            ...d.exoneration,
-                            conjoint: { ...d.exoneration.conjoint, artisteSP: e.target.checked },
-                          },
-                        }))
-                      }
-                    />
-                    Activité artistique socio-prof (annuel) (H11)
-                  </label>
-                </div>
               </div>
             </section>
           )}
