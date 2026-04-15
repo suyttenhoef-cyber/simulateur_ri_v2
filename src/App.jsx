@@ -368,7 +368,9 @@ const defaultCohabitantRow = () => ({
   pctReport: 30,
   categorie: 1,
   saisieMode: "mensuel",
-  nbDebiteursMemeRang: 1,   // Nombre de débiteurs alimentaires du même rang (ex. père ET mère = 2)
+  nbDebiteursMemeRang: 1,
+  detailOuvert: false,   // accordéon détail revenus
+  lignes: [],            // si non vide, ressourcesTotale est calculé depuis ces lignes
 });
 
 const todayISO = new Date().toISOString().slice(0, 10);
@@ -631,7 +633,10 @@ function computeNetMonthly(rows) {
 }
 // Calcul du report d'un cohabitant sur le demandeur (art. 22 loi 26/05/2002)
 function computeCohabitantRow(row, referenceDate) {
-  const ressourcesTotale = safeNumber(row.ressourcesTotale, 0);
+  // Si des lignes détaillées sont présentes, le total annuel est calculé depuis celles-ci
+  const ressourcesTotale = (row.lignes && row.lignes.length > 0)
+    ? computeNetMonthly(row.lignes).net * 12
+    : safeNumber(row.ressourcesTotale, 0);
   const categorie = row.categorie || 1;
   const nbDebiteursMemeRang = Math.max(1, safeNumber(row.nbDebiteursMemeRang, 1));
 
@@ -749,51 +754,156 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                     <option value="Autre">Autre</option>
                   </Input>
 
-                  {/* Ressources : choix mensuel ou annuel */}
-                  <div style={{ display: "grid", gap: 6 }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <span style={{ fontSize: 13, opacity: 0.85 }}>Ressources totales</span>
-                      <div style={{ display: "flex", gap: 0, borderRadius: 6, overflow: "hidden", border: "1.5px solid #9BAAB5" }}>
-                        {["mensuel", "annuel"].map((mode) => (
-                          <button
-                            key={mode}
-                            type="button"
-                            onClick={() => updateRow(i, { saisieMode: mode })}
-                            style={{
-                              padding: "3px 10px", fontSize: 11, fontWeight: 600, border: "none", cursor: "pointer",
-                              background: (r.saisieMode || "annuel") === mode ? "#163E67" : "#fff",
-                              color: (r.saisieMode || "annuel") === mode ? "#fff" : "#163E67",
-                              transition: "background .15s",
+                  {/* Ressources : total global OU détail ligne par ligne */}
+                  <div style={{ display: "grid", gap: 6, gridColumn: "1 / -1" }}>
+
+                    {/* Champ total global — masqué si lignes détaillées présentes */}
+                    {(!r.lignes || r.lignes.length === 0) && (
+                      <>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <span style={{ fontSize: 13, opacity: 0.85 }}>Ressources totales</span>
+                          <div style={{ display: "flex", gap: 0, borderRadius: 6, overflow: "hidden", border: "1.5px solid #9BAAB5" }}>
+                            {["mensuel", "annuel"].map((mode) => (
+                              <button key={mode} type="button"
+                                onClick={() => updateRow(i, { saisieMode: mode })}
+                                style={{
+                                  padding: "3px 10px", fontSize: 11, fontWeight: 600, border: "none", cursor: "pointer",
+                                  background: (r.saisieMode || "mensuel") === mode ? "#163E67" : "#fff",
+                                  color: (r.saisieMode || "mensuel") === mode ? "#fff" : "#163E67",
+                                  transition: "background .15s",
+                                }}
+                              >
+                                {mode === "mensuel" ? "/mois" : "/an"}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="inp-wrapper">
+                          <span className="inp-prefix">€</span>
+                          <input
+                            type="number" className="inp-base inp-money"
+                            onFocus={(e) => e.target.select()}
+                            value={(r.saisieMode || "mensuel") === "mensuel"
+                              ? (r.ressourcesTotale / 12 || 0)
+                              : (r.ressourcesTotale || 0)}
+                            onChange={(e) => {
+                              const val = safeNumber(e.target.value, 0);
+                              updateRow(i, { ressourcesTotale: (r.saisieMode || "mensuel") === "mensuel" ? val * 12 : val });
                             }}
-                          >
-                            {mode === "mensuel" ? "/mois" : "/an"}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="inp-wrapper">
-                      <span className="inp-prefix">€</span>
-                      <input
-                        type="number"
-                        className="inp-base inp-money"
-                        onFocus={(e) => e.target.select()}
-                        value={(r.saisieMode || "annuel") === "mensuel"
-                          ? (r.ressourcesTotale / 12 || 0)
-                          : (r.ressourcesTotale || 0)}
-                        onChange={(e) => {
-                          const val = safeNumber(e.target.value, 0);
-                          updateRow(i, {
-                            ressourcesTotale: (r.saisieMode || "annuel") === "mensuel" ? val * 12 : val
-                          });
-                        }}
-                      />
-                    </div>
-                    <span style={{ fontSize: 11, opacity: 0.6 }}>
-                      {(r.saisieMode || "annuel") === "mensuel"
-                        ? `Annuel : ${new Intl.NumberFormat("fr-BE", { style: "currency", currency: "EUR" }).format(r.ressourcesTotale || 0)}`
-                        : `Mensuel : ${new Intl.NumberFormat("fr-BE", { style: "currency", currency: "EUR" }).format((r.ressourcesTotale || 0) / 12)}`
+                          />
+                        </div>
+                        <span style={{ fontSize: 11, opacity: 0.6 }}>
+                          {(r.saisieMode || "mensuel") === "mensuel"
+                            ? `Annuel : ${new Intl.NumberFormat("fr-BE", { style: "currency", currency: "EUR" }).format(r.ressourcesTotale || 0)}`
+                            : `Mensuel : ${new Intl.NumberFormat("fr-BE", { style: "currency", currency: "EUR" }).format((r.ressourcesTotale || 0) / 12)}`
+                          }
+                        </span>
+                      </>
+                    )}
+
+                    {/* Bouton accordéon */}
+                    <button
+                      type="button"
+                      onClick={() => updateRow(i, { detailOuvert: !r.detailOuvert })}
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: 6,
+                        background: "none", border: "none", cursor: "pointer",
+                        fontSize: 12, fontWeight: 600, color: "#163E67",
+                        padding: "4px 0", width: "fit-content",
+                      }}
+                    >
+                      <i className={`fas fa-chevron-${r.detailOuvert ? "up" : "down"}`} aria-hidden="true" style={{ fontSize: 10 }} />
+                      {r.lignes && r.lignes.length > 0
+                        ? `Détail des ressources (${r.lignes.length} ligne${r.lignes.length > 1 ? "s" : ""} — ${new Intl.NumberFormat("fr-BE", { style: "currency", currency: "EUR" }).format(computeNetMonthly(r.lignes).net)}/mois)`
+                        : "Détailler les ressources ligne par ligne"
                       }
-                    </span>
+                    </button>
+
+                    {/* Mini RowsTable accordéon */}
+                    {r.detailOuvert && (
+                      <div style={{ border: "1.5px solid #C5D8EE", borderRadius: 8, padding: 12, background: "#F8FBFF", marginTop: 4 }}>
+                        {/* En-tête colonnes */}
+                        <div style={{ display: "grid", gridTemplateColumns: "2fr 1.4fr 2fr 1.4fr 36px", gap: 8, marginBottom: 6 }}>
+                          {["Type de revenu", "Montant (€/mois)", "Type d'exonération", "Montant exonéré", ""].map((h, ci) => (
+                            <div key={ci} style={{ fontSize: 11, fontWeight: 700, color: "#163E67", borderBottom: "1.5px solid #C5D8EE", paddingBottom: 4 }}>{h}</div>
+                          ))}
+                        </div>
+
+                        {/* Lignes */}
+                        {(r.lignes || []).map((l, li) => (
+                          <div key={li} style={{ display: "grid", gridTemplateColumns: "2fr 1.4fr 2fr 1.4fr 36px", gap: 8, marginBottom: 6, alignItems: "start" }}>
+                            <select className="inp-base" style={{ fontSize: 12 }}
+                              value={l.customLabel !== undefined && l.customLabel !== null ? "Autre" : l.label}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                const newLignes = r.lignes.map((x, xi) => xi === li ? { ...x, label: val, customLabel: val === "Autre" ? "" : null } : x);
+                                updateRow(i, { lignes: newLignes });
+                              }}>
+                              {REVENUS_COMPTABILISES_SUGGESTIONS.map((opt) => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                              ))}
+                            </select>
+                            <div className="inp-wrapper">
+                              <span className="inp-prefix">€</span>
+                              <input type="number" className="inp-base inp-money" style={{ fontSize: 12 }}
+                                onFocus={(e) => e.target.select()}
+                                value={l.comptabilise || 0}
+                                onChange={(e) => {
+                                  const newLignes = r.lignes.map((x, xi) => xi === li ? { ...x, comptabilise: safeNumber(e.target.value, 0) } : x);
+                                  updateRow(i, { lignes: newLignes });
+                                }} />
+                            </div>
+                            <select className="inp-base" style={{ fontSize: 12 }}
+                              value={l.exonereType || ""}
+                              onChange={(e) => {
+                                const newLignes = r.lignes.map((x, xi) => xi === li ? { ...x, exonereType: e.target.value } : x);
+                                updateRow(i, { lignes: newLignes });
+                              }}>
+                              {REVENUS_EXONERES_SUGGESTIONS.map((opt) => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                              ))}
+                            </select>
+                            <div className="inp-wrapper">
+                              <span className="inp-prefix">€</span>
+                              <input type="number" className="inp-base inp-money" style={{ fontSize: 12 }}
+                                onFocus={(e) => e.target.select()}
+                                value={l.exonere || 0}
+                                onChange={(e) => {
+                                  const newLignes = r.lignes.map((x, xi) => xi === li ? { ...x, exonere: safeNumber(e.target.value, 0) } : x);
+                                  updateRow(i, { lignes: newLignes });
+                                }} />
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <button type="button" className="btn-remove"
+                                aria-label={`Supprimer ligne ${li + 1}`}
+                                onClick={() => {
+                                  const newLignes = r.lignes.filter((_, xi) => xi !== li);
+                                  updateRow(i, { lignes: newLignes, ...(newLignes.length === 0 ? { detailOuvert: true } : {}) });
+                                }}>
+                                <i className="fas fa-trash" aria-hidden="true" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Bouton ajouter ligne + total */}
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+                          <button type="button" className="btn-add" style={{ fontSize: 12, padding: "5px 12px" }}
+                            onClick={() => updateRow(i, { lignes: [...(r.lignes || []), defaultRow()] })}>
+                            <i className="fas fa-plus" aria-hidden="true" style={{ marginRight: 5 }} />
+                            Ajouter une ligne
+                          </button>
+                          {r.lignes && r.lignes.length > 0 && (
+                            <div style={{ fontSize: 12, fontWeight: 700, color: "#163E67" }}>
+                              Net mensuel : <Money value={computeNetMonthly(r.lignes).net} />
+                              <span style={{ fontWeight: 400, color: "#6B7E8F", marginLeft: 8 }}>
+                                (annuel : <Money value={computeNetMonthly(r.lignes).net * 12} />)
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <Input label="Prise en charge" type="select" value={r.priseEnCharge}
