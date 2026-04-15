@@ -368,7 +368,7 @@ const defaultCohabitantRow = () => ({
   pctReport: 30,
   categorie: 1,
   saisieMode: "mensuel",
-  nbDemandeurs: 1,   // Nombre de demandeurs du RI ayant le même rang envers ce cohabitant (fratrie)
+  nbDebiteursMemeRang: 1,   // Nombre de débiteurs alimentaires du même rang (ex. père ET mère = 2)
 });
 
 const todayISO = new Date().toISOString().slice(0, 10);
@@ -633,7 +633,7 @@ function computeNetMonthly(rows) {
 function computeCohabitantRow(row, referenceDate) {
   const ressourcesTotale = safeNumber(row.ressourcesTotale, 0);
   const categorie = row.categorie || 1;
-  const nbDemandeurs = Math.max(1, safeNumber(row.nbDemandeurs, 1));
+  const nbDebiteursMemeRang = Math.max(1, safeNumber(row.nbDebiteursMemeRang, 1));
 
   // Seuil RI annuel selon catégorie
   const seuilRI = getRIAnnuel(referenceDate, categorie);
@@ -646,22 +646,22 @@ function computeCohabitantRow(row, referenceDate) {
   const excedentMensuel = round2(excedent / 12);
 
   // Part de l'excédent mensuel due à ce demandeur
-  // Si fratrie (nbDemandeurs > 1) : l'excédent est divisé entre les demandeurs du même rang
-  const excedentParDemandeur = round2(excedentMensuel / nbDemandeurs);
+  // Si plusieurs débiteurs du même rang (ex. père ET mère) : l'excédent est divisé entre eux
+  const excedentParDebiteur = round2(excedentMensuel / nbDebiteursMemeRang);
 
   // Montant reporté selon type de report et prise en charge
   let montantReporte = 0;
 
-  if (excedentParDemandeur > 0) {
+  if (excedentParDebiteur > 0) {
     if (row.priseEnCharge === "MAX") {
       // Prise en charge MAX : on applique le % de report sur la part
-      montantReporte = round2(excedentParDemandeur * (safeNumber(row.pctReport, 30) / 100));
+      montantReporte = round2(excedentParDebiteur * (safeNumber(row.pctReport, 30) / 100));
     } else if (row.typeReport === "Partenaire") {
       // Partenaire : 50% de la part
-      montantReporte = round2(excedentParDemandeur * 0.5);
+      montantReporte = round2(excedentParDebiteur * 0.5);
     } else {
       // Report max (défaut) : % de report sur la part
-      montantReporte = round2(excedentParDemandeur * (safeNumber(row.pctReport, 30) / 100));
+      montantReporte = round2(excedentParDebiteur * (safeNumber(row.pctReport, 30) / 100));
     }
   }
 
@@ -670,7 +670,7 @@ function computeCohabitantRow(row, referenceDate) {
     seuilRI,
     excedent,
     excedentMensuel,
-    excedentParDemandeur,
+    excedentParDebiteur,
     montantMensuel: excedentMensuel,
     montantReporte,
     ressourcesProrata: montantReporte,
@@ -803,10 +803,10 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                     <option value="MAX">MAX</option>
                   </Input>
                   <Input
-                    label="Nombre de demandeurs du même rang"
-                    hint="Si plusieurs personnes font une demande RI avec le même lien de parenté envers ce cohabitant (ex. fratrie), indiquez ce nombre — l'excédent sera divisé en parts égales."
-                    type="number" value={r.nbDemandeurs || 1}
-                    onChange={(e) => updateRow(i, { nbDemandeurs: Math.max(1, safeNumber(e.target.value, 1)) })}
+                    label="Nombre de débiteurs alimentaires du même rang"
+                    hint="Ex. : si le père ET la mère cohabitent et sont tous deux du 1er rang envers le demandeur, indiquez 2 — l'excédent de chacun sera divisé par 2 avant d'être reporté."
+                    type="number" value={r.nbDebiteursMemeRang || 1}
+                    onChange={(e) => updateRow(i, { nbDebiteursMemeRang: Math.max(1, safeNumber(e.target.value, 1)) })}
                     min="1" />
                   <Input
                     label="Type de report"
@@ -835,8 +835,8 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                     <div><strong>Seuil RI (catégorie {calc.categorie}) :</strong> <Money value={calc.seuilRI} /></div>
                     <div><strong>Excédent annuel :</strong> <Money value={calc.excedent} /></div>
                     <div><strong>Excédent mensuel :</strong> <Money value={calc.excedentMensuel} /></div>
-                    {(r.nbDemandeurs || 1) > 1 && (
-                      <div><strong>Part / demandeur ({r.nbDemandeurs}) :</strong> <Money value={calc.excedentParDemandeur} /></div>
+                    {(r.nbDebiteursMemeRang || 1) > 1 && (
+                      <div><strong>Part / débiteur ({r.nbDebiteursMemeRang}) :</strong> <Money value={calc.excedentParDebiteur} /></div>
                     )}
                     <div><strong>Montant reporté / mois :</strong> <Money value={calc.montantReporte} /></div>
                   </div>
@@ -2941,6 +2941,24 @@ export default function App() {
           {active === "cohabitants" && (
             <section style={{ display: "grid", gap: 12 }}>
               <SectionTitle>Revenus des cohabitants</SectionTitle>
+
+              {/* Note explicative — règles légales */}
+              <div style={{
+                display: "flex", gap: 12, alignItems: "flex-start",
+                background: "#EEF4FA", border: "1px solid #C5D8EE", borderLeft: "4px solid #163E67",
+                borderRadius: 8, padding: "12px 16px", fontSize: 13, color: "#1A2C3A",
+              }}>
+                <i className="fas fa-circle-info" aria-hidden="true"
+                  style={{ color: "#163E67", fontSize: 15, flexShrink: 0, marginTop: 2 }} />
+                <div style={{ lineHeight: 1.6 }}>
+                  <strong style={{ display: "block", marginBottom: 6 }}>Règles de prise en compte (art. 22 loi 26/05/2002)</strong>
+                  Seul l'<strong>excédent</strong> des ressources du cohabitant — c'est-à-dire la part qui dépasse le montant du RI auquel il aurait lui-même droit — est reporté sur le demandeur.
+                  <br /><br />
+                  Si plusieurs personnes sont <strong>débitrices alimentaires du même rang</strong> (ex. père <em>et</em> mère sont tous deux du 1er rang envers leur enfant demandeur), l'excédent de chacun est <strong>divisé en parts égales</strong> entre eux avant d'être reporté. Utilisez le champ <em>"Nombre de débiteurs alimentaires du même rang"</em> pour indiquer ce nombre.
+                  <br /><br />
+                  <strong>Important :</strong> les ressources perçues <em>par</em> un cohabitant (ex. allocations familiales perçues par la mère pour son fils demandeur) sont des ressources du <strong>cohabitant</strong>, à encoder sur sa fiche — pas sur celle du demandeur.
+                </div>
+              </div>
               <CohabitantsTable 
                 rows={data.cohabitants.rows}
                 referenceDate={data.reference.dateISO}
