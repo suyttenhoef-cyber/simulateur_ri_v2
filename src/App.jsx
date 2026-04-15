@@ -365,7 +365,7 @@ const defaultCohabitantRow = () => ({
   ressourcesTotale: 0,
   priseEnCharge: "Non",
   typeReport: "Report max",
-  pctReport: 30,
+  pctReport: 100,
   categorie: 1,
   saisieMode: "mensuel",
   nbDebiteursMemeRang: 1,
@@ -743,21 +743,29 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                   </button>
                 </div>
               }>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10, alignItems: "start" }}>
-                  <Input label="Nom" value={r.nom}
-                    onChange={(e) => updateRow(i, { nom: e.target.value })}
-                    placeholder="Nom du cohabitant" />
-                  <Input label="Type" type="select" value={r.type}
-                    onChange={(e) => updateRow(i, { type: e.target.value })}>
-                    <option value="Ascendants/descendant majeur">Ascendants/descendant majeur</option>
-                    <option value="Conjoint">Conjoint</option>
-                    <option value="Autre">Autre</option>
-                  </Input>
+                <div style={{ display: "grid", gap: 14 }}>
 
-                  {/* Ressources : total global OU détail ligne par ligne */}
-                  <div style={{ display: "grid", gap: 6, gridColumn: "1 / -1" }}>
+                  {/* Groupe 1 : Identité */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, alignItems: "start" }}>
+                    <Input label="Nom" value={r.nom}
+                      onChange={(e) => updateRow(i, { nom: e.target.value })}
+                      placeholder="Nom du cohabitant" />
+                    <Input label="Type de lien" type="select" value={r.type}
+                      onChange={(e) => updateRow(i, { type: e.target.value })}>
+                      <option value="Ascendants/descendant majeur">Ascendant / descendant majeur</option>
+                      <option value="Conjoint">Conjoint</option>
+                      <option value="Autre">Autre</option>
+                    </Input>
+                    <Input label="Catégorie RI" type="select" value={r.categorie}
+                      onChange={(e) => updateRow(i, { categorie: parseInt(e.target.value) })}>
+                      <option value={1}>1 — Cohabitant</option>
+                      <option value={2}>2 — Isolé</option>
+                      <option value={3}>3 — Famille</option>
+                    </Input>
+                  </div>
 
-                    {/* Champ total global — masqué si lignes détaillées présentes */}
+                  {/* Groupe 2 : Ressources (pleine largeur) */}
+                  <div style={{ display: "grid", gap: 6 }}>
                     {(!r.lignes || r.lignes.length === 0) && (
                       <>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -780,8 +788,7 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                         </div>
                         <div className="inp-wrapper">
                           <span className="inp-prefix">€</span>
-                          <input
-                            type="number" className="inp-base inp-money"
+                          <input type="number" className="inp-base inp-money"
                             onFocus={(e) => e.target.select()}
                             value={(r.saisieMode || "mensuel") === "mensuel"
                               ? (r.ressourcesTotale / 12 || 0)
@@ -802,8 +809,7 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                     )}
 
                     {/* Bouton accordéon */}
-                    <button
-                      type="button"
+                    <button type="button"
                       onClick={() => updateRow(i, { detailOuvert: !r.detailOuvert })}
                       style={{
                         display: "inline-flex", alignItems: "center", gap: 6,
@@ -822,14 +828,11 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                     {/* Mini RowsTable accordéon */}
                     {r.detailOuvert && (
                       <div style={{ border: "1.5px solid #C5D8EE", borderRadius: 8, padding: 12, background: "#F8FBFF", marginTop: 4 }}>
-                        {/* En-tête colonnes */}
                         <div style={{ display: "grid", gridTemplateColumns: "2fr 1.4fr 2fr 1.4fr 36px", gap: 8, marginBottom: 6 }}>
                           {["Type de revenu", "Montant (€/mois)", "Type d'exonération", "Montant exonéré", ""].map((h, ci) => (
                             <div key={ci} style={{ fontSize: 11, fontWeight: 700, color: "#163E67", borderBottom: "1.5px solid #C5D8EE", paddingBottom: 4 }}>{h}</div>
                           ))}
                         </div>
-
-                        {/* Lignes */}
                         {(r.lignes || []).map((l, li) => (
                           <div key={li} style={{ display: "grid", gridTemplateColumns: "2fr 1.4fr 2fr 1.4fr 36px", gap: 8, marginBottom: 6, alignItems: "start" }}>
                             <select className="inp-base" style={{ fontSize: 12 }}
@@ -885,8 +888,6 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                             </div>
                           </div>
                         ))}
-
-                        {/* Bouton ajouter ligne + total */}
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
                           <button type="button" className="btn-add" style={{ fontSize: 12, padding: "5px 12px" }}
                             onClick={() => updateRow(i, { lignes: [...(r.lignes || []), defaultRow()] })}>
@@ -906,38 +907,33 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                     )}
                   </div>
 
-                  <Input label="Prise en charge" type="select" value={r.priseEnCharge}
-                    onChange={(e) => updateRow(i, { priseEnCharge: e.target.value })}>
-                    <option value="Non">Non</option>
-                    <option value="Oui">Oui</option>
-                    <option value="MAX">MAX</option>
-                  </Input>
-                  <Input
-                    label="Nombre de débiteurs alimentaires du même rang"
-                    hint="Ex. : si le père ET la mère cohabitent et sont tous deux du 1er rang envers le demandeur, indiquez 2 — l'excédent de chacun sera divisé par 2 avant d'être reporté."
-                    type="number" value={r.nbDebiteursMemeRang || 1}
-                    onChange={(e) => updateRow(i, { nbDebiteursMemeRang: Math.max(1, safeNumber(e.target.value, 1)) })}
-                    min="1" />
-                  <Input
-                    label="Type de report"
-                    hint="Le 'report' est la part des ressources excédentaires du cohabitant qui est imputée sur le RI du demandeur."
-                    type="select" value={r.typeReport}
-                    onChange={(e) => updateRow(i, { typeReport: e.target.value })}>
-                    <option value="Report max">Report max (pourcentage légal)</option>
-                    <option value="Partenaire">Partenaire (50%)</option>
-                  </Input>
-                  <Input
-                    label="% Report"
-                    hint="Part (%) de l'excédent du cohabitant reportée sur le demandeur. Par défaut : 30%."
-                    type="number" value={r.pctReport}
-                    onChange={(e) => updateRow(i, { pctReport: safeNumber(e.target.value, 30) })}
-                    min="0" max="100" />
-                  <Input label="Catégorie" type="select" value={r.categorie}
-                    onChange={(e) => updateRow(i, { categorie: parseInt(e.target.value) })}>
-                    <option value={1}>1 — Cohabitant</option>
-                    <option value={2}>2 — Isolé</option>
-                    <option value={3}>3 — Famille</option>
-                  </Input>
+                  {/* Groupe 3 : Paramètres de calcul du report */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10, alignItems: "start" }}>
+                    <Input label="Prise en charge" type="select" value={r.priseEnCharge}
+                      onChange={(e) => updateRow(i, { priseEnCharge: e.target.value })}>
+                      <option value="Non">Non</option>
+                      <option value="Oui">Oui</option>
+                      <option value="MAX">MAX</option>
+                    </Input>
+                    <Input label="Type de report" type="select" value={r.typeReport}
+                      onChange={(e) => updateRow(i, { typeReport: e.target.value })}>
+                      <option value="Report max">Report max</option>
+                      <option value="Partenaire">Partenaire (50%)</option>
+                    </Input>
+                    <Input
+                      label="% Report"
+                      hint="Part (%) de l'excédent reportée sur le demandeur."
+                      type="number" value={r.pctReport}
+                      onChange={(e) => updateRow(i, { pctReport: safeNumber(e.target.value, 100) })}
+                      min="0" max="100" />
+                    <Input
+                      label="Nb débiteurs même rang"
+                      hint="Ex. : père ET mère = 2 → excédent divisé par 2."
+                      type="number" value={r.nbDebiteursMemeRang || 1}
+                      onChange={(e) => updateRow(i, { nbDebiteursMemeRang: Math.max(1, safeNumber(e.target.value, 1)) })}
+                      min="1" />
+                  </div>
+
                 </div>
 
                 <div className="summary-box" style={{ marginTop: 10, fontSize: 12 }}>
