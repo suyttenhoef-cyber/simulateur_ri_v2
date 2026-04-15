@@ -2073,55 +2073,46 @@ function computeImmoAnnualExcelLike(rows) {
     quotePart: safeNumber(r.quotePart, 50) / 100
   }));
 
-  const countRCPos = safeRows.reduce((c, r) => c + (r.rcNonIndexe > 0 ? 1 : 0), 0);
+  // Compter séparément bâtis et non-bâtis avec RC > 0
+  const countBatiPos    = safeRows.filter(r => r.typeBien === "Bâti"     && r.rcNonIndexe > 0).length;
+  const countNonBatiPos = safeRows.filter(r => r.typeBien === "Non bâti" && r.rcNonIndexe > 0).length;
 
   let total = 0;
 
   for (const r of safeRows) {
-    // Cas "Etranger" : Excel somme directement le revenu étranger (col G) à part
-    // (sans passer par RC / exonération / loyer).
     if (r.typeBien === "Étranger" || r.typeBien === "Etranger") {
       total += r.revenuImmoEtranger;
       continue;
     }
 
-    if (r.rcNonIndexe <= 0) {
-      // Si pas de RC => ressourcesZT vides, mais le loyer pourrait exister.
-      // En Excel, le loyer est comparé à M (qui vaut 0) donc si loyer>0, il est compté.
-    }
+    const K = round2(r.rcNonIndexe * r.quotePart);
 
-    const K = round2(r.rcNonIndexe * r.quotePart); // RC x Part
+    // Exonération séparée par catégorie
+    const isBati   = r.typeBien === "Bâti";
+    const exoBase  = isBati ? EXO_BATI : EXO_NON_BATI;
+    const countCat = isBati ? countBatiPos : countNonBatiPos;
+    const baseExo2 = exoBase * 2;
 
-    // Exo/bat (L) : (exo*2) réparti entre les biens avec RC>0, puis * quotePart
-    const baseExo = (r.typeBien === "Bâti" ? EXO_BATI : EXO_NON_BATI) * 2;
-    const L = (r.rcNonIndexe > 0 && countRCPos > 0)
-      ? round2((baseExo * r.quotePart) / countRCPos)
+    const L = (r.rcNonIndexe > 0 && countCat > 0)
+      ? round2((baseExo2 * r.quotePart) / countCat)
       : 0;
 
-    // Ressources - ZT (M)
     const M = (r.rcNonIndexe > 0 && K >= L) ? round2((K - L) * 3) : 0;
 
-    // Loyer droit (U) + loyer compté (V)
     const U = (r.loyerAnnuel > 0) ? round2(r.loyerAnnuel * r.quotePart) : 0;
     const loyerCompte = (U > M) ? U : 0;
-
-    // Si loyer compté => ressources RC "voir loyer" => on ne prend pas M
     const ressourcesRC = loyerCompte > 0 ? 0 : M;
 
-    // Intérêts et rente plafonnés à 50% des ressourcesRC (Excel: N/2)
     const maxDed = round2(ressourcesRC / 2);
 
     const interetsDroit = round2(r.interetsPaye * r.quotePart);
     const dedInterets = (ressourcesRC > 0 && interetsDroit > 0)
-      ? -round2(Math.min(interetsDroit, maxDed))
-      : 0;
+      ? -round2(Math.min(interetsDroit, maxDed)) : 0;
 
     const renteDroit = round2(r.renteAnnuelle * r.quotePart);
     const dedRente = (ressourcesRC > 0 && renteDroit > 0)
-      ? -round2(Math.min(renteDroit, maxDed))
-      : 0;
+      ? -round2(Math.min(renteDroit, maxDed)) : 0;
 
-    // Total annuel de la ligne
     total += ressourcesRC + loyerCompte + dedInterets + dedRente;
   }
 
@@ -2272,10 +2263,12 @@ function computeImmoExcel(rows, nbEnfants = 0) {
     quote: asNumOrZero(r.quotePart) / 100,
   }));
 
-  const countRCPos = list.reduce((c, r) => c + (r.rc > 0 ? 1 : 0), 0);
+  // Compter séparément bâtis et non-bâtis avec RC > 0
+  const countBatiPos    = list.filter(r => r.type === "Bâti"     && r.rc > 0).length;
+  const countNonBatiPos = list.filter(r => r.type === "Non bâti" && r.rc > 0).length;
 
   const totals = {
-    IB: { ressources: 0, dedInterets: 0, dedRente: 0, locatifs: 0, total: 0 },
+    IB:  { ressources: 0, dedInterets: 0, dedRente: 0, locatifs: 0, total: 0 },
     INB: { ressources: 0, dedInterets: 0, dedRente: 0, locatifs: 0, total: 0 },
     etranger: 0,
     totalAnnuel: 0,
@@ -2288,19 +2281,26 @@ function computeImmoExcel(rows, nbEnfants = 0) {
       continue;
     }
 
-    const J = r.quote; 
-    const H = r.rc;    
+    const J = r.quote;
+    const H = r.rc;
     const E = r.interets;
     const F = r.rente;
     const I = r.loyer;
 
-    // Calculs spécifiques à Excel
     const K = H !== 0 ? round2(H * J) : null;
-    const exoBase = r.type === "Bâti" ? EXO_BATI : EXO_NON_BATI;
-const exoTotal = exoBase + safeNumber(nbEnfants, 0) * 125;
-const L = H !== 0 && countRCPos > 0
-  ? round2((exoTotal * J) / countRCPos)
-  : null;
+
+    // Exonération séparée bâti / non-bâti
+    // Bâti    : EXO_BATI (750) répartie entre les biens bâtis avec RC > 0
+    // Non-bâti: EXO_NON_BATI (30) répartie entre les biens non-bâtis avec RC > 0
+    const isBati = r.type === "Bâti";
+    const exoBase  = isBati ? EXO_BATI : EXO_NON_BATI;
+    const countCat = isBati ? countBatiPos : countNonBatiPos;
+    const exoTotal = exoBase + safeNumber(nbEnfants, 0) * 125;
+
+    const L = H !== 0 && countCat > 0
+      ? round2((exoTotal * J) / countCat)
+      : null;
+
     const M = H !== 0 && K !== null && L !== null ? (K >= L ? round2((K - L) * 3) : 0) : null;
     const U = I !== 0 ? round2(I * J) : "s. o.";
     const V = isFiniteNumber(U) && isFiniteNumber(M) && U > M ? U : "s. o.";
@@ -2313,25 +2313,24 @@ const L = H !== 0 && countRCPos > 0
     const S = N !== "voir loyer" ? (F !== 0 && isFiniteNumber(N) ? round2(N / 2) : null) : "s. o.";
     const T = S !== "s. o." ? (F !== 0 && R !== null && S !== null ? -round2(Math.min(R, S)) : null) : "s. o.";
 
-    const bucket = r.type === "Bâti" ? totals.IB : totals.INB;
+    const bucket = isBati ? totals.IB : totals.INB;
 
-    const ressources = isFiniteNumber(N) ? N : 0;
+    const ressources  = isFiniteNumber(N) ? N : 0;
     const dedInterets = isFiniteNumber(Q) ? Q : 0;
-    const dedRente = isFiniteNumber(T) ? T : 0;
-    const locatifs = isFiniteNumber(V) ? V : 0;
+    const dedRente    = isFiniteNumber(T) ? T : 0;
+    const locatifs    = isFiniteNumber(V) ? V : 0;
 
-    bucket.ressources += ressources;
+    bucket.ressources  += ressources;
     bucket.dedInterets += dedInterets;
-    bucket.dedRente += dedRente;
-    bucket.locatifs += locatifs;
+    bucket.dedRente    += dedRente;
+    bucket.locatifs    += locatifs;
   }
 
-  totals.IB.total = round2(totals.IB.ressources + totals.IB.dedInterets + totals.IB.dedRente + totals.IB.locatifs);
+  totals.IB.total  = round2(totals.IB.ressources  + totals.IB.dedInterets  + totals.IB.dedRente  + totals.IB.locatifs);
   totals.INB.total = round2(totals.INB.ressources + totals.INB.dedInterets + totals.INB.dedRente + totals.INB.locatifs);
+  totals.etranger  = round2(totals.etranger);
 
-  totals.etranger = round2(totals.etranger);
-
-  totals.totalAnnuel = round2(totals.IB.total + totals.INB.total + totals.etranger);
+  totals.totalAnnuel  = round2(totals.IB.total + totals.INB.total + totals.etranger);
   totals.totalMensuel = round2(totals.totalAnnuel / 12);
 
   return totals;
