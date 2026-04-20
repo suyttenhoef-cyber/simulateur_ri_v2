@@ -2952,7 +2952,7 @@ export default function App() {
                       {href && (
                        <a href={href} target="_blank" rel="noopener noreferrer"
                          aria-label={`Documentation CPASConnect — ${label} (nouvel onglet)`}
-                         style={{ color: "#7F8C8D", textDecoration: "none", fontSize: 11, flexShrink: 0, lineHeight: 1 }}>
+                         style={{ color: "#163E67", textDecoration: "none", fontSize: 11, flexShrink: 0, lineHeight: 1 }}>
                          <i className="fa-solid fa-link" aria-hidden="true" />
                        </a>
                      )}
