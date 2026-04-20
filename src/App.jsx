@@ -1875,34 +1875,20 @@ function Sidebar({ active, onSelect }) {
   function computeRIApercuExcel({ dateISO, categorie, C37_totalRessourcesAnnuelles, joursPrisEnCompte }) {
     const riAnnuelBrut = getRIAnnuel(dateISO, categorie); // Informations!F7
 
-    console.log("DEBUG", {
-      C37_totalRessourcesAnnuelles,
-      riAnnuelBrut,
-    });
-
     const eligible = C37_totalRessourcesAnnuelles < riAnnuelBrut;
 
-    console.log("Eligible:", eligible);
 
     // C39 = IF(eligible, -HLOOKUP(categorie, Données!Q2:S3, 2, FALSE), "Pas de droit")
     const C39_exoSupplAnnuelle = eligible ? -safeNumber(EXO_SUPPL_ANNUEL[categorie], 0) : 0;
 
-    console.log("C39_exoSupplAnnuelle:", C39_exoSupplAnnuelle);
-
     // C41 = IF(eligible, IF(C37 + C39 > 0, C37 + C39, 0), "Pas de droit")
     const C41_ressourcesApresExo = Math.max(C37_totalRessourcesAnnuelles + C39_exoSupplAnnuelle, 0);
-
-    console.log("C41_ressourcesApresExo:", C41_ressourcesApresExo);
 
     // C43 = IF(eligible, riAnnuelBrut - C41, "Pas de droit")
     const C43_riAnnuelNet = eligible ? Math.max(riAnnuelBrut - C41_ressourcesApresExo, 0) : 0;
 
-    console.log("C43_riAnnuelNet:", C43_riAnnuelNet);
-
     // E45 = IF(eligible, ROUND(C43/12, 2), "Pas de droit")
     const E45_montantMensuel = eligible ? round2(C43_riAnnuelNet / 12) : 0;
-
-    console.log("E45_montantMensuel:", E45_montantMensuel);
 
     const dim = daysInMonth(dateISO);
     const jp = safeNumber(joursPrisEnCompte, 0);
@@ -1953,12 +1939,6 @@ function computeApercuExcelLike({ data, pieces }) {
 
   const netAvantExoSP_Dem_M = Math.max(dem.net + exoGenDem + exoPenDem, 0);
   const netAvantExoSP_Conj_M = Math.max(conj.net + exoGenConj + exoPenConj, 0);
-  console.log("DEBUG NET AVANT EXO", {
-  net: dem.net,
-  exoGenDem,
-  exoPenDem,
-  netAvant: netAvantExoSP_Dem_M
-});
 
   const D6_netAvantExoSP_Dem_Annuel = round2n(netAvantExoSP_Dem_M * 12);
   const D7_netAvantExoSP_Conj_Annuel = round2n(netAvantExoSP_Conj_M * 12);
@@ -2471,7 +2451,6 @@ function computeFromForm(data) {
     C37_totalRessourcesAnnuelles: apercu0.C37_totalRessourcesAnnuelles,
     joursPrisEnCompte: data.reference.joursPrisEnCompte,
   });
-  console.log("DEBUG RI", ri);
 
   // 3) Aperçu final (affichage)
   const apercu = { ...apercu0, ri };
@@ -2971,20 +2950,29 @@ export default function App() {
 
                 {/* CONJOINT */}
                 <Card title="Conjoint">
-                  {[
-                    { key: "general",   label: "Exonération générale" },
-                    { key: "etudiant",  label: "Exonération étudiants" },
-                    { key: "penurie",   label: "Exonération pénurie" },
-                    { key: "artisteSP", label: "Activité artistique socio-professionnelle (annuel)" },
-                  ].map(({ key, label }) => (
-                    <label key={key} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, fontSize: 14, cursor: "pointer", width: "100%" }}>
+                 {[
+                   {
+                     key: "general", label: "Exonération générale",
+                     href: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907"
+                   },
+                   {
+                     key: "etudiant", label: "Exonération étudiants",
+                     href: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907"
+                   },
+                   {
+                     key: "penurie", label: "Exonération pénurie",
+                     href: "https://myportal.vandenbroeleconnect.be/perma/149746886634385151"
+                   },
+                   { key: "artisteSP", label: "Activité artistique socio-professionnelle (annuel)" },
+                 ].map(({ key, label, href }) => (
+                   <label key={key} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, fontSize: 14, cursor: "pointer", width: "100%" }}>
                      <input
                        type="checkbox"
-                       checked={!!data.exoneration.demandeur[key]}
+                       checked={!!data.exoneration.conjoint[key]}
                        style={{ flexShrink: 0, width: 16, height: 16 }}
                        onChange={(e) => setData((d) => ({
                          ...d,
-                         exoneration: { ...d.exoneration, demandeur: { ...d.exoneration.demandeur, [key]: e.target.checked } },
+                         exoneration: { ...d.exoneration, conjoint: { ...d.exoneration.conjoint, [key]: e.target.checked } },
                        }))}
                      />
                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4, flex: 1 }}>
@@ -2998,17 +2986,17 @@ export default function App() {
                        )}
                      </span>
                    </label>
-                  ))}
-                  <Input
-                    label="Jours (si compteur dépassé)"
-                    type="number"
-                    value={data.exoneration.conjoint.joursCompteur}
-                    onChange={(e) => setData((d) => ({
-                      ...d,
-                      exoneration: { ...d.exoneration, conjoint: { ...d.exoneration.conjoint, joursCompteur: safeNumber(e.target.value, 0) } },
-                    }))}
-                  />
-                </Card>
+                 ))}
+                 <Input
+                   label="Jours (si compteur dépassé)"
+                   type="number"
+                   value={data.exoneration.conjoint.joursCompteur}
+                   onChange={(e) => setData((d) => ({
+                     ...d,
+                     exoneration: { ...d.exoneration, conjoint: { ...d.exoneration.conjoint, joursCompteur: safeNumber(e.target.value, 0) } },
+                   }))}
+                 />
+               </Card>
 
               </div>
             </section>
