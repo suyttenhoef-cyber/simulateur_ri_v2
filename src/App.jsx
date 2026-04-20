@@ -249,7 +249,7 @@ function SectionTitle({ children, docHref }) {
             transition: "background .15s",
           }}
         >
-          <i className="fas fa-book-open" aria-hidden="true" />
+          <i className="fa-solid fa-link" aria-hidden="true" />
         </a>
       )}
     </div>
@@ -2574,7 +2574,7 @@ export default function App() {
                             textDecoration: "none", fontSize: 11, flexShrink: 0,
                           }}
                         >
-                          <i className="fas fa-book-open" aria-hidden="true" />
+                          <i className="fa-solid fa-link" aria-hidden="true" />
                         </a>
                       </div>
                     }
@@ -2740,7 +2740,7 @@ export default function App() {
                     textDecoration: "none", fontSize: 11,
                   }}
                 >
-                  <i className="fas fa-book-open" aria-hidden="true" />
+                  <i className="fa-solid fa-link" aria-hidden="true" />
                   </a>
                 </span>
               }>
@@ -2766,7 +2766,7 @@ export default function App() {
                     textDecoration: "none", fontSize: 11,
                   }}
                 >
-                  <i className="fas fa-book-open" aria-hidden="true" />
+                  <i className="fa-solid fa-link" aria-hidden="true" />
                   </a>
                 </span>
               }>
@@ -2799,7 +2799,7 @@ export default function App() {
                     textDecoration: "none", fontSize: 11,
                   }}
                 >
-                  <i className="fas fa-book-open" aria-hidden="true" />
+                  <i className="fa-solid fa-link" aria-hidden="true" />
                         </a>
                       </span>
                     }
@@ -2820,7 +2820,7 @@ export default function App() {
                     textDecoration: "none", fontSize: 11,
                   }}
                 >
-                  <i className="fas fa-book-open" aria-hidden="true" />
+                  <i className="fa-solid fa-link" aria-hidden="true" />
                         </a>
                       </span>
                     }
@@ -2953,7 +2953,7 @@ export default function App() {
                         <a href={href} target="_blank" rel="noopener noreferrer"
                           aria-label={`Documentation CPASConnect — ${label} (nouvel onglet)`}
                           style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 22, height: 22, borderRadius: 5, background: "#EEF4FA", color: "#163E67", textDecoration: "none", fontSize: 11, flexShrink: 0 }}>
-                          <i className="fas fa-book-open" aria-hidden="true" />
+                          <i className="fa-solid fa-link" aria-hidden="true" />
                         </a>
                       )}
                     </label>
