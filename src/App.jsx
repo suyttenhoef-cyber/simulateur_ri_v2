@@ -2938,7 +2938,7 @@ export default function App() {
                     },
                     { key: "artisteSP", label: "Activité artistique socio-professionnelle (annuel)" },
                   ].map(({ key, label, href }) => (
-                    <label key={key} style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 10, fontSize: 14, cursor: "pointer", width: "100%" }}>
+                    <label key={key} style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10, fontSize: 14, cursor: "pointer", width: "100%" }}>
                       <input
                         type="checkbox"
                         checked={!!data.exoneration.demandeur[key]}
@@ -2948,7 +2948,7 @@ export default function App() {
                           exoneration: { ...d.exoneration, demandeur: { ...d.exoneration.demandeur, [key]: e.target.checked } },
                         }))}
                       />
-                      <span style={{ flex: 1 }}>{label}</span>
+                      <span style={{ flex: 0 }}>{label}</span>
                       {href && (
                        <a href={href} target="_blank" rel="noopener noreferrer"
                          aria-label={`Documentation CPASConnect — ${label} (nouvel onglet)`}
