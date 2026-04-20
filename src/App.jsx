@@ -2977,18 +2977,27 @@ export default function App() {
                     { key: "penurie",   label: "Exonération pénurie" },
                     { key: "artisteSP", label: "Activité artistique socio-professionnelle (annuel)" },
                   ].map(({ key, label }) => (
-                    <label key={key} style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 10, fontSize: 14, cursor: "pointer", width: "100%" }}>
-                      <input
-                        type="checkbox"
-                        checked={!!data.exoneration.conjoint[key]}
-                        style={{ flexShrink: 0, width: 16, height: 16 }}
-                        onChange={(e) => setData((d) => ({
-                          ...d,
-                          exoneration: { ...d.exoneration, conjoint: { ...d.exoneration.conjoint, [key]: e.target.checked } },
-                        }))}
-                      />
-                      <span style={{ flex: 1 }}>{label}</span>
-                    </label>
+                    <label key={key} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, fontSize: 14, cursor: "pointer", width: "100%" }}>
+                     <input
+                       type="checkbox"
+                       checked={!!data.exoneration.demandeur[key]}
+                       style={{ flexShrink: 0, width: 16, height: 16 }}
+                       onChange={(e) => setData((d) => ({
+                         ...d,
+                         exoneration: { ...d.exoneration, demandeur: { ...d.exoneration.demandeur, [key]: e.target.checked } },
+                       }))}
+                     />
+                     <span style={{ display: "inline-flex", alignItems: "center", gap: 4, flex: 1 }}>
+                       {label}
+                       {href && (
+                         <a href={href} target="_blank" rel="noopener noreferrer"
+                           aria-label={`Documentation CPASConnect — ${label} (nouvel onglet)`}
+                           style={{ color: "#163E67", textDecoration: "none", fontSize: 11, flexShrink: 0, lineHeight: 1 }}>
+                           <i className="fa-solid fa-link" aria-hidden="true" />
+                         </a>
+                       )}
+                     </span>
+                   </label>
                   ))}
                   <Input
                     label="Jours (si compteur dépassé)"
