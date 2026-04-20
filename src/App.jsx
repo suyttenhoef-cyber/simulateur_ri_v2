@@ -125,7 +125,7 @@ function Topbar() {
   const logoStyle = { height: "32px", filter: "brightness(0) invert(1)", display: "block" };
   const sepStyle = { width: "1px", height: "28px", background: "rgba(255,255,255,.2)", flexShrink: 0 };
   const titlesH1 = { color: "#fff", fontSize: "16px", fontWeight: 800, margin: "0 0 2px", lineHeight: 1.2 };
-  const titlesP = { color: "rgba(255,255,255,.75)", fontSize: "12px", fontWeight: 500, margin: 0 };
+  const titlesP = { color: "rgba(255,255,255,.75)", fontSize: "14px", fontWeight: 500, margin: 0 };
   const actionsStyle = { display: "flex", alignItems: "center", gap: "8px", position: "relative", zIndex: 1 };
 
   const btnBase = {
@@ -136,7 +136,7 @@ function Topbar() {
     textDecoration: "none", whiteSpace: "nowrap", lineHeight: 1,
   };
   // Plein écran : action secondaire → ghost
-  const btnGhost = { ...btnBase, background: "rgba(255,255,255,.12)", color: "#fff", border: "1px solid rgba(255,255,255,.22)" };
+  const btnGhost = { ...btnBase, background: "#2BEBCE", color: "#163E67", boxShadow: "0 2px 10px rgba(43,235,206,.3)" };
   // Rafraîchir : action primaire → accent
   const btnAccent = { ...btnBase, background: "#2BEBCE", color: "#163E67", boxShadow: "0 2px 10px rgba(43,235,206,.3)" };
 
@@ -192,7 +192,7 @@ function Topbar() {
           <div style={sepStyle} />
           <div>
             <h1 style={titlesH1}>Simulateur de revenu d'intégration</h1>
-            <p style={titlesP}>Bibliothèque digitale pour les CPAS · Calcul local et sécurisé</p>
+            <p style={titlesP}>Bibliothèque digitale pour les CPAS</p>
           </div>
         </div>
         <div style={actionsStyle}>
