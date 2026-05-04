@@ -258,16 +258,16 @@ function SectionTitle({ children, docHref }) {
 
 // Palette de couleurs
 const colors = {
-  primary: "#163E67",      // Bleu foncé
-  secondary: "#2BEBCE",    // Turquoise
-  tertiary: "#234268",     // Bleu moyen
+  primary: "#163E67",
+  secondary: "#2BEBCE",
+  tertiary: "#234268",
   background: "#F5F8FA",
   white: "#FFFFFF",
   text: "#2C3E50",
-  textLight: "#7F8C8D",
+  textLight: "#596572",
   border: "#E1E8ED",
   success: "#2BEBCE",
-  danger: "#E74C3C"
+  danger: "#C0392B"      
 };
 function computeCohabitantsMonthly(rows) {
   return rows.reduce((acc, row) => acc + safeNumber(row.mensuel, 0), 0);
@@ -468,9 +468,13 @@ const CESSION_TRANCHE_IMMUNISEE = 37200;
 function Field({ label, hint, children }) {
   return (
     <label style={{ display: "grid", gap: 6 }}>
-      <span style={{ fontSize: 13, opacity: 0.85 }}>{label}</span>
+      <span style={{ fontSize: 14, fontWeight: 600, color: "#2C3E50" }}>{label}</span>
       {children}
-      {hint && <span style={{ fontSize: 12, opacity: 0.65 }}>{hint}</span>}
+      {hint && (
+        <span style={{ fontSize: 14, color: "#596572", lineHeight: 1.4 }}>
+          {hint}
+        </span>
+      )}
     </label>
   );
 }
@@ -3290,8 +3294,9 @@ export default function App() {
           </section>
         )}
           {active === "biens_mobiliers" && (
-            <section style={{ display: "grid", gap: 12 }}>
-              <Card title="Biens mobiliers">
+           <section style={{ display: "grid", gap: 12 }}>
+             <h2 style={{ marginTop: 0 }}>Biens mobiliers</h2>
+             <Card title="Biens mobiliers">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, alignItems: "start" }}>
                   <Input label="Montant du capital" type="number" money
                     value={data.biensMobiliers.montantCapital}
