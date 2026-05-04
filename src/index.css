@@ -20,7 +20,7 @@
   --color-accent:       #2BEBCE;   /* Turquoise accent */
   --color-accent-dark:  #1dd4b8;   /* Hover accent */
   --color-tertiary:     #234268;   /* Bleu moyen (gradient) */
-  --color-danger:       #E74C3C;
+  --color-danger:       #C0392B;
 
   /* Surfaces */
   --bg-page:    #F5F8FA;
@@ -101,16 +101,17 @@ h3 { font-size: 16px; font-weight: 600; }
 }
 
 .formLabel {
-  font-size: 13px;
+  font-size: 14px;    /* ← minimum 14px */
   font-weight: 600;
-  color: var(--text-muted);
+  color: #3D4F5C;     /* ← couleur plus contrastée que text-muted */
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
 
 .formHint {
-  font-size: 12px;
-  color: var(--text-light);
+  font-size: 14px;    /* ← minimum 14px */
+  color: #596572;     /* ← 4.54:1 sur fond blanc ✅ */
+  line-height: 1.5;
 }
 
 .formControl {
