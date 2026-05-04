@@ -64,7 +64,7 @@
 /* ===== Layout principal (sidebar + contenu) ===== */
 .app-layout {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 220px 1fr;
   gap: 20px;
   align-items: start;
   margin-top: 16px;
@@ -156,12 +156,18 @@
   padding: 16px;
   position: sticky;
   top: 20px;
+  align-self: start;         /* ← ne s'étire pas avec le contenu */
+  width: 220px;              /* ← largeur fixe = pas de shift */
+  min-width: 220px;          /* ← garantit la stabilité */
   box-shadow: var(--shadow-md);
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
-
+ 
 .sidebar--collapsed {
   padding: 16px 10px;
+  width: 56px;               /* ← largeur fixe collapsed */
+  min-width: 56px;
 }
 
 .sidebar__header {
