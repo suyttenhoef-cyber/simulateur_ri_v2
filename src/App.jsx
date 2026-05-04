@@ -202,7 +202,7 @@ function Topbar() {
             <span>Plein écran</span>
           </button>
           {/* Rafraîchir : action primaire, à droite */}
-          <button style={btnAccent} onClick={() => setShowRefreshModal(true)} type="button" aria-label="Rafraîchir le simulateur">
+          <button style={btnGhost} onClick={() => setShowRefreshModal(true)} type="button" aria-label="Rafraîchir le simulateur">
             <i className="fas fa-sync-alt" aria-hidden="true" />
             <span>Rafraîchir</span>
           </button>
