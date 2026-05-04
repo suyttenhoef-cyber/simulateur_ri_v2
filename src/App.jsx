@@ -1800,6 +1800,7 @@ function Input({ label, type = "text", value, onChange, placeholder, hint, money
   );
 }
 function Sidebar({ active, onSelect }) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   return (
     <nav
       aria-label="Étapes du simulateur"
