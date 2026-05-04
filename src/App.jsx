@@ -1806,13 +1806,16 @@ function Sidebar({ active, onSelect }) {
       style={{
         background: colors.primary,
         borderRadius: "12px",
-        padding: "16px",
-        height: "fit-content",
+        padding: isCollapsed ? "16px 8px" : "16px",
         position: "sticky",
         top: "20px",
-        minWidth: 220,
+        alignSelf: "start",          // ← clé: ne s'étire pas avec le contenu
+        width: isCollapsed ? "56px" : "220px",  // ← largeur fixe = no layout shift
+        minWidth: isCollapsed ? "56px" : "220px",
+        transition: "width 0.3s, padding 0.3s",  // ← transition uniquement sur width/padding
+        flexShrink: 0,
       }}
-    >
+     >
       {/* Titre de navigation — hors liste, rôle purement visuel */}
       <span style={{
         display: "block",
@@ -2547,6 +2550,7 @@ export default function App() {
                         <a
                           href="https://myportal.vandenbroeleconnect.be/perma/149746886634684678"
                           target="_blank"
+                          className="icon-link"
                           rel="noopener noreferrer"
                           aria-label="Consulter la documentation CPASConnect (nouvel onglet)"
                           title="Documentation CPASConnect"
@@ -2716,6 +2720,7 @@ export default function App() {
                   Chômage
                   <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905"
                     target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
+                    className="icon-link"
                     style={{
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     width: 22, height: 22, borderRadius: 5,
@@ -2742,6 +2747,7 @@ export default function App() {
                   Mutuelle
                   <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905"
                     target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
+                    className="icon-link"
                     style={{
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     width: 22, height: 22, borderRadius: 5,
@@ -2775,6 +2781,7 @@ export default function App() {
                         Allocation d'Handicapé ARR (mensuel)
                         <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684880"
                           target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
+                          className="icon-link"
                           style={{
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     width: 22, height: 22, borderRadius: 5,
@@ -2796,6 +2803,7 @@ export default function App() {
                         Autre revenu de remplacement (mensuel)
                         <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684904"
                           target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
+                          className="icon-link"
                           style={{
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     width: 22, height: 22, borderRadius: 5,
