@@ -131,7 +131,7 @@ function Topbar() {
   const btnBase = {
     display: "inline-flex", alignItems: "center", gap: "7px",
     padding: "8px 16px", borderRadius: "8px",
-    fontFamily: "'Source Sans Pro', sans-serif", fontSize: "13px", fontWeight: 700,
+    fontFamily: "'Source Sans Pro', sans-serif", fontSize: "14px", fontWeight: 700,
     cursor: "pointer", border: "none", transition: "all .18s ease",
     textDecoration: "none", whiteSpace: "nowrap", lineHeight: 1,
   };
@@ -185,7 +185,7 @@ function Topbar() {
             />
             {/* Fallback texte si le logo ne charge pas */}
             <div style={{ display: "none", alignItems: "center", gap: 6, color: "#fff", fontSize: 15, fontWeight: 800 }}>
-              <span style={{ background: "#2BEBCE", color: "#163E67", borderRadius: 5, padding: "2px 7px", fontSize: 13 }}>CPAS</span>
+              <span style={{ background: "#2BEBCE", color: "#163E67", borderRadius: 5, padding: "2px 7px", fontSize: 14 }}>CPAS</span>
               Connect
             </div>
           </a>
@@ -245,7 +245,7 @@ function SectionTitle({ children, docHref }) {
             display: "inline-flex", alignItems: "center", justifyContent: "center",
             width: 28, height: 28, borderRadius: 6,
             background: "#EEF4FA", color: "#163E67",
-            textDecoration: "none", fontSize: 13, flexShrink: 0,
+            textDecoration: "none", fontSize: 14, flexShrink: 0,
             transition: "background .15s",
           }}
         >
@@ -773,13 +773,13 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                     {(!r.lignes || r.lignes.length === 0) && (
                       <>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                          <span style={{ fontSize: 13, opacity: 0.85 }}>Ressources totales</span>
+                          <span style={{ fontSize: 14, opacity: 0.85 }}>Ressources totales</span>
                           <div style={{ display: "flex", gap: 0, borderRadius: 6, overflow: "hidden", border: "1.5px solid #9BAAB5" }}>
                             {["mensuel", "annuel"].map((mode) => (
                               <button key={mode} type="button"
                                 onClick={() => updateRow(i, { saisieMode: mode })}
                                 style={{
-                                  padding: "3px 10px", fontSize: 11, fontWeight: 600, border: "none", cursor: "pointer",
+                                  padding: "3px 10px", fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer",
                                   background: (r.saisieMode || "mensuel") === mode ? "#163E67" : "#fff",
                                   color: (r.saisieMode || "mensuel") === mode ? "#fff" : "#163E67",
                                   transition: "background .15s",
@@ -893,7 +893,7 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                           </div>
                         ))}
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-                          <button type="button" className="btn-add" style={{ fontSize: 12, padding: "5px 12px" }}
+                          <button type="button" className="btn-add" style={{ fontSize: 14, padding: "5px 12px" }}
                             onClick={() => updateRow(i, { lignes: [...(r.lignes || []), defaultRow()] })}>
                             <i className="fas fa-plus" aria-hidden="true" style={{ marginRight: 5 }} />
                             Ajouter une ligne
@@ -1045,7 +1045,7 @@ function RowsTable({ title, rows, onChangeRows }) {
     padding: "8px 10px",
     borderRadius: "6px",
     border: "1.5px solid #9BAAB5",
-    fontSize: "13px",
+    fontSize: "14px",
     fontFamily: "'Source Sans Pro', sans-serif",
     background: "#fff",
     color: "#2C3E50",
@@ -1063,7 +1063,7 @@ function RowsTable({ title, rows, onChangeRows }) {
       </div>
 
       {/* En-têtes de colonnes — même grille que les lignes */}
-      <div style={{ display: "grid", gridTemplateColumns: COLS, gap: "12px", marginBottom: 4 }}>
+      <div style={{ display: "grid", gridTemplateColumns: COLS, gap: "14px", marginBottom: 4 }}>
         <div style={colHeaderStyle}>Type de revenu comptabilisé</div>
         <div style={colHeaderStyle}>Montant (€/mois)</div>
         <div style={colHeaderStyle}>Type d'exonération</div>
