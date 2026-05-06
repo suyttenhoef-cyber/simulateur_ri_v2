@@ -3070,9 +3070,7 @@ export default function App() {
                 <div style={{ lineHeight: 1.6 }}>
                   <strong style={{ display: "block", marginBottom: 6 }}>Règles de prise en compte (art. 22 loi 26/05/2002)</strong>
                   Seul l'<strong>excédent</strong> des ressources du cohabitant — c'est-à-dire la part qui dépasse le montant du RI auquel il aurait lui-même droit — est reporté sur le demandeur.
-                  <br /><br />
                   Si plusieurs personnes sont <strong>débitrices alimentaires du même rang</strong> (ex. père <em>et</em> mère sont tous deux du 1er rang envers leur enfant demandeur), l'excédent de chacun est <strong>divisé en parts égales</strong> entre eux avant d'être reporté. Utilisez le champ <em>"Nombre de débiteurs alimentaires du même rang"</em> pour indiquer ce nombre.
-                  <br /><br />
                   <strong>Important :</strong> les ressources perçues <em>par</em> un cohabitant (ex. allocations familiales perçues par la mère pour son fils demandeur) sont des ressources du <strong>cohabitant</strong>, à encoder sur sa fiche — pas sur celle du demandeur.
                 </div>
               </div>
