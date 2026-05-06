@@ -1234,7 +1234,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
   return (
     <div className="card" style={{ padding: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 12, borderBottom: `2px solid #F0F4F8` }}>
-        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: colors.primary }}>Cessions de biens</h3>
+        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: colors.primary }}>Calcul total des cessions de biens</h3>
         <button onClick={addRow} className="btn-add">+ Ajouter</button>
       </div>
 
@@ -1402,7 +1402,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
   return (
     <div className="card" style={{ padding: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 12, borderBottom: `2px solid #F0F4F8` }}>
-        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: colors.primary }}>Biens immobiliers</h3>
+        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: colors.primary }}>Calcul total des biens immobiliers</h3>
         <button onClick={addRow} className="btn-add">+ Ajouter</button>
       </div>
 
@@ -3300,10 +3300,10 @@ export default function App() {
             </div>
           </section>
         )}
-          {active === "biens_mobiliers" && (
+         {active === "biens_mobiliers" && (
            <section style={{ display: "grid", gap: 12 }}>
-             <h2 style={{ marginTop: 0 }}>Biens mobiliers</h2>
-             <Card title="Biens mobiliers">
+              <SectionTitle>Bien mobiliers</SectionTitle>
+             <Card title="Calcul des différents biens mobiliers">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, alignItems: "start" }}>
                   <Input label="Montant du capital" type="number" money
                     value={data.biensMobiliers.montantCapital}
