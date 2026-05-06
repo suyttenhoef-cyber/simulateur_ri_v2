@@ -1809,7 +1809,7 @@ function Sidebar({ active, onSelect }) {
         borderRadius: "12px",
         padding: isCollapsed ? "16px 8px" : "16px",
         position: "sticky",
-        top: "20px",
+        top: "0px",
         alignSelf: "start",          // ← clé: ne s'étire pas avec le contenu
         width: isCollapsed ? "56px" : "220px",  // ← largeur fixe = no layout shift
         minWidth: isCollapsed ? "56px" : "220px",
