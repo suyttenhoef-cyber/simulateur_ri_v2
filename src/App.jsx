@@ -1092,7 +1092,7 @@ function RowsTable({ title, rows, onChangeRows }) {
               value={r.customLabel !== undefined && r.customLabel !== null ? "Autre" : r.label}
               onChange={(e) => handleLabelChange(i, e.target.value)}
               className="inp-base"
-              style={{ fontSize: 13 }}
+              style={{ fontSize: 14 }}
             >
               {REVENUS_COMPTABILISES_SUGGESTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -1105,7 +1105,7 @@ function RowsTable({ title, rows, onChangeRows }) {
                 placeholder="Précisez le type de revenu…"
                 aria-label="Type de revenu (saisie libre)"
                 className="inp-base"
-                style={{ fontSize: 13, borderColor: "#2BEBCE", background: "#F0FFFE" }}
+                style={{ fontSize: 14, borderColor: "#2BEBCE", background: "#F0FFFE" }}
               />
             )}
           </div>
@@ -1122,7 +1122,7 @@ function RowsTable({ title, rows, onChangeRows }) {
               placeholder="0,00"
               aria-label={`Montant comptabilisé, ligne ${i + 1}`}
               className="inp-base inp-money"
-              style={{ fontSize: 13 }}
+              style={{ fontSize: 14 }}
             />
           </div>
 
@@ -1134,7 +1134,7 @@ function RowsTable({ title, rows, onChangeRows }) {
               value={r.exonereType || ""}
               onChange={(e) => updateRow(i, { exonereType: e.target.value })}
               className="inp-base"
-              style={{ fontSize: 13 }}
+              style={{ fontSize: 14 }}
             >
               {REVENUS_EXONERES_SUGGESTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -1154,7 +1154,7 @@ function RowsTable({ title, rows, onChangeRows }) {
               placeholder="0,00"
               aria-label={`Montant exonéré, ligne ${i + 1}`}
               className="inp-base inp-money"
-              style={{ fontSize: 13 }}
+              style={{ fontSize: 14 }}
             />
           </div>
 
@@ -1174,11 +1174,11 @@ function RowsTable({ title, rows, onChangeRows }) {
       {/* Totaux */}
       <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: COLS, gap: "12px" }}>
         <div style={{ gridColumn: "1 / 3", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#F5F8FA", borderRadius: 6, padding: "10px 14px" }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "#163E67" }}>Net mensuel</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: "#163E67" }}>Net mensuel</span>
           <span style={{ fontSize: 15, fontWeight: 700, color: "#163E67" }}><Money value={totals.net} /></span>
         </div>
         <div style={{ gridColumn: "3 / 5", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#E8EFF5", borderRadius: 6, padding: "10px 14px" }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "#163E67" }}>Net annuel</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: "#163E67" }}>Net annuel</span>
           <span style={{ fontSize: 15, fontWeight: 700, color: "#163E67" }}><Money value={totals.net * 12} /></span>
         </div>
       </div>
@@ -1543,7 +1543,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
   );
 }
 
-const thStyle = { textAlign: "left", borderBottom: "1px solid #ddd", padding: "8px 6px", fontSize: 13 };
+const thStyle = { textAlign: "left", borderBottom: "1px solid #ddd", padding: "8px 6px", fontSize: 14 };
 const tdStyle = { borderBottom: "1px solid #eee", padding: "8px 6px", verticalAlign: "top" };
 const tfStyle = { padding: "8px 6px" };
 
@@ -2673,7 +2673,7 @@ export default function App() {
               <div style={{
                 display: "flex", gap: 12, alignItems: "flex-start",
                 background: "#EEF4FA", border: "1px solid #C5D8EE", borderLeft: "4px solid #163E67",
-                borderRadius: 8, padding: "12px 16px", fontSize: 13, color: "#1A2C3A",
+                borderRadius: 8, padding: "12px 16px", fontSize: 14, color: "#1A2C3A",
               }}>
                 <i className="fas fa-circle-info" aria-hidden="true"
                   style={{ color: "#163E67", fontSize: 15, flexShrink: 0, marginTop: 2 }} />
@@ -2726,7 +2726,7 @@ export default function App() {
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     width: 22, height: 22, borderRadius: 5,
                     background: "#EEF4FA", color: "#163E67",
-                    textDecoration: "none", fontSize: 11,
+                    textDecoration: "none", fontSize: 14,
                   }}
                 >
                   <i className="fa-solid fa-link" aria-hidden="true" />
@@ -2753,7 +2753,7 @@ export default function App() {
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     width: 22, height: 22, borderRadius: 5,
                     background: "#EEF4FA", color: "#163E67",
-                    textDecoration: "none", fontSize: 11,
+                    textDecoration: "none", fontSize: 14,
                   }}
                 >
                   <i className="fa-solid fa-link" aria-hidden="true" />
@@ -2787,7 +2787,7 @@ export default function App() {
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     width: 22, height: 22, borderRadius: 5,
                     background: "#EEF4FA", color: "#163E67",
-                    textDecoration: "none", fontSize: 11,
+                    textDecoration: "none", fontSize: 14,
                   }}
                 >
                   <i className="fa-solid fa-link" aria-hidden="true" />
@@ -2809,7 +2809,7 @@ export default function App() {
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     width: 22, height: 22, borderRadius: 5,
                     background: "#EEF4FA", color: "#163E67",
-                    textDecoration: "none", fontSize: 11,
+                    textDecoration: "none", fontSize: 14,
                   }}
                 >
                   <i className="fa-solid fa-link" aria-hidden="true" />
@@ -2880,8 +2880,8 @@ export default function App() {
                   <Card title="Récapitulatif des exonérations">
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: colors.primary, marginBottom: 4 }}>Demandeur</div>
-                        <div style={{ fontSize: 13, color: colors.text, display: "grid", gap: 4 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: colors.primary, marginBottom: 4 }}>Demandeur</div>
+                        <div style={{ fontSize: 14, color: colors.text, display: "grid", gap: 4 }}>
                           <div>Général : <strong><Money value={exoCalc.demandeur.exoGeneralMens} /></strong> / mois</div>
                           <div>Étudiant : <strong><Money value={exoCalc.demandeur.exoEtudMens} /></strong> / mois</div>
                           <div>Pénurie : <strong><Money value={exoCalc.demandeur.exoPenurieMens} /></strong> / mois</div>
@@ -2889,8 +2889,8 @@ export default function App() {
                         </div>
                       </div>
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: colors.primary, marginBottom: 4 }}>Conjoint</div>
-                        <div style={{ fontSize: 13, color: colors.text, display: "grid", gap: 4 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: colors.primary, marginBottom: 4 }}>Conjoint</div>
+                        <div style={{ fontSize: 14, color: colors.text, display: "grid", gap: 4 }}>
                           <div>Général : <strong><Money value={exoCalc.conjoint.exoGeneralMens} /></strong> / mois</div>
                           <div>Étudiant : <strong><Money value={exoCalc.conjoint.exoEtudMens} /></strong> / mois</div>
                           <div>Pénurie : <strong><Money value={exoCalc.conjoint.exoPenurieMens} /></strong> / mois</div>
@@ -2902,7 +2902,7 @@ export default function App() {
                       <div style={{ fontSize: 14, fontWeight: 700, color: colors.primary }}>
                         Total mensuel : <Money value={exoCalc.totalMensuel} />
                       </div>
-                      <div style={{ fontSize: 13, color: colors.textLight }}>
+                      <div style={{ fontSize: 14, color: colors.textLight }}>
                         Total annuel : <strong><Money value={exoCalc.totalAnnuel} /></strong>
                       </div>
                     </div>
@@ -3063,7 +3063,7 @@ export default function App() {
               <div style={{
                 display: "flex", gap: 12, alignItems: "flex-start",
                 background: "#EEF4FA", border: "1px solid #C5D8EE", borderLeft: "4px solid #163E67",
-                borderRadius: 8, padding: "12px 16px", fontSize: 13, color: "#1A2C3A",
+                borderRadius: 8, padding: "12px 16px", fontSize: 14, color: "#1A2C3A",
               }}>
                 <i className="fas fa-circle-info" aria-hidden="true"
                   style={{ color: "#163E67", fontSize: 15, flexShrink: 0, marginTop: 2 }} />
@@ -3129,14 +3129,14 @@ export default function App() {
             </div>
 
             <div className="card" style={{ padding: 16 }}>
-              <div style={{ fontSize: 13, opacity: 0.7 }}>Statut</div>
+              <div style={{ fontSize: 14, opacity: 0.7 }}>Statut</div>
               <div style={{ fontSize: 24, fontWeight: 750 }}>
                 {result.eligible ? "Éligible" : "Non éligible"}
               </div>
 
               <hr style={{ margin: "12px 0" }} />
 
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
                 <thead>
                   <tr>
                     <th style={{ textAlign: "left", padding: "6px 8px", borderBottom: "1px solid #ddd" }}>Rubrique</th>
@@ -3254,7 +3254,7 @@ export default function App() {
                         <div style={{ fontWeight: 800, marginBottom: 10 }}>
                           Calcul du revenu d'intégration pour un mois incomplet
                         </div>
-                        <div style={{ display: "grid", gap: 10, fontSize: 13 }}>
+                        <div style={{ display: "grid", gap: 10, fontSize: 14 }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                             <div>Nbre de jours pris en compte dans la période concernée :</div>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
