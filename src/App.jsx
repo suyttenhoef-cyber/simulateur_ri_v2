@@ -2604,29 +2604,6 @@ export default function App() {
                     type="date"
                     value={data.identite.dateNaissance}
                     onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, dateNaissance: e.target.value } }))}
-                  />
-                  <Input
-                    label="Nationalité"
-                    type="select"
-                    value={data.identite.nationalite}
-                    hint="La nationalité conditionne l'accès au droit au RI (art. 1 loi 26/05/2002)"
-                    onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nationalite: e.target.value } }))}
-                  >
-                    <option value="">— Sélectionner —</option>
-                    <optgroup label="Droit au RI de plein droit">
-                      <option value="belge">Belge</option>
-                      <option value="ue">Ressortissant UE / EEE / Suisse</option>
-                      <option value="refugie">Réfugié reconnu</option>
-                      <option value="apatride">Apatride reconnu</option>
-                      <option value="subsidiaire">Protection subsidiaire</option>
-                    </optgroup>
-                    <optgroup label="Sous conditions">
-                      <option value="sejour_legal">Étranger en séjour légal (art. 57§2)</option>
-                      <option value="mineur_etranger">Mineur étranger non accompagné</option>
-                    </optgroup>
-                    <optgroup label="Autre">
-                      <option value="autre">Autre / À préciser</option>
-                    </optgroup>
                   </Input>
                 </div>
               </Card>
