@@ -2895,7 +2895,7 @@ export default function App() {
 
                   <Row label="Critère du montant du revenu d’intégration (proratisé)" mensuel={apercu.pro.critereRIProrata_M} annuel={apercu.pro.critereRIProrata_M * 12} total={apercu.pro.critereRIProrata_M * 12} />
 
-                  <Row highlight label="TOTAL des ressources professionnelles ou assimilées (mensuel)" mensuel={apercu.pro.F14_totalRessourcesProAssim_M} annuel={apercu.pro.F14_totalRessourcesProAssim_M * 12} total={apercu.pro.F14_totalRessourcesProAssim_M * 12} />
+                  <Row highlight label="TOTAL des ressources professionnelles (mensuel)" mensuel={apercu.pro.F8_totalProratises_M} annuel={apercu.pro.F8_totalProratises_M * 12} total={apercu.pro.F8_totalProratises_M * 12} />
 
                   {/* Ressources diverses */}
                   <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Ressources diverses</td></tr>
