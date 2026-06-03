@@ -394,8 +394,9 @@ export async function generateTableauCPAS(data, result, apercu) {
     // Séparateur
     tbody += `<tr><td colspan="4" style="padding:0;height:3px;background:#163E67;border:none;"></td></tr>`;
 
-    // Cohabitants
+    // Cohabitants (on ignore les lignes vides sans ressources saisies)
     for (const coh of cohDetails) {
+      if (safeN(coh.ressourcesTotale) === 0) continue;
       const catLabelCoh = coh.categorie === 1 ? 'Cat. 1 - Cohabitant' : coh.categorie === 2 ? 'Cat. 2 - Isolé' : 'Cat. 3 - Famille';
       const cohName  = coh.nom  || 'Cohabitant';
       const cohType  = coh.type || 'Ascendant/Descendant';
