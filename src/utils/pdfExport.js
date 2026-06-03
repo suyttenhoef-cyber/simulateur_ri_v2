@@ -205,7 +205,7 @@ export async function generatePDF(data, result, apercu) {
       ` : ''}
 
       <!-- Pied de page -->
-      <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #666; font-size: 12px;">
+      <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #666; font-size: 14px;">
         <p>Document généré automatiquement par le Simulateur de Revenu d'Intégration - CPASConnect</p>
         <p>Vanden Broele - ${new Date().toLocaleDateString('fr-BE', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
       </div>
@@ -364,23 +364,23 @@ export async function generateTableauCPAS(data, result, apercu) {
     // Demandeur
     if (demRows.length === 0) {
       tbody += `<tr>
-        ${cell(`<b>${prenomNom}</b><br/><span style="color:#666;font-size:11px;">${catLabel}</span>`, 'background:#f8f9fa;')}
+        ${cell(`<b>${prenomNom}</b><br/><span style="color:#666;font-size:14px;">${catLabel}</span>`, 'background:#f8f9fa;')}
         ${cell('Aucun revenu enregistré', 'color:#aaa;font-style:italic;')}
         ${cell('')}${cell('0,00 €', 'text-align:right;')}
       </tr>`;
     } else {
       tbody += `<tr>
         <td rowspan="${demRows.length + 1}" style="padding:7px 9px;border:1px solid #dee2e6;vertical-align:top;background:#f8f9fa;font-weight:bold;">
-          ${prenomNom}<br/><span style="font-weight:normal;color:#555;font-size:11px;">${catLabel}</span>
+          ${prenomNom}<br/><span style="font-weight:normal;color:#555;font-size:14px;">${catLabel}</span>
         </td>
         ${cell(demRows[0].nature)}
-        ${cell(demRows[0].hauteur, 'font-size:12px;color:#444;')}
+        ${cell(demRows[0].hauteur, 'font-size:14px;color:#444;')}
         ${cell(fmt(demRows[0].annuel), 'text-align:right;')}
       </tr>`;
       for (let i = 1; i < demRows.length; i++) {
         tbody += `<tr>
           ${cell(demRows[i].nature)}
-          ${cell(demRows[i].hauteur, 'font-size:12px;color:#444;')}
+          ${cell(demRows[i].hauteur, 'font-size:14px;color:#444;')}
           ${cell(fmt(demRows[i].annuel), 'text-align:right;')}
         </tr>`;
       }
@@ -405,20 +405,20 @@ export async function generateTableauCPAS(data, result, apercu) {
 
       tbody += `<tr>
         <td rowspan="3" style="padding:7px 9px;border:1px solid #dee2e6;vertical-align:top;background:#f8f9fa;font-weight:bold;">
-          ${cohName}<br/><span style="font-weight:normal;color:#555;font-size:11px;">${cohType}</span>
+          ${cohName}<br/><span style="font-weight:normal;color:#555;font-size:14px;">${cohType}</span>
         </td>
         ${cell('Ressources annuelles totales')}
-        ${cell(fmt(coh.ressourcesTotale) + '/an', 'font-size:12px;color:#444;')}
+        ${cell(fmt(coh.ressourcesTotale) + '/an', 'font-size:14px;color:#444;')}
         ${cell(fmt(coh.ressourcesTotale), 'text-align:right;')}
       </tr>
       <tr>
         ${cell('Seuil RI (' + catLabelCoh + ')')}
-        ${cell('Seuil à ne pas dépasser : ' + fmt(coh.seuilRI), 'font-size:12px;color:#444;')}
+        ${cell('Seuil à ne pas dépasser : ' + fmt(coh.seuilRI), 'font-size:14px;color:#444;')}
         ${cell('−' + fmt(coh.seuilRI), 'text-align:right;color:#888;')}
       </tr>
       <tr style="${hasExced ? 'background:#fff8dc;' : ''}">
         ${cell(hasExced ? '<b>Montant excédant le seuil (reporté)</b>' : `<i style="color:#888;">${coh.message || "Pas d'excédent"}</i>`)}
-        ${cell(hasExced ? fmt(coh.montantMensuel) + '/mois' : '', 'font-size:12px;color:#444;')}
+        ${cell(hasExced ? fmt(coh.montantMensuel) + '/mois' : '', 'font-size:14px;color:#444;')}
         ${cell(hasExced ? '<b>' + fmt(reportAn) + '</b>' : fmt(0), 'text-align:right;' + (hasExced ? 'font-weight:bold;color:#163E67;' : 'color:#aaa;'))}
       </tr>`;
 
@@ -446,7 +446,7 @@ export async function generateTableauCPAS(data, result, apercu) {
       ${cell(eligible
         ? `Seuil RI (${catLabel}) : ${fmt(riSeuil)}`
         : `Ressources ${fmt(grandTotal)} ≥ seuil ${fmt(riSeuil)}`)}
-      ${cell(eligible ? `Mensuel : ${fmt(riMensuel)}` : '', 'font-size:12px;')}
+      ${cell(eligible ? `Mensuel : ${fmt(riMensuel)}` : '', 'font-size:14px;')}
       ${cell(eligible ? '<b>' + fmt(riAnnuel) + '</b>' : '−', 'text-align:right;font-weight:bold;')}
     </tr>`;
 
@@ -464,19 +464,19 @@ export async function generateTableauCPAS(data, result, apercu) {
     const logoBase64 = await imageToBase64('https://www.cpasconnect.be/img/cpasconnect/logo.svg');
 
     const html = `
-      <div style="font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#333;width:820px;padding:30px;background:white;">
+      <div style="font-family:'Segoe UI',Arial,sans-serif;font-size:14px;color:#333;width:820px;padding:30px;background:white;">
         <div style="display:flex;align-items:center;margin-bottom:18px;">
           ${logoBase64 ? `<img src="${logoBase64}" style="height:38px;margin-right:14px;"/>` : ''}
           <div>
             <div style="font-size:18px;font-weight:bold;color:#163E67;">Tableau des ressources — Droit à l'intégration sociale</div>
-            <div style="font-size:11px;color:#888;margin-top:2px;">Date de référence : ${dateISO} &nbsp;|&nbsp; Généré le ${new Date().toLocaleDateString('fr-BE')}</div>
+            <div style="font-size:14px;color:#888;margin-top:2px;">Date de référence : ${dateISO} &nbsp;|&nbsp; Généré le ${new Date().toLocaleDateString('fr-BE')}</div>
           </div>
         </div>
-        <div style="margin-bottom:14px;padding:8px 12px;background:#f0f4f8;border-radius:6px;font-size:12px;">
+        <div style="margin-bottom:14px;padding:8px 12px;background:#f0f4f8;border-radius:6px;font-size:14px;">
           <b>${prenomNom}</b> — ${catLabel} — ${data.menage.nbEnfants} enfant(s) à charge
           ${safeN(data.reference.joursPrisEnCompte) > 0 ? ` &nbsp;|&nbsp; Prorata : ${data.reference.joursPrisEnCompte} jours sur ${apercu?.ri?.joursMois || '?'}` : ''}
         </div>
-        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
           <thead>
             <tr style="background:#163E67;color:white;">
               ${hcell('Personne', 'width:18%;color:white;')}
@@ -487,7 +487,7 @@ export async function generateTableauCPAS(data, result, apercu) {
           </thead>
           <tbody>${tbody}</tbody>
         </table>
-        <div style="margin-top:20px;font-size:10px;color:#bbb;text-align:center;">
+        <div style="margin-top:20px;font-size:14px;color:#bbb;text-align:center;">
           Simulateur RI — Vanden Broele CPASConnect — ${new Date().toLocaleDateString('fr-BE', { day: 'numeric', month: 'long', year: 'numeric' })}
         </div>
       </div>`;

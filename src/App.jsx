@@ -230,9 +230,9 @@ const CESSION_TRANCHE_IMMUNISEE = 37200;
 function Field({ label, hint, children }) {
   return (
     <label style={{ display: "grid", gap: 6 }}>
-      <span style={{ fontSize: 13, opacity: 0.85 }}>{label}</span>
+      <span style={{ fontSize: 14, opacity: 0.85 }}>{label}</span>
       {children}
-      {hint && <span style={{ fontSize: 12, opacity: 0.65 }}>{hint}</span>}
+      {hint && <span style={{ fontSize: 14, opacity: 0.65 }}>{hint}</span>}
     </label>
   );
 }
@@ -523,7 +523,7 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                   </Input>
                 </div>
 
-                <div className="summary-box" style={{ marginTop: 10, fontSize: 12 }}>
+                <div className="summary-box" style={{ marginTop: 10, fontSize: 14 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8 }}>
                     <div><strong>Seuil RI (catégorie {calc.categorie}):</strong> <Money value={calc.seuilRI} /></div>
                     <div><strong>Excédent:</strong> <Money value={calc.excedent} /></div>
@@ -627,7 +627,7 @@ function RowsTable({ title, rows, onChangeRows }) {
         marginBottom: "12px",
         padding: "0 4px",
         fontWeight: "600",
-        fontSize: "13px",
+        fontSize: "14px",
         color: "#163E67"
       }}>
         <div>Type de revenu comptabilisé</div>
@@ -662,7 +662,7 @@ function RowsTable({ title, rows, onChangeRows }) {
                 padding: "8px",
                 borderRadius: "6px",
                 border: "1px solid #ddd",
-                fontSize: "13px",
+                fontSize: "14px",
                 fontFamily: "'Source Sans Pro', sans-serif"
               }}
             >
@@ -683,7 +683,7 @@ function RowsTable({ title, rows, onChangeRows }) {
                   padding: "8px",
                   borderRadius: "6px",
                   border: "2px solid #2BEBCE",
-                  fontSize: "13px",
+                  fontSize: "14px",
                   fontFamily: "'Source Sans Pro', sans-serif",
                   background: "#F0FFFE"
                 }}
@@ -703,7 +703,7 @@ function RowsTable({ title, rows, onChangeRows }) {
                 padding: "8px",
                 borderRadius: "6px",
                 border: "1px solid #ddd",
-                fontSize: "13px",
+                fontSize: "14px",
                 fontFamily: "'Source Sans Pro', sans-serif"
               }}
             />
@@ -719,7 +719,7 @@ function RowsTable({ title, rows, onChangeRows }) {
                 padding: "8px",
                 borderRadius: "6px",
                 border: "1px solid #E1E8ED",
-                fontSize: "12px",
+                fontSize: "14px",
                 fontFamily: "'Source Sans Pro', sans-serif",
                 color: "#7F8C8D",
                 background: "#FAFBFC"
@@ -745,7 +745,7 @@ function RowsTable({ title, rows, onChangeRows }) {
                 padding: "8px",
                 borderRadius: "6px",
                 border: "1px solid #ddd",
-                fontSize: "13px",
+                fontSize: "14px",
                 fontFamily: "'Source Sans Pro', sans-serif"
               }}
             />
@@ -884,7 +884,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10, marginBottom: 10 }}>
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Type de bien</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Type de bien</span>
                   <select
                     value={cession.typeBien}
                     onChange={(e) => updateRow(i, { typeBien: e.target.value })}
@@ -900,21 +900,21 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Valeur vénale (€)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Valeur vénale (€)</span>
                   <input type="number" value={cession.valeurVenale}
                     onChange={(e) => updateRow(i, { valeurVenale: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }} />
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Part (%)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Part (%)</span>
                   <input type="number" value={cession.partConcernee}
                     onChange={(e) => updateRow(i, { partConcernee: safeNumber(e.target.value, 100) })}
                     style={{ padding: "6px" }} min="0" max="100" />
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Titre de propriété</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Titre de propriété</span>
                   <select
                     value={cession.titrePropriete}
                     onChange={(e) => updateRow(i, { titrePropriete: e.target.value })}
@@ -926,7 +926,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
                   </select>
                 </label>
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Nature de la cession</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Nature de la cession</span>
                   <select
                     value={cession.natureCession || "Cession à titre onéreux"}
                     onChange={(e) => updateRow(i, { natureCession: e.target.value })}
@@ -938,7 +938,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Dettes (€)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Dettes (€)</span>
                   <input 
                     type="number" 
                     value={cession.dettesPersonnelles}
@@ -947,32 +947,32 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
                     disabled={cession.natureCession === "Cession à titre gratuit"}
                   />
                   {cession.natureCession === "Cession à titre gratuit" && (
-                    <span style={{ fontSize: 11, color: "#666" }}>Non applicable pour cession gratuite</span>
+                    <span style={{ fontSize: 14, color: "#666" }}>Non applicable pour cession gratuite</span>
                   )}
                 </label>
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Dettes (€)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Dettes (€)</span>
                   <input type="number" value={cession.dettesPersonnelles}
                     onChange={(e) => updateRow(i, { dettesPersonnelles: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }} />
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Dispense d'équité (€)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Dispense d'équité (€)</span>
                   <input type="number" value={cession.dispenseEquite}
                     onChange={(e) => updateRow(i, { dispenseEquite: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }} />
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Date cession</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Date cession</span>
                   <input type="date" value={cession.dateCession}
                     onChange={(e) => updateRow(i, { dateCession: e.target.value })}
                     style={{ padding: "6px" }} />
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Date prise cours RI</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Date prise cours RI</span>
                   <input type="date" value={cession.datePriseCoursRI || cession.datePriseEnCompteRI}
                     onChange={(e) => updateRow(i, { datePriseCoursRI: e.target.value })}
                     style={{ padding: "6px" }} />
@@ -981,7 +981,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
 
               {/* Détail du calcul */}
               {cession.calc && (
-                <div style={{ background: colors.white, padding: 10, borderRadius: 6, border: `1px solid ${colors.border}`, fontSize: 12 }}>
+                <div style={{ background: colors.white, padding: 10, borderRadius: 6, border: `1px solid ${colors.border}`, fontSize: 14 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8 }}>
                     <div><strong>Montant vénal:</strong> <Money value={cession.calc.montantVenal} /></div>
                     <div><strong>Tranche immunisée:</strong> <Money value={cession.calc.trancheImmunisee} /></div>
@@ -1047,7 +1047,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10 }}>
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Type de bien</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Type de bien</span>
                   <select
                     value={r.typeBien}
                     onChange={(e) => updateRow(i, { typeBien: e.target.value })}
@@ -1061,7 +1061,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Localisation</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Localisation</span>
                   <input
                     value={r.localisation}
                     onChange={(e) => updateRow(i, { localisation: e.target.value })}
@@ -1071,7 +1071,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>RC non indexé (€)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>RC non indexé (€)</span>
                   <input
                     type="number"
                     value={r.rcNonIndexe}
@@ -1081,7 +1081,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Quote-part (%)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Quote-part (%)</span>
                   <input
                     type="number"
                     value={r.quotePart}
@@ -1093,7 +1093,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Loyer annuel (€)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Loyer annuel (€)</span>
                   <input
                     type="number"
                     value={r.loyerAnnuel}
@@ -1103,7 +1103,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Intérêts payés (€)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Intérêts payés (€)</span>
                   <input
                     type="number"
                     value={r.interetsPaye}
@@ -1113,7 +1113,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Rente annuelle (€)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Rente annuelle (€)</span>
                   <input
                     type="number"
                     value={r.renteAnnuelle}
@@ -1123,7 +1123,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>Revenu étranger (€)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Revenu étranger (€)</span>
                   <input
                     type="number"
                     value={r.revenuImmoEtranger}
@@ -1132,7 +1132,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                     disabled={r.typeBien !== "Étranger"}
                   />
                   {r.typeBien !== "Étranger" && (
-                    <span style={{ fontSize: 11, color: "#666" }}>Uniquement pour biens étrangers</span>
+                    <span style={{ fontSize: 14, color: "#666" }}>Uniquement pour biens étrangers</span>
                   )}
                 </label>
               </div>
@@ -1153,7 +1153,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
   );
 }
 
-const thStyle = { textAlign: "left", borderBottom: "1px solid #ddd", padding: "8px 6px", fontSize: 13 };
+const thStyle = { textAlign: "left", borderBottom: "1px solid #ddd", padding: "8px 6px", fontSize: 14 };
 const tdStyle = { borderBottom: "1px solid #eee", padding: "8px 6px", verticalAlign: "top" };
 const tfStyle = { padding: "8px 6px" };
 
@@ -1374,7 +1374,7 @@ function Sidebar({ active, onSelect }) {
         {!isCollapsed && (
           <p style={{
             margin: 0,
-            fontSize: "11px",
+            fontSize: "14px",
             fontWeight: "700",
             color: "rgba(255,255,255,0.5)",
             textTransform: "uppercase",
@@ -2153,7 +2153,7 @@ export default function App() {
                           style={{ 
                             color: colors.textLight,
                             textDecoration: "none",
-                            fontSize: "12px"
+                            fontSize: "14px"
                           }}
                         >
                           📋
@@ -2208,7 +2208,7 @@ export default function App() {
 
                    {/* Sélecteur situation familiale */}
                    <div>
-                     <span style={{ fontSize: 13, opacity: 0.85 }}>Situation familiale</span>
+                     <span style={{ fontSize: 14, opacity: 0.85 }}>Situation familiale</span>
                      <div style={{
                        display: "grid",
                        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
@@ -2252,7 +2252,7 @@ export default function App() {
                              }}
                            >
                              <div style={{
-                               fontSize: 11, fontWeight: 700,
+                               fontSize: 14, fontWeight: 700,
                                color: selected ? colors.secondary : colors.textLight,
                                textTransform: "uppercase", letterSpacing: 1,
                                marginBottom: 4
@@ -2266,7 +2266,7 @@ export default function App() {
                              }}>
                                {opt.label}
                              </div>
-                             <div style={{ fontSize: 11, color: colors.textLight, lineHeight: 1.5 }}>
+                             <div style={{ fontSize: 14, color: colors.textLight, lineHeight: 1.5 }}>
                                {opt.desc}
                              </div>
                            </button>
@@ -2299,7 +2299,7 @@ export default function App() {
                   style={{ 
                     color: colors.textLight,
                     textDecoration: "none",
-                    fontSize: "12px"
+                    fontSize: "14px"
                   }}
                 >
                   📋
@@ -2336,7 +2336,7 @@ export default function App() {
                   Chômage
                   <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905"
                     target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                    style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
+                    style={{ color: colors.textLight, textDecoration: "none", fontSize: "14px" }}>
                     📋
                   </a>
                 </span>
@@ -2356,7 +2356,7 @@ export default function App() {
                   Mutuelle
                   <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905"
                     target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                    style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
+                    style={{ color: colors.textLight, textDecoration: "none", fontSize: "14px" }}>
                     📋
                   </a>
                 </span>
@@ -2383,7 +2383,7 @@ export default function App() {
                         Allocation d'Handicapé ARR (mensuel)
                         <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684880"
                           target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                          style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
+                          style={{ color: colors.textLight, textDecoration: "none", fontSize: "14px" }}>
                           📋
                         </a>
                       </span>
@@ -2398,7 +2398,7 @@ export default function App() {
                         Autre revenu de remplacement (mensuel)
                         <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684904"
                           target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                          style={{ color: colors.textLight, textDecoration: "none", fontSize: "12px" }}>
+                          style={{ color: colors.textLight, textDecoration: "none", fontSize: "14px" }}>
                           📋
                         </a>
                       </span>
@@ -2458,7 +2458,7 @@ export default function App() {
                       <b>Total exonération mensuelle :</b>{" "}
                       <Money value={exoCalc.totalMensuel} />
                     </div>
-                    <div style={{ opacity: 0.75, fontSize: 12 }}>
+                    <div style={{ opacity: 0.75, fontSize: 14 }}>
                       (Total annuel : <b><Money value={exoCalc.totalAnnuel} /></b>)
                     </div>
 
@@ -2467,7 +2467,7 @@ export default function App() {
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                       <div>
                         <div><b>Demandeur</b></div>
-                        <div style={{ fontSize: 12, opacity: 0.75 }}>
+                        <div style={{ fontSize: 14, opacity: 0.75 }}>
                           Général: <Money value={exoCalc.demandeur.exoGeneralMens} /> / mois — Étudiant:{" "}
                           <Money value={exoCalc.demandeur.exoEtudMens} /> / mois — Pénurie:{" "}
                           <Money value={exoCalc.demandeur.exoPenurieMens} /> / mois — Artiste:{" "}
@@ -2477,7 +2477,7 @@ export default function App() {
 
                       <div>
                         <div><b>Conjoint</b></div>
-                        <div style={{ fontSize: 12, opacity: 0.75 }}>
+                        <div style={{ fontSize: 14, opacity: 0.75 }}>
                           Général: <Money value={exoCalc.conjoint.exoGeneralMens} /> / mois — Étudiant:{" "}
                           <Money value={exoCalc.conjoint.exoEtudMens} /> / mois — Pénurie:{" "}
                           <Money value={exoCalc.conjoint.exoPenurieMens} /> / mois — Artiste:{" "}
@@ -2518,7 +2518,7 @@ export default function App() {
                       style={{ 
                         color: colors.textLight,
                         textDecoration: "none",
-                        fontSize: "12px"
+                        fontSize: "14px"
                       }}
                     >
                       📋
@@ -2548,7 +2548,7 @@ export default function App() {
                       style={{ 
                         color: colors.textLight,
                         textDecoration: "none",
-                        fontSize: "12px"
+                        fontSize: "14px"
                       }}
                     >
                       📋
@@ -2578,7 +2578,7 @@ export default function App() {
                       style={{ 
                         color: colors.textLight,
                         textDecoration: "none",
-                        fontSize: "12px"
+                        fontSize: "14px"
                       }}
                     >
                       📋
@@ -2596,7 +2596,7 @@ export default function App() {
                         style={{ 
                           color: colors.textLight,
                           textDecoration: "none",
-                          fontSize: "12px"
+                          fontSize: "14px"
                         }}
                       >
                         📋
@@ -2704,7 +2704,7 @@ export default function App() {
                         style={{ 
                           color: colors.textLight,
                           textDecoration: "none",
-                          fontSize: "12px"
+                          fontSize: "14px"
                         }}
                       >
                         📋
@@ -2854,14 +2854,14 @@ export default function App() {
             </div>
 
             <div className="card" style={{ padding: 16 }}>
-              <div style={{ fontSize: 13, opacity: 0.7 }}>Statut</div>
+              <div style={{ fontSize: 14, opacity: 0.7 }}>Statut</div>
               <div style={{ fontSize: 24, fontWeight: 750 }}>
                 {result.eligible ? "Éligible" : "Non éligible"}
               </div>
 
               <hr style={{ margin: "12px 0" }} />
 
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
                 <thead>
                   <tr>
                     <th style={{ textAlign: "left", padding: "6px 8px", borderBottom: "1px solid #ddd" }}>Rubrique</th>
@@ -2979,7 +2979,7 @@ export default function App() {
                         <div style={{ fontWeight: 800, marginBottom: 10 }}>
                           Calcul du revenu d'intégration pour un mois incomplet
                         </div>
-                        <div style={{ display: "grid", gap: 10, fontSize: 13 }}>
+                        <div style={{ display: "grid", gap: 10, fontSize: 14 }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                             <div>Nbre de jours pris en compte dans la période concernée :</div>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

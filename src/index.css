@@ -101,7 +101,7 @@ h3 { font-size: 16px; font-weight: 600; }
 }
 
 .formLabel {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -109,7 +109,7 @@ h3 { font-size: 16px; font-weight: 600; }
 }
 
 .formHint {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text-light);
 }
 
