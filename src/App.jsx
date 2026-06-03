@@ -136,7 +136,7 @@ const defaultCohabitantRow = () => ({
 });
 
 const defaultData = {
-  reference: { dateISO: "2025-02-01", joursPrisEnCompte: "" },
+  reference: { dateISO: "2026-03-01", joursPrisEnCompte: "" },
   identite: { nom: "", prenom: "", dateNaissance: "", nationalite: "" },
   menage: { situation: "isolé", nbEnfants: 0 },
   revenusNets: {
@@ -1492,7 +1492,7 @@ function Sidebar({ active, onSelect }) {
     };
   }
 function computeApercuExcelLike({ data, pieces }) {
-  const dateISO = data.reference.dateISO || "2025-02-01";
+  const dateISO = data.reference.dateISO || "2026-03-01";
   const dim = daysInMonth(dateISO);
 
   // Excel Informations!C18 : jours période (si 0 => mois complet)
@@ -1968,9 +1968,9 @@ function computeFromForm(data) {
     data.menage.situation === "isolé" ? 2 :
     data.menage.situation === "cohabitant" ? 1 : 3;
 
-  const dateISO = data.reference.dateISO || "2025-02-01";
+  const dateISO = data.reference.dateISO || "2026-03-01";
   const [yearStr] = dateISO.split("-");
-  const year = safeNumber(yearStr, 2025);
+  const year = safeNumber(yearStr, 2026);
 
   const dem = computeNetMonthly(data.revenusNets.demandeur.rows);
   const conj = data.revenusNets.conjoint.enabled
@@ -2204,21 +2204,77 @@ export default function App() {
 
               {/* Carte Ménage */}
                <Card title="Ménage">
-                 <div style={{
-                   display: "grid",
-                   gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                   gap: "16px"
-                 }}>
-                   <Input
-                     label="Situation"
-                     type="select"
-                     value={data.menage.situation}
-                     onChange={(e) => setData(d => ({ ...d, menage: { ...d.menage, situation: e.target.value } }))}
-                   >
-                     <option value="isolé">Isolé (Cat. 2)</option>
-                     <option value="cohabitant">Cohabitant (Cat. 1)</option>
-                     <option value="famille">Famille (Cat. 3)</option>
-                   </Input>
+                 <div style={{ display: "grid", gap: "16px" }}>
+
+                   {/* Sélecteur situation familiale */}
+                   <div>
+                     <span style={{ fontSize: 13, opacity: 0.85 }}>Situation familiale</span>
+                     <div style={{
+                       display: "grid",
+                       gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                       gap: 10,
+                       marginTop: 8
+                     }}>
+                       {[
+                         {
+                           value: "cohabitant",
+                           cat: "Cat. 1",
+                           label: "Cohabitant",
+                           desc: "Vit sous le même toit qu'une ou plusieurs personnes qui disposent de revenus propres"
+                         },
+                         {
+                           value: "isolé",
+                           cat: "Cat. 2",
+                           label: "Isolé",
+                           desc: "Vit seul ou uniquement avec des personnes exclusivement à sa charge"
+                         },
+                         {
+                           value: "famille",
+                           cat: "Cat. 3",
+                           label: "Famille avec charge",
+                           desc: "Cohabite avec conjoint et/ou enfants dont il/elle assume la charge"
+                         }
+                       ].map(opt => {
+                         const selected = data.menage.situation === opt.value;
+                         return (
+                           <button
+                             key={opt.value}
+                             onClick={() => setData(d => ({ ...d, menage: { ...d.menage, situation: opt.value } }))}
+                             style={{
+                               border: `2px solid ${selected ? colors.primary : colors.border}`,
+                               borderRadius: 10,
+                               padding: "12px 10px",
+                               background: selected ? "#EEF4FA" : colors.white,
+                               cursor: "pointer",
+                               textAlign: "left",
+                               transition: "all 0.2s",
+                               fontFamily: "'Source Sans Pro', sans-serif"
+                             }}
+                           >
+                             <div style={{
+                               fontSize: 11, fontWeight: 700,
+                               color: selected ? colors.secondary : colors.textLight,
+                               textTransform: "uppercase", letterSpacing: 1,
+                               marginBottom: 4
+                             }}>
+                               {opt.cat}
+                             </div>
+                             <div style={{
+                               fontSize: 14, fontWeight: 700,
+                               color: selected ? colors.primary : colors.text,
+                               marginBottom: 6
+                             }}>
+                               {opt.label}
+                             </div>
+                             <div style={{ fontSize: 11, color: colors.textLight, lineHeight: 1.5 }}>
+                               {opt.desc}
+                             </div>
+                           </button>
+                         );
+                       })}
+                     </div>
+                   </div>
+
                    <Input
                      label="Nombre d'enfants à charge"
                      type="number"
@@ -2392,7 +2448,7 @@ export default function App() {
               {/* Résumé calculé (Excel-like) */}
               {(() => {
                 const exoCalc = computeExonerationExcel({
-                  dateISO: data.reference.dateISO || "2025-02-01",
+                  dateISO: data.reference.dateISO || "2026-03-01",
                   exo: data.exoneration,
                 });
 
