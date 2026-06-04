@@ -126,10 +126,9 @@ const defaultBienImmobilierRow = () => ({
 
 const defaultCohabitantRow = () => ({
   nom: "",
-  type: "Ascendants/descendant majeur",
+  type: "Ascendant majeur",
   ressourcesTotale: 0,
-  priseEnCharge: "Non",
-  typeReport: "Report max",
+  priseEnCharge: "Report max",
   pctReport: 30,
   categorie: 1
 });
@@ -413,17 +412,20 @@ function computeCohabitantRow(row, referenceDate) {
   // K5: Montant mensuel (si excédent)
   const montantMensuel = excedent > 0 ? round2(excedent / 12) : 0;
   
-  // L5: Ressources prorata selon Excel formule =SI(OU(F5=Données!$U$15;F5=Données!$U$16);K5;K5*F5)
-  // F5 = pctReport, Données!$U$15 = "Oui", Données!$U$16 = "Non"
   let ressourcesProrata = 0;
-  let montantReporte = 0; // ← AJOUTER CETTE LIGNE
-  
-  if (row.priseEnCharge === "Oui" || row.priseEnCharge === "Non") {
+  let montantReporte = 0;
+  const priseEnCharge = row.priseEnCharge || "Report max";
+
+  if (priseEnCharge === "Report max") {
+    montantReporte = montantMensuel;
     ressourcesProrata = montantMensuel;
-    montantReporte = montantMensuel; // ← AJOUTER CETTE LIGNE
-  } else if (row.priseEnCharge === "MAX") {
-    ressourcesProrata = round2(montantMensuel * (row.pctReport / 100));
-    montantReporte = round2(montantMensuel * (row.pctReport / 100)); // ← AJOUTER CETTE LIGNE
+  } else if (priseEnCharge === "Report partiel") {
+    montantReporte = round2(montantMensuel * (safeNumber(row.pctReport, 0) / 100));
+    ressourcesProrata = montantReporte;
+  } else {
+    // "Pas de report"
+    montantReporte = 0;
+    ressourcesProrata = 0;
   }
   
   return {
@@ -488,38 +490,83 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                   </button>
                 </div>
               }>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+
+                  {/* Nom */}
                   <Input label="Nom" value={r.nom}
                     onChange={(e) => updateRow(i, { nom: e.target.value })}
                     placeholder="Nom du cohabitant" />
-                  <Input label="Type" type="select" value={r.type}
-                    onChange={(e) => updateRow(i, { type: e.target.value })}>
-                    <option value="Ascendants/descendant majeur">Ascendants/descendant majeur</option>
-                    <option value="Conjoint">Conjoint</option>
-                    <option value="Autre">Autre</option>
-                  </Input>
+
+                  {/* Type */}
+                  <Field label="Type">
+                    <select value={r.type} onChange={(e) => updateRow(i, { type: e.target.value })}>
+                      <option value="Ascendant majeur">Ascendant majeur</option>
+                      <option value="Descendant majeur">Descendant majeur</option>
+                      <option value="Autre">Autre</option>
+                    </select>
+                  </Field>
+
+                  {/* Ressources totales */}
                   <Input label="Ressources totales (€/an)" type="number" value={r.ressourcesTotale}
                     onChange={(e) => updateRow(i, { ressourcesTotale: safeNumber(e.target.value, 0) })} />
-                  <Input label="Prise en charge" type="select" value={r.priseEnCharge}
-                    onChange={(e) => updateRow(i, { priseEnCharge: e.target.value })}>
-                    <option value="Non">Non</option>
-                    <option value="Oui">Oui</option>
-                    <option value="MAX">MAX</option>
-                  </Input>
-                  <Input label="Type de report" type="select" value={r.typeReport}
-                    onChange={(e) => updateRow(i, { typeReport: e.target.value })}>
-                    <option value="Report max">Report max</option>
-                    <option value="Partenaire">Partenaire</option>
-                  </Input>
-                  <Input label="% Report" type="number" value={r.pctReport}
-                    onChange={(e) => updateRow(i, { pctReport: safeNumber(e.target.value, 30) })}
-                    min="0" max="100" />
-                  <Input label="Catégorie" type="select" value={r.categorie}
-                    onChange={(e) => updateRow(i, { categorie: parseInt(e.target.value) })}>
-                    <option value={1}>1 - Cohabitant</option>
-                    <option value={2}>2 - Isolé</option>
-                    <option value={3}>3 - Famille</option>
-                  </Input>
+
+                  {/* Prise en charge */}
+                  <Field label="Prise en charge">
+                    <select
+                      value={r.priseEnCharge}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        updateRow(i, {
+                          priseEnCharge: val,
+                          pctReport: val === "Report max" ? 100 : val === "Pas de report" ? 0 : r.pctReport
+                        });
+                      }}
+                    >
+                      <option value="Report max">Report max (100%)</option>
+                      <option value="Report partiel">Report partiel</option>
+                      <option value="Pas de report">Pas de report (0%)</option>
+                    </select>
+                  </Field>
+
+                  {/* % Report */}
+                  <Field label="% Report">
+                    <input
+                      type="number"
+                      min="0" max="100"
+                      value={r.priseEnCharge === "Report max" ? 100 : r.priseEnCharge === "Pas de report" ? 0 : r.pctReport}
+                      disabled={r.priseEnCharge !== "Report partiel"}
+                      onChange={(e) => updateRow(i, { pctReport: safeNumber(e.target.value, 0) })}
+                      style={{ opacity: r.priseEnCharge === "Report partiel" ? 1 : 0.45, cursor: r.priseEnCharge === "Report partiel" ? "auto" : "not-allowed" }}
+                    />
+                  </Field>
+                </div>
+
+                {/* Catégorie — cartes Cat. 1 / Cat. 3 */}
+                <div style={{ marginTop: 14 }}>
+                  <span style={{ fontSize: 14, opacity: 0.85, display: "block", marginBottom: 8 }}>Catégorie (seuil RI applicable)</span>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    {[
+                      { value: 1, cat: "Cat. 1", label: "Cohabitant", desc: "Vit avec d'autres personnes disposant de ressources propres — sans charge exclusive de famille" },
+                      { value: 3, cat: "Cat. 3", label: "Famille avec charge", desc: "A un conjoint et/ou des enfants entièrement à sa charge dans la même composition de ménage" },
+                    ].map(opt => {
+                      const sel = r.categorie === opt.value;
+                      return (
+                        <button key={opt.value} onClick={() => updateRow(i, { categorie: opt.value })}
+                          style={{
+                            border: `2px solid ${sel ? colors.primary : colors.border}`,
+                            borderRadius: 10, padding: "10px 12px",
+                            background: sel ? "#EEF4FA" : colors.white,
+                            cursor: "pointer", textAlign: "left",
+                            transition: "all 0.2s",
+                            fontFamily: "'Source Sans Pro', sans-serif"
+                          }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: sel ? colors.secondary : colors.textLight, textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>{opt.cat}</div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: sel ? colors.primary : colors.text, marginBottom: 4 }}>{opt.label}</div>
+                          <div style={{ fontSize: 14, color: colors.textLight, lineHeight: 1.4 }}>{opt.desc}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div className="summary-box" style={{ marginTop: 10, fontSize: 14 }}>
@@ -2372,9 +2419,9 @@ export default function App() {
                   <div className="card" style={{ padding: 16 }}>
                     <h3 style={{ marginTop: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>Demandeur</h3>
                     {[
-                      { key: "general",   label: "Exonération générale",           link: "149746886634684907" },
-                      { key: "etudiant",  label: "Exonération étudiants",          link: "149746886634684907" },
-                      { key: "penurie",   label: "Exonération pénurie",            link: "149746886634385151" },
+                      { key: "general",   label: "Exonération Pro. générale",           link: "149746886634684907" },
+                      { key: "etudiant",  label: "Exonération Pro. étudiants",          link: "149746886634684907" },
+                      { key: "penurie",   label: "Exonération Pro pénurie",            link: "149746886634385151" },
                     ].map(({ key, label, link }) => (
                       <label key={key} style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
                         <input type="checkbox"
