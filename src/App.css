@@ -422,6 +422,21 @@ textarea {
   box-sizing: border-box;
 }
 
+/* Reset pour checkbox et radio : annule les styles généraux des inputs */
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  transition: none;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 /* Select : flèche native + padding droit pour ne pas chevaucher */
 select {
   appearance: none;
