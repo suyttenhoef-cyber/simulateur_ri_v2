@@ -394,33 +394,51 @@ export async function generateTableauCPAS(data, result, apercu) {
     // Séparateur
     tbody += `<tr><td colspan="4" style="padding:0;height:3px;background:#163E67;border:none;"></td></tr>`;
 
-    // Cohabitants (on ignore les lignes vides sans ressources saisies)
+    // Cohabitants (on ignore les lignes vides sans ressources ni nom)
+    const hasAutreCohabitants = cohDetails.some(c => c.type === 'Autre' && safeN(c.ressourcesTotale) > 0);
     for (const coh of cohDetails) {
       if (safeN(coh.ressourcesTotale) === 0) continue;
       const catLabelCoh = coh.categorie === 1 ? 'Cat. 1 - Cohabitant' : coh.categorie === 2 ? 'Cat. 2 - Isolé' : 'Cat. 3 - Famille';
       const cohName  = coh.nom  || 'Cohabitant';
       const cohType  = coh.type || 'Ascendant/Descendant';
-      const hasExced = coh.excedent > 0;
+      const isIndicatif = coh.type === 'Autre';
+      const hasExced = !isIndicatif && coh.excedent > 0;
       const reportAn = r2(coh.montantReporte * 12);
 
-      tbody += `<tr>
-        <td rowspan="3" style="padding:7px 9px;border:1px solid #dee2e6;vertical-align:top;background:#f8f9fa;font-weight:bold;">
-          ${cohName}<br/><span style="font-weight:normal;color:#555;font-size:14px;">${cohType}</span>
-        </td>
-        ${cell('Ressources annuelles totales')}
-        ${cell(fmt(coh.ressourcesTotale) + '/an', 'font-size:14px;color:#444;')}
-        ${cell(fmt(coh.ressourcesTotale), 'text-align:right;')}
-      </tr>
-      <tr>
-        ${cell('Seuil RI (' + catLabelCoh + ')')}
-        ${cell('Seuil à ne pas dépasser : ' + fmt(coh.seuilRI), 'font-size:14px;color:#444;')}
-        ${cell('−' + fmt(coh.seuilRI), 'text-align:right;color:#888;')}
-      </tr>
-      <tr style="${hasExced ? 'background:#fff8dc;' : ''}">
-        ${cell(hasExced ? '<b>Montant excédant le seuil (reporté)</b>' : `<i style="color:#888;">${coh.message || "Pas d'excédent"}</i>`)}
-        ${cell(hasExced ? fmt(coh.montantMensuel) + '/mois' : '', 'font-size:14px;color:#444;')}
-        ${cell(hasExced ? '<b>' + fmt(reportAn) + '</b>' : fmt(0), 'text-align:right;' + (hasExced ? 'font-weight:bold;color:#163E67;' : 'color:#aaa;'))}
-      </tr>`;
+      if (isIndicatif) {
+        // Cohabitant "Autre" : 2 lignes (ressources + mention indicatif)
+        tbody += `<tr>
+          <td rowspan="2" style="padding:7px 9px;border:1px solid #dee2e6;vertical-align:top;background:#f8f9fa;font-weight:bold;">
+            ${cohName}<br/><span style="font-weight:normal;color:#888;font-size:14px;font-style:italic;">${cohType} — indicatif</span>
+          </td>
+          ${cell('Ressources annuelles totales')}
+          ${cell(fmt(coh.ressourcesTotale) + '/an', 'color:#444;')}
+          ${cell(fmt(coh.ressourcesTotale), 'text-align:right;color:#aaa;')}
+        </tr>
+        <tr style="background:#fdf6e3;">
+          ${cell('<i style="color:#b8860b;">À titre indicatif uniquement — non reporté dans le calcul du RI</i>', 'colspan:3;')}
+        </tr>`;
+      } else {
+        // Cohabitant normal : 3 lignes
+        tbody += `<tr>
+          <td rowspan="3" style="padding:7px 9px;border:1px solid #dee2e6;vertical-align:top;background:#f8f9fa;font-weight:bold;">
+            ${cohName}<br/><span style="font-weight:normal;color:#555;font-size:14px;">${cohType}</span>
+          </td>
+          ${cell('Ressources annuelles totales')}
+          ${cell(fmt(coh.ressourcesTotale) + '/an', 'color:#444;')}
+          ${cell(fmt(coh.ressourcesTotale), 'text-align:right;')}
+        </tr>
+        <tr>
+          ${cell('Seuil RI (' + catLabelCoh + ')')}
+          ${cell('Seuil à ne pas dépasser : ' + fmt(coh.seuilRI), 'color:#444;')}
+          ${cell('−' + fmt(coh.seuilRI), 'text-align:right;color:#888;')}
+        </tr>
+        <tr style="${hasExced ? 'background:#fff8dc;' : ''}">
+          ${cell(hasExced ? '<b>Montant excédant le seuil (reporté)</b>' : `<i style="color:#888;">${coh.message || "Pas d'excédent"}</i>`)}
+          ${cell(hasExced ? fmt(coh.montantMensuel) + '/mois' : '', 'color:#444;')}
+          ${cell(hasExced ? '<b>' + fmt(reportAn) + '</b>' : fmt(0), 'text-align:right;' + (hasExced ? 'font-weight:bold;color:#163E67;' : 'color:#aaa;'))}
+        </tr>`;
+      }
 
       tbody += `<tr><td colspan="4" style="padding:0;height:1px;background:#dee2e6;border:none;"></td></tr>`;
     }
@@ -475,6 +493,7 @@ export async function generateTableauCPAS(data, result, apercu) {
         <div style="margin-bottom:14px;padding:8px 12px;background:#f0f4f8;border-radius:6px;font-size:14px;">
           <b>${prenomNom}</b> — ${catLabel} — ${data.menage.nbEnfants} enfant(s) à charge
           ${safeN(data.reference.joursPrisEnCompte) > 0 ? ` &nbsp;|&nbsp; Prorata : ${data.reference.joursPrisEnCompte} jours sur ${apercu?.ri?.joursMois || '?'}` : ''}
+          ${hasAutreCohabitants ? ` &nbsp;|&nbsp; <span style="color:#b8860b;">⚠ Cohabitant(s) de type « Autre » repris à titre indicatif uniquement — non pris en compte dans le calcul du RI</span>` : ''}
         </div>
         <table style="width:100%;border-collapse:collapse;font-size:14px;">
           <thead>

@@ -415,26 +415,28 @@ function computeCohabitantRow(row, referenceDate) {
   let ressourcesProrata = 0;
   let montantReporte = 0;
   const priseEnCharge = row.priseEnCharge || "Report max";
+  const isIndicatifOnly = row.type === "Autre";
 
-  if (priseEnCharge === "Report max") {
-    montantReporte = montantMensuel;
-    ressourcesProrata = montantMensuel;
-  } else if (priseEnCharge === "Report partiel") {
-    montantReporte = round2(montantMensuel * (safeNumber(row.pctReport, 0) / 100));
-    ressourcesProrata = montantReporte;
-  } else {
-    // "Pas de report"
-    montantReporte = 0;
-    ressourcesProrata = 0;
+  if (!isIndicatifOnly) {
+    if (priseEnCharge === "Report max") {
+      montantReporte = montantMensuel;
+      ressourcesProrata = montantMensuel;
+    } else if (priseEnCharge === "Report partiel") {
+      montantReporte = round2(montantMensuel * (safeNumber(row.pctReport, 0) / 100));
+      ressourcesProrata = montantReporte;
+    }
+    // "Pas de report" → reste à 0
   }
-  
+  // type "Autre" → montantReporte = 0 (indicatif uniquement)
+
   return {
     ...row,
     seuilRI,
     excedent,
     montantMensuel,
     ressourcesProrata,
-    montantReporte, // ← AJOUTER CETTE LIGNE
+    montantReporte,
+    isIndicatifOnly,
     message
   };
 }
@@ -569,12 +571,24 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                   </div>
                 </div>
 
+                {/* Mention indicatif si type "Autre" */}
+                {r.type === "Autre" && (
+                  <div className="alert alert--warning" style={{ marginTop: 12 }}>
+                    <i className="fas fa-circle-info" aria-hidden="true" />
+                    <span>
+                      Ce cohabitant est de type <strong>« Autre »</strong> : ses ressources sont conservées
+                      à titre indicatif uniquement et <strong>ne sont pas prises en compte</strong> dans
+                      le calcul du droit au RI du demandeur.
+                    </span>
+                  </div>
+                )}
+
                 <div className="summary-box" style={{ marginTop: 10, fontSize: 14 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8 }}>
                     <div><strong>Seuil RI (catégorie {calc.categorie}):</strong> <Money value={calc.seuilRI} /></div>
                     <div><strong>Excédent:</strong> <Money value={calc.excedent} /></div>
                     <div><strong>Montant mensuel:</strong> <Money value={calc.montantMensuel} /></div>
-                    <div><strong>Montant reporté:</strong> <Money value={calc.montantReporte} /></div>
+                    <div><strong>Montant reporté :</strong> {calc.isIndicatifOnly ? <em style={{ color: colors.textLight }}>non reporté (indicatif)</em> : <Money value={calc.montantReporte} />}</div>
                   </div>
                   {calc.message && (
                     <div className="alert alert--warning" style={{ marginTop: 8 }}>
