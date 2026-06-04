@@ -143,8 +143,15 @@ const defaultData = {
   identite: { nom: "", prenom: "", dateNaissance: "", nationalite: "" },
   menage: { situation: "isolé", nbEnfants: 0 },
   revenusNets: {
-    demandeur: { rows: [defaultRow()] },
-    conjoint: { enabled: false, rows: [defaultRow()] }
+    demandeur: {
+      comptabiliseRows: [{ label: "", customLabel: null, montant: 0 }],
+      exonereRows:      [{ type: "", montant: 0 }]
+    },
+    conjoint: {
+      enabled: false,
+      comptabiliseRows: [{ label: "", customLabel: null, montant: 0 }],
+      exonereRows:      [{ type: "", montant: 0 }]
+    }
   },
   cmr: {
     chomage: { mensuelReel: 0, montantJour26: 0, montantJourAnnuel: 0 },
@@ -391,9 +398,9 @@ function computeCessionsTotalAnnuel(rows, categorie) {
     details
   };
 }
-function computeNetMonthly(rows) {
-  const sumC = rows.reduce((acc, r) => acc + safeNumber(r.comptabilise, 0), 0);
-  const sumE = rows.reduce((acc, r) => acc + safeNumber(r.exonere, 0), 0);
+function computeNetMonthly({ comptabiliseRows, exonereRows }) {
+  const sumC = (comptabiliseRows || []).reduce((acc, r) => acc + safeNumber(r.montant, 0), 0);
+  const sumE = (exonereRows     || []).reduce((acc, r) => acc + safeNumber(r.montant, 0), 0);
   return { sumComptabilise: sumC, sumExonere: sumE, net: sumC - sumE };
 }
 // 1. Ajouter la fonction de calcul pour un cohabitant individuel
@@ -659,214 +666,94 @@ const REVENUS_EXONERES_SUGGESTIONS = [
   { value: "Précompte professionnel", label: "Précompte professionnel" }
 ];
 
-function RowsTable({ title, rows, onChangeRows }) {
-  const totals = useMemo(() => computeNetMonthly(rows), [rows]);
+function RowsTable({ title, comptabiliseRows, exonereRows, onChangeComptabilise, onChangeExonere }) {
+  const sumCompt = useMemo(() => (comptabiliseRows || []).reduce((s, r) => s + safeNumber(r.montant, 0), 0), [comptabiliseRows]);
+  const sumExon  = useMemo(() => (exonereRows     || []).reduce((s, r) => s + safeNumber(r.montant, 0), 0), [exonereRows]);
+  const net = sumCompt - sumExon;
 
-  function updateRow(i, patch) {
-    onChangeRows(rows.map((r, idx) => idx === i ? { ...r, ...patch } : r));
-  }
-  
-  function addRow() { onChangeRows([...rows, defaultRow()]); }
-  
-  function removeRow(i) {
-    const next = rows.filter((_, idx) => idx !== i);
-    onChangeRows(next.length ? next : [defaultRow()]);
+  // ── Comptabilisé ──
+  function updateC(i, patch) { onChangeComptabilise(comptabiliseRows.map((r, idx) => idx === i ? { ...r, ...patch } : r)); }
+  function addC()    { onChangeComptabilise([...comptabiliseRows, { label: "", customLabel: null, montant: 0 }]); }
+  function removeC(i) {
+    const next = comptabiliseRows.filter((_, idx) => idx !== i);
+    onChangeComptabilise(next.length ? next : [{ label: "", customLabel: null, montant: 0 }]);
   }
 
-  function handleLabelChange(i, value) {
-    updateRow(i, { label: value, customLabel: value === "Autre" ? "" : null });
+  // ── Exonéré ──
+  function updateE(i, patch) { onChangeExonere(exonereRows.map((r, idx) => idx === i ? { ...r, ...patch } : r)); }
+  function addE()    { onChangeExonere([...exonereRows, { type: "", montant: 0 }]); }
+  function removeE(i) {
+    const next = exonereRows.filter((_, idx) => idx !== i);
+    onChangeExonere(next.length ? next : [{ type: "", montant: 0 }]);
   }
+
+  const colHdr = { display: "grid", gridTemplateColumns: "2fr 1.4fr 40px", gap: 12, marginBottom: 8, padding: "0 4px", fontWeight: 600, fontSize: 14, color: colors.primary };
+  const colRow = (i) => ({ display: "grid", gridTemplateColumns: "2fr 1.4fr 40px", gap: 12, marginBottom: 8, padding: "8px 4px", background: i % 2 === 0 ? "#FAFBFC" : "#FFF", borderRadius: 6, alignItems: "start" });
+  const trashBtn = (onClick) => (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <button onClick={onClick} className="btn-remove" style={{ padding: "5px 8px" }}>
+        <i className="fas fa-trash" aria-hidden="true" />
+      </button>
+    </div>
+  );
 
   return (
-    <div className="card" style={{ padding: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 12, borderBottom: `2px solid #F0F4F8` }}>
-        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: colors.primary }}>{title}</h3>
-        <button onClick={addRow} className="btn-add">+ Ajouter</button>
+    <div style={{ display: "grid", gap: 12 }}>
+
+      {/* ── BLOC 1 : Revenus professionnels nets ── */}
+      <div className="card" style={{ padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 12, borderBottom: "2px solid #F0F4F8" }}>
+          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>{title} — Revenus professionnels nets</h3>
+          <button onClick={addC} className="btn-add">+ Ajouter</button>
+        </div>
+        <div style={colHdr}><div>Type de revenu</div><div>Montant (€/mois)</div><div /></div>
+        {(comptabiliseRows || []).map((r, i) => (
+          <div key={i} style={colRow(i)}>
+            <div style={{ display: "grid", gap: 6 }}>
+              <select value={r.customLabel !== undefined && r.customLabel !== null ? "Autre" : (r.label || "")}
+                onChange={(e) => { const v = e.target.value; updateC(i, { label: v, customLabel: v === "Autre" ? "" : null }); }}>
+                {REVENUS_COMPTABILISES_SUGGESTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+              {r.label === "Autre" && (
+                <input value={r.customLabel || ""} onChange={(e) => updateC(i, { customLabel: e.target.value })}
+                  placeholder="Précisez le type de revenu..."
+                  style={{ border: "2px solid #2BEBCE", background: "#F0FFFE" }} />
+              )}
+            </div>
+            <input type="number" value={r.montant || 0} onChange={(e) => updateC(i, { montant: safeNumber(e.target.value, 0) })} />
+            {trashBtn(() => removeC(i))}
+          </div>
+        ))}
+        <div style={{ marginTop: 12, padding: "10px 4px", background: "#F5F8FA", borderRadius: 6, fontWeight: 600, fontSize: 14 }}>
+          Total comptabilisé : <Money value={sumCompt} />/mois
+        </div>
       </div>
 
-      {/* En-têtes de colonnes */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "2fr 1.2fr 2fr 1.2fr 40px",
-        gap: "12px",
-        marginBottom: "12px",
-        padding: "0 4px",
-        fontWeight: "600",
-        fontSize: "14px",
-        color: "#163E67"
-      }}>
-        <div>Type de revenu comptabilisé</div>
-        <div>Montant comptabilisé (€/mois)</div>
-        <div>Type de revenu exonéré</div>
-        <div>Montant exonéré (€/mois)</div>
-        <div></div>
-      </div>
-
-      {/* Lignes de données */}
-      {rows.map((r, i) => (
-        <div
-          key={i}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 1.2fr 2fr 1.2fr 40px",
-            gap: "12px",
-            marginBottom: "12px",
-            padding: "8px 4px",
-            background: i % 2 === 0 ? "#FAFBFC" : "#FFFFFF",
-            borderRadius: "6px",
-            alignItems: "start"
-          }}
-        >
-          {/* Colonne 1: Type de revenu comptabilisé */}
-          <div style={{ display: "grid", gap: "6px" }}>
-            <select
-              value={r.customLabel !== undefined && r.customLabel !== null ? "Autre" : r.label}
-              onChange={(e) => handleLabelChange(i, e.target.value)}
-              style={{
-                width: "100%",
-                padding: "8px",
-                borderRadius: "6px",
-                border: "1px solid #ddd",
-                fontSize: "14px",
-                fontFamily: "'Source Sans Pro', sans-serif"
-              }}
-            >
-              {REVENUS_COMPTABILISES_SUGGESTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
+      {/* ── BLOC 2 : Revenus professionnels exonérés ── */}
+      <div className="card" style={{ padding: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 12, borderBottom: "2px solid #F0F4F8" }}>
+          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>{title} — Revenus professionnels exonérés</h3>
+          <button onClick={addE} className="btn-add">+ Ajouter</button>
+        </div>
+        <div style={colHdr}><div>Type d'exonération</div><div>Montant exonéré (€/mois)</div><div /></div>
+        {(exonereRows || []).map((r, i) => (
+          <div key={i} style={colRow(i)}>
+            <select value={r.type || ""} onChange={(e) => updateE(i, { type: e.target.value })}>
+              {REVENUS_EXONERES_SUGGESTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
-            
-            {r.label === "Autre" && (
-              <input
-                value={r.customLabel || ""}
-                onChange={(e) => updateRow(i, { customLabel: e.target.value })}
-                placeholder="Précisez le type de revenu..."
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  borderRadius: "6px",
-                  border: "2px solid #2BEBCE",
-                  fontSize: "14px",
-                  fontFamily: "'Source Sans Pro', sans-serif",
-                  background: "#F0FFFE"
-                }}
-              />
-            )}
+            <input type="number" value={r.montant || 0} onChange={(e) => updateE(i, { montant: safeNumber(e.target.value, 0) })} />
+            {trashBtn(() => removeE(i))}
           </div>
-
-          {/* Colonne 2: Montant comptabilisé */}
-          <div>
-            <input
-              type="number"
-              value={r.comptabilise}
-              onChange={(e) => updateRow(i, { comptabilise: safeNumber(e.target.value, 0) })}
-              placeholder="0.00"
-              style={{
-                width: "100%",
-                padding: "8px",
-                borderRadius: "6px",
-                border: "1px solid #ddd",
-                fontSize: "14px",
-                fontFamily: "'Source Sans Pro', sans-serif"
-              }}
-            />
-          </div>
-
-          {/* Colonne 3: Type de revenu exonéré */}
-          <div style={{ display: "grid", gap: "6px" }}>
-            <select
-              value={r.exonereType || ""}
-              onChange={(e) => updateRow(i, { exonereType: e.target.value })}
-              style={{
-                width: "100%",
-                padding: "8px",
-                borderRadius: "6px",
-                border: "1px solid #E1E8ED",
-                fontSize: "14px",
-                fontFamily: "'Source Sans Pro', sans-serif",
-                color: "#7F8C8D",
-                background: "#FAFBFC"
-              }}
-            >
-              {REVENUS_EXONERES_SUGGESTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Colonne 4: Montant exonéré */}
-          <div>
-            <input
-              type="number"
-              value={r.exonere}
-              onChange={(e) => updateRow(i, { exonere: safeNumber(e.target.value, 0) })}
-              placeholder="0.00"
-              style={{
-                width: "100%",
-                padding: "8px",
-                borderRadius: "6px",
-                border: "1px solid #ddd",
-                fontSize: "14px",
-                fontFamily: "'Source Sans Pro', sans-serif"
-              }}
-            />
-          </div>
-
-          {/* Colonne 5: Bouton suppression */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <button
-              onClick={() => removeRow(i)}
-              className="btn-remove"
-              aria-label="Supprimer cette ligne"
-              style={{ padding: "5px 8px" }}
-            >
-              <i className="fas fa-trash" aria-hidden="true" />
-            </button>
-          </div>
+        ))}
+        <div style={{ marginTop: 12, padding: "10px 4px", background: "#F5F8FA", borderRadius: 6, fontWeight: 600, fontSize: 14 }}>
+          Total exonéré : <Money value={sumExon} />/mois
         </div>
-      ))}
-
-      {/* Footer avec totaux */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "3.2fr 2fr 1.2fr 40px",
-        gap: "12px",
-        marginTop: "16px",
-        padding: "12px 4px",
-        background: "#F5F8FA",
-        borderRadius: "6px",
-        fontWeight: "600",
-        fontSize: "14px"
-      }}>
-        <div>Net mensuel</div>
-        <div></div>
-        <div style={{ color: "#163E67", fontSize: "15px" }}>
-          <Money value={totals.net} />
-        </div>
-        <div></div>
       </div>
 
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "3.2fr 2fr 1.2fr 40px",
-        gap: "12px",
-        marginTop: "8px",
-        padding: "12px 4px",
-        background: "#E8EFF5",
-        borderRadius: "6px",
-        fontWeight: "600",
-        fontSize: "14px"
-      }}>
-        <div>Net annuel</div>
-        <div></div>
-        <div style={{ color: "#163E67", fontSize: "15px" }}>
-          <Money value={totals.net * 12} />
-        </div>
-        <div></div>
+      {/* ── Résumé net ── */}
+      <div className="summary-box">
+        <div><b>Net mensuel ({title}) :</b> <Money value={net} /></div>
+        <div style={{ opacity: 0.75, fontSize: 14 }}>Net annuel : <b><Money value={net * 12} /></b></div>
       </div>
     </div>
   );
@@ -1595,8 +1482,8 @@ function computeApercuExcelLike({ data, pieces }) {
   const D7_netAvantExoSP_Conj_Annuel = round2n(netAvantExoSP_Conj_M * 12);
 
   // Aperçu ligne 8: "Montant net (avec exonérations artistique)"
-  const artDem = sumIrregularArtisticMonthly(data.revenusNets.demandeur.rows);
-  const artConj = data.revenusNets.conjoint.enabled ? sumIrregularArtisticMonthly(data.revenusNets.conjoint.rows) : 0;
+  const artDem = sumIrregularArtisticMonthly(data.revenusNets.demandeur.comptabiliseRows);
+  const artConj = data.revenusNets.conjoint.enabled ? sumIrregularArtisticMonthly(data.revenusNets.conjoint.comptabiliseRows) : 0;
 
   const exoArtDem_Ann = safeNumber(exo.demandeur?.exoArtisteAnnuel, 0); // positif chez toi
   const exoArtConj_Ann = safeNumber(exo.conjoint?.exoArtisteAnnuel, 0);
@@ -2033,10 +1920,10 @@ function computeFromForm(data) {
   const [yearStr] = dateISO.split("-");
   const year = safeNumber(yearStr, 2026);
 
-  const dem = computeNetMonthly(data.revenusNets.demandeur.rows);
+  const dem = computeNetMonthly(data.revenusNets.demandeur);
   const conj = data.revenusNets.conjoint.enabled
-    ? computeNetMonthly(data.revenusNets.conjoint.rows)
-    : { net: 0 };
+    ? computeNetMonthly(data.revenusNets.conjoint)
+    : { net: 0, sumComptabilise: 0, sumExonere: 0 };
 
   const chom = computeChomageOrMutuelleMonthly({ ...data.cmr.chomage, year });
   const mut = computeChomageOrMutuelleMonthly({ ...data.cmr.mutuelle, year });
@@ -2366,10 +2253,13 @@ export default function App() {
                   📋
                 </a>
               </h2>
-              <RowsTable title="Demandeur" rows={data.revenusNets.demandeur.rows}
-                onChangeRows={(rows) => setData(d => ({
-                  ...d, revenusNets: { ...d.revenusNets, demandeur: { ...d.revenusNets.demandeur, rows } }
-                }))} />
+              <RowsTable
+                title="Demandeur"
+                comptabiliseRows={data.revenusNets.demandeur.comptabiliseRows}
+                exonereRows={data.revenusNets.demandeur.exonereRows}
+                onChangeComptabilise={(rows) => setData(d => ({ ...d, revenusNets: { ...d.revenusNets, demandeur: { ...d.revenusNets.demandeur, comptabiliseRows: rows } } }))}
+                onChangeExonere={(rows) => setData(d => ({ ...d, revenusNets: { ...d.revenusNets, demandeur: { ...d.revenusNets.demandeur, exonereRows: rows } } }))}
+              />
 
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <input type="checkbox" checked={data.revenusNets.conjoint.enabled}
@@ -2380,16 +2270,19 @@ export default function App() {
               </div>
 
               {data.revenusNets.conjoint.enabled && (
-                <RowsTable title="Conjoint" rows={data.revenusNets.conjoint.rows}
-                  onChangeRows={(rows) => setData(d => ({
-                    ...d, revenusNets: { ...d.revenusNets, conjoint: { ...d.revenusNets.conjoint, rows } }
-                  }))} />
+                <RowsTable
+                  title="Conjoint"
+                  comptabiliseRows={data.revenusNets.conjoint.comptabiliseRows}
+                  exonereRows={data.revenusNets.conjoint.exonereRows}
+                  onChangeComptabilise={(rows) => setData(d => ({ ...d, revenusNets: { ...d.revenusNets, conjoint: { ...d.revenusNets.conjoint, comptabiliseRows: rows } } }))}
+                  onChangeExonere={(rows) => setData(d => ({ ...d, revenusNets: { ...d.revenusNets, conjoint: { ...d.revenusNets.conjoint, exonereRows: rows } } }))}
+                />
               )}
 
-              {/* ── Exonérations légales (Art. 35) ── */}
+              {/* ── BLOC 3 : Montants exonérés - Insertion socioprofessionnelle ── */}
               <Card title={
                 <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  Exonérations légales (Art. 35 AR)
+                  Montants exonérés — Insertion socioprofessionnelle (Art. 35 AR)
                   <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684907"
                     target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
                     style={{ color: colors.textLight, textDecoration: "none", fontSize: "14px" }}>

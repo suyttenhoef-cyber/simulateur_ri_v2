@@ -279,29 +279,33 @@ export async function generateTableauCPAS(data, result, apercu) {
     // ─── LIGNES DEMANDEUR ───────────────────────────────────────────────────
     const demRows = [];
 
-    for (const row of (data.revenusNets?.demandeur?.rows || [])) {
-      const comp = safeN(row.comptabilise);
-      const exo  = safeN(row.exonere);
-      const net  = comp - exo;
-      if (comp === 0 && exo === 0) continue;
+    // Revenus comptabilisés demandeur
+    for (const row of (data.revenusNets?.demandeur?.comptabiliseRows || [])) {
+      const comp = safeN(row.montant);
+      if (comp === 0) continue;
       const label = row.customLabel || row.label || 'Revenus professionnels';
-      const hauteur = exo > 0
-        ? `${fmt(comp)}/mois − exon. ${fmt(exo)} → net ${fmt(net)}/mois`
-        : `${fmt(comp)}/mois`;
-      demRows.push({ nature: label, hauteur, annuel: r2(net * 12) });
+      demRows.push({ nature: label, hauteur: `${fmt(comp)}/mois`, annuel: r2(comp * 12) });
+    }
+    // Revenus exonérés demandeur (en négatif)
+    for (const row of (data.revenusNets?.demandeur?.exonereRows || [])) {
+      const exo = safeN(row.montant);
+      if (exo === 0) continue;
+      const label = row.type || 'Revenu exonéré';
+      demRows.push({ nature: `Exonéré — ${label}`, hauteur: `−${fmt(exo)}/mois`, annuel: r2(-exo * 12) });
     }
 
     if (data.revenusNets?.conjoint?.enabled) {
-      for (const row of (data.revenusNets.conjoint.rows || [])) {
-        const comp = safeN(row.comptabilise);
-        const exo  = safeN(row.exonere);
-        const net  = comp - exo;
-        if (comp === 0 && exo === 0) continue;
+      for (const row of (data.revenusNets.conjoint.comptabiliseRows || [])) {
+        const comp = safeN(row.montant);
+        if (comp === 0) continue;
         const label = (row.customLabel || row.label || 'Revenus') + ' (conjoint)';
-        const hauteur = exo > 0
-          ? `${fmt(comp)}/mois − exon. ${fmt(exo)} → net ${fmt(net)}/mois`
-          : `${fmt(comp)}/mois`;
-        demRows.push({ nature: label, hauteur, annuel: r2(net * 12) });
+        demRows.push({ nature: label, hauteur: `${fmt(comp)}/mois`, annuel: r2(comp * 12) });
+      }
+      for (const row of (data.revenusNets.conjoint.exonereRows || [])) {
+        const exo = safeN(row.montant);
+        if (exo === 0) continue;
+        const label = (row.type || 'Revenu exonéré') + ' (conjoint)';
+        demRows.push({ nature: `Exonéré — ${label}`, hauteur: `−${fmt(exo)}/mois`, annuel: r2(-exo * 12) });
       }
     }
 
