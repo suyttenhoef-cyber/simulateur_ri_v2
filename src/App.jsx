@@ -22,6 +22,11 @@ if (!document.getElementById('fa-cdn')) {
   document.head.appendChild(link);
 }
 
+// Sélectionner tout le contenu au focus sur les champs numériques (évite "0250")
+document.addEventListener('focusin', (e) => {
+  if (e.target.type === 'number') e.target.select();
+});
+
 // Palette de couleurs
 const colors = {
   primary: "#163E67",      // Bleu foncé
