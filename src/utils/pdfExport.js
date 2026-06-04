@@ -496,6 +496,7 @@ export async function generateTableauCPAS(data, result, apercu) {
         </div>
         <div style="margin-bottom:14px;padding:8px 12px;background:#f0f4f8;border-radius:6px;font-size:14px;">
           <b>${prenomNom}</b> — ${catLabel} — ${data.menage.nbEnfants} enfant(s) à charge
+          &nbsp;|&nbsp; <b>Seuil RI : ${fmt(safeN(apercu?.ri?.riAnnuelBrut))}/an</b> (${fmt(r2(safeN(apercu?.ri?.riAnnuelBrut) / 12))}/mois)
           ${safeN(data.reference.joursPrisEnCompte) > 0 ? ` &nbsp;|&nbsp; Prorata : ${data.reference.joursPrisEnCompte} jours sur ${apercu?.ri?.joursMois || '?'}` : ''}
           ${hasAutreCohabitants ? ` &nbsp;|&nbsp; <span style="color:#b8860b;">⚠ Cohabitant(s) de type « Autre » repris à titre indicatif uniquement — non pris en compte dans le calcul du RI</span>` : ''}
         </div>
