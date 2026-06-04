@@ -465,9 +465,6 @@ export async function generateTableauCPAS(data, result, apercu) {
     const colRI = eligible ? '#155724' : '#721c24';
     tbody += `<tr style="background:${bgRI};">
       ${cell(`<b>${eligible ? '✅ Éligible au RI' : '❌ Non éligible au RI'}</b>`, `color:${colRI};font-weight:bold;`)}
-      ${cell(eligible
-        ? `Seuil RI (${catLabel}) : ${fmt(riSeuil)}`
-        : `Ressources ${fmt(grandTotal)} ≥ seuil ${fmt(riSeuil)}`)}
       ${cell(eligible ? `Mensuel : ${fmt(riMensuel)}` : '', 'font-size:14px;')}
       ${cell(eligible ? '<b>' + fmt(riAnnuel) + '</b>' : '−', 'text-align:right;font-weight:bold;')}
     </tr>`;
