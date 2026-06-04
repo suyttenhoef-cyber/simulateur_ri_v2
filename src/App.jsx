@@ -1515,20 +1515,16 @@ function computeApercuExcelLike({ data, pieces }) {
   const D4_netDem_Annuel = round2n(dem.net * 12);
   const D5_netConj_Annuel = round2n(conj.net * 12);
 
-  // Aperçu ligne 6/7: net après exonérations générales + pénurie (Exoneration!N1/L1), plancher à 0
-  const exoGenDem = safeNumber(exo.demandeur?.exoGeneralMens, 0);
-  const exoPenDem = safeNumber(exo.demandeur?.exoPenurieMens, 0);
-  const exoGenConj = safeNumber(exo.conjoint?.exoGeneralMens, 0);
-  const exoPenConj = safeNumber(exo.conjoint?.exoPenurieMens, 0);
+  // Aperçu ligne 6/7: net après exonérations générales + étudiant + pénurie, plancher à 0
+  const exoGenDem  = safeNumber(exo.demandeur?.exoGeneralMens, 0);
+  const exoEtudDem = safeNumber(exo.demandeur?.exoEtudMens, 0);
+  const exoPenDem  = safeNumber(exo.demandeur?.exoPenurieMens, 0);
+  const exoGenConj  = safeNumber(exo.conjoint?.exoGeneralMens, 0);
+  const exoEtudConj = safeNumber(exo.conjoint?.exoEtudMens, 0);
+  const exoPenConj  = safeNumber(exo.conjoint?.exoPenurieMens, 0);
 
-  const netAvantExoSP_Dem_M = Math.max(dem.net + exoGenDem + exoPenDem, 0);
-  const netAvantExoSP_Conj_M = Math.max(conj.net + exoGenConj + exoPenConj, 0);
-  console.log("DEBUG NET AVANT EXO", {
-  net: dem.net,
-  exoGenDem,
-  exoPenDem,
-  netAvant: netAvantExoSP_Dem_M
-});
+  const netAvantExoSP_Dem_M = Math.max(dem.net + exoGenDem + exoEtudDem + exoPenDem, 0);
+  const netAvantExoSP_Conj_M = Math.max(conj.net + exoGenConj + exoEtudConj + exoPenConj, 0);
 
   const D6_netAvantExoSP_Dem_Annuel = round2n(netAvantExoSP_Dem_M * 12);
   const D7_netAvantExoSP_Conj_Annuel = round2n(netAvantExoSP_Conj_M * 12);
