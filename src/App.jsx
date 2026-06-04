@@ -617,6 +617,7 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
 }
 // Listes officielles des revenus
 const REVENUS_COMPTABILISES_SUGGESTIONS = [
+  { value: "Revenu net professionnel", label: "Revenu net professionnel" },
   { value: "", label: "Sélectionner un type de revenu..." },
   { value: "Accueillante enfants - revenu brut", label: "Accueillante enfants - revenu brut" },
   { value: "Allocation de formation Forem, VDAB ou Actiris", label: "Allocation de formation Forem, VDAB ou Actiris" },
@@ -624,8 +625,8 @@ const REVENUS_COMPTABILISES_SUGGESTIONS = [
   { value: "Allocation de stage Onem (ou Actiris)", label: "Allocation de stage Onem (ou Actiris)" },
   { value: "Avance reçue", label: "Avance reçue" },
   { value: "Bonus de démarrage de l'Onem", label: "Bonus de démarrage de l'Onem" },
-  { value: "Chèque-repas (part patronale)", label: "Chèque-repas (part patronale)" },
-  { value: "Chèque-repas (valeur faciale)", label: "Chèque-repas (valeur faciale)" },
+  { value: "Chèque-repas", label: "Chèque-repas" },
+  { value: "Don régulier", label: "Don régulier" },
   { value: "Eco-Chèque", label: "Eco-Chèque" },
   { value: "Flexijob", label: "Flexijob" },
   { value: "Formation en alternance", label: "Formation en alternance" },
@@ -633,7 +634,6 @@ const REVENUS_COMPTABILISES_SUGGESTIONS = [
   { value: "Indépendant - Revenus nets", label: "Indépendant - Revenus nets" },
   { value: "Indemnité de préavis (pour le mois concerné)", label: "Indemnité de préavis (pour le mois concerné)" },
   { value: "Montant imposable", label: "Montant imposable" },
-  { value: "Montant net versé", label: "Montant net versé" },
   { value: "Montant saisi ou cédé", label: "Montant saisi ou cédé" },
   { value: "PFI - Prime du Forem ou VDAB,...", label: "PFI - Prime du Forem ou VDAB,..." },
   { value: "Revenus d'une activité artistique irrégulière", label: "Revenus d'une activité artistique irrégulière" },
