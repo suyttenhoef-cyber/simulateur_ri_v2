@@ -276,178 +276,263 @@ export async function generateTableauCPAS(data, result, apercu) {
     const prenomNom = [data.identite.prenom, data.identite.nom].filter(Boolean).join(' ') || 'Demandeur';
     const catLabel = categorie === 1 ? 'Cohabitant (Cat. 1)' : categorie === 2 ? 'Isolé (Cat. 2)' : 'Famille (Cat. 3)';
 
-    // ─── LIGNES DEMANDEUR ───────────────────────────────────────────────────
-    const demRows = [];
-
-    // Revenus comptabilisés demandeur
-    for (const row of (data.revenusNets?.demandeur?.comptabiliseRows || [])) {
-      const comp = safeN(row.montant);
-      if (comp === 0) continue;
-      const label = row.customLabel || row.label || 'Revenus professionnels';
-      demRows.push({ nature: label, hauteur: `${fmt(comp)}/mois`, annuel: r2(comp * 12) });
-    }
-    // Revenus exonérés demandeur (en négatif)
-    for (const row of (data.revenusNets?.demandeur?.exonereRows || [])) {
-      const exo = safeN(row.montant);
-      if (exo === 0) continue;
-      const label = row.type || 'Revenu exonéré';
-      demRows.push({ nature: `Exonéré — ${label}`, hauteur: `−${fmt(exo)}/mois`, annuel: r2(-exo * 12) });
-    }
-
-    if (data.revenusNets?.conjoint?.enabled) {
-      for (const row of (data.revenusNets.conjoint.comptabiliseRows || [])) {
-        const comp = safeN(row.montant);
-        if (comp === 0) continue;
-        const label = (row.customLabel || row.label || 'Revenus') + ' (conjoint)';
-        demRows.push({ nature: label, hauteur: `${fmt(comp)}/mois`, annuel: r2(comp * 12) });
-      }
-      for (const row of (data.revenusNets.conjoint.exonereRows || [])) {
-        const exo = safeN(row.montant);
-        if (exo === 0) continue;
-        const label = (row.type || 'Revenu exonéré') + ' (conjoint)';
-        demRows.push({ nature: `Exonéré — ${label}`, hauteur: `−${fmt(exo)}/mois`, annuel: r2(-exo * 12) });
-      }
-    }
-
-    const chomAnnuel = safeN(apercu?.pro?.D9_chom_Annuel);
-    if (chomAnnuel > 0) {
-      const chomJour   = safeN(data.cmr?.chomage?.montantJourAnnuel);
-      const chomJour26 = safeN(data.cmr?.chomage?.montantJour26);
-      const hauteur = chomJour > 0
-        ? `${fmt(chomJour)}/jour × ${nbJours} jours`
-        : chomJour26 > 0
-          ? `${fmt(chomJour26)}/jour × 26 jours/mois`
-          : `${fmt(chomAnnuel / 12)}/mois`;
-      demRows.push({ nature: 'Allocation de chômage', hauteur, annuel: chomAnnuel });
-    }
-
-    const mutAnnuel = safeN(apercu?.pro?.D10_mut_Annuel);
-    if (mutAnnuel > 0) {
-      const mutJour   = safeN(data.cmr?.mutuelle?.montantJourAnnuel);
-      const mutJour26 = safeN(data.cmr?.mutuelle?.montantJour26);
-      const hauteur = mutJour > 0
-        ? `${fmt(mutJour)}/jour × ${nbJours} jours`
-        : mutJour26 > 0
-          ? `${fmt(mutJour26)}/jour × 26 jours/mois`
-          : `${fmt(mutAnnuel / 12)}/mois`;
-      demRows.push({ nature: 'Indemnité de mutuelle', hauteur, annuel: mutAnnuel });
-    }
-
-    const remAnnuel = safeN(apercu?.pro?.D11_rem_Annuel);
-    if (remAnnuel > 0) {
-      const cmrR = data.cmr?.remplacement || {};
-      const subs = [
-        { label: 'Pension',                       val: safeN(cmrR.pensionMensuel) },
-        { label: 'Droit passerelle',              val: safeN(cmrR.droitPasserelleMensuel) },
-        { label: 'Allocation handicapé (ARR)',    val: safeN(cmrR.allocationHandicapeMensuel) },
-        { label: 'Indemnisation perte revenus',   val: safeN(cmrR.indemnisation_perte_revenus) },
-        { label: 'Autre revenu de remplacement',  val: safeN(cmrR.autres_revenus) },
-      ].filter(s => s.val > 0);
-      const hauteur = subs.length === 1
-        ? `${fmt(subs[0].val)}/mois (${subs[0].label})`
-        : subs.map(s => `${s.label} : ${fmt(s.val)}/mois`).join(' + ');
-      demRows.push({ nature: 'Revenus de remplacement', hauteur, annuel: remAnnuel });
-    }
-
-    for (const r of [...(data.ressourcesDiverses?.generales || []), ...(data.ressourcesDiverses?.benevoles || [])]) {
-      const m = safeN(r.montant);
-      if (m > 0) demRows.push({ nature: r.label, hauteur: `${fmt(m)}/mois`, annuel: r2(m * 12) });
-    }
-
-    const totalDemandeur = r2(demRows.reduce((s, r) => s + r.annuel, 0));
-
-    // ─── COHABITANTS ────────────────────────────────────────────────────────
-    const cohDetails = result.cohabitants?.details || [];
-
-    // ─── CONSTRUCTION HTML ──────────────────────────────────────────────────
+    // ─── HELPERS ────────────────────────────────────────────────────────────
     const cell  = (html, style = '') => `<td style="padding:7px 9px;border:1px solid #dee2e6;vertical-align:top;${style}">${html ?? ''}</td>`;
     const hcell = (html, style = '') => `<th style="padding:9px;border:1px solid #1a3e60;text-align:left;${style}">${html}</th>`;
 
+    // En-tête de section (4 colonnes, bordure gauche colorée)
+    const SEC = (title) => `<tr style="background:#eef2f7;">
+      <td colspan="4" style="padding:8px 10px;border:1px solid #dee2e6;font-weight:bold;color:#163E67;border-left:4px solid #2BEBCE;">${title}</td>
+    </tr>`;
+
+    // Ligne de données : personne | nature | hauteur | montant annuel
+    const ROW = (person, nature, hauteur, annuel, neg = false) => `<tr>
+      ${cell(`<b>${person}</b>`)}
+      ${cell(nature)}
+      ${cell(hauteur || '', 'color:#444;')}
+      ${cell((neg ? '−' : '') + fmt(Math.abs(annuel)), 'text-align:right;' + (neg ? 'color:#c0392b;' : ''))}
+    </tr>`;
+
+    // Ligne de sous-total
+    const SUBTOT = (label, annuel) => `<tr style="background:#f0f4f8;">
+      <td colspan="3" style="padding:7px 9px;border:1px solid #dee2e6;font-style:italic;color:#555;">${label}</td>
+      <td style="padding:7px 9px;border:1px solid #dee2e6;text-align:right;font-weight:bold;color:#163E67;">${fmt(annuel)}</td>
+    </tr>`;
+
+    // Séparateur léger
+    const SEP = () => `<tr><td colspan="4" style="padding:0;height:1px;background:#dee2e6;border:none;"></td></tr>`;
+
+    // Séparateur fort (entre grandes sections)
+    const SEP_STRONG = () => `<tr><td colspan="4" style="padding:0;height:3px;background:#163E67;border:none;"></td></tr>`;
+
+    // Constantes apercu
+    const cohDetails = result.cohabitants?.details || [];
+    const hasAutreCohabitants = cohDetails.some(c => c.type === 'Autre' && safeN(c.ressourcesTotale) > 0);
+
     let tbody = '';
 
-    // Demandeur
-    if (demRows.length === 0) {
-      tbody += `<tr>
-        ${cell(`<b>${prenomNom}</b><br/><span style="color:#666;font-size:14px;">${catLabel}</span>`, 'background:#f8f9fa;')}
-        ${cell('Aucun revenu enregistré', 'color:#aaa;font-style:italic;')}
-        ${cell('')}${cell('0,00 €', 'text-align:right;')}
-      </tr>`;
-    } else {
-      tbody += `<tr>
-        <td rowspan="${demRows.length + 1}" style="padding:7px 9px;border:1px solid #dee2e6;vertical-align:top;background:#f8f9fa;font-weight:bold;">
-          ${prenomNom}<br/><span style="font-weight:normal;color:#555;font-size:14px;">${catLabel}</span>
-        </td>
-        ${cell(demRows[0].nature)}
-        ${cell(demRows[0].hauteur, 'font-size:14px;color:#444;')}
-        ${cell(fmt(demRows[0].annuel), 'text-align:right;')}
-      </tr>`;
-      for (let i = 1; i < demRows.length; i++) {
-        tbody += `<tr>
-          ${cell(demRows[i].nature)}
-          ${cell(demRows[i].hauteur, 'font-size:14px;color:#444;')}
-          ${cell(fmt(demRows[i].annuel), 'text-align:right;')}
-        </tr>`;
+    // ════════════════════════════════════════════════════════════════════
+    // SECTION 1 — Revenus professionnels nets
+    // ════════════════════════════════════════════════════════════════════
+    const comptAnnuel = r2(
+      (data.revenusNets?.demandeur?.comptabiliseRows || []).reduce((s, r) => s + safeN(r.montant), 0) * 12 +
+      (data.revenusNets?.conjoint?.enabled
+        ? (data.revenusNets.conjoint.comptabiliseRows || []).reduce((s, r) => s + safeN(r.montant), 0) * 12
+        : 0)
+    );
+    if (comptAnnuel > 0) {
+      tbody += SEC('Revenus professionnels nets');
+      for (const row of (data.revenusNets?.demandeur?.comptabiliseRows || [])) {
+        const m = safeN(row.montant);
+        if (!m) continue;
+        tbody += ROW(prenomNom, row.customLabel || row.label || 'Revenus professionnels', `${fmt(m)}/mois`, r2(m * 12));
       }
-      tbody += `<tr style="background:#eaf3ea;">
-        ${cell('<b>Sous-total ' + prenomNom + '</b>', 'font-style:italic;')}
-        ${cell('')}
-        ${cell('<b>' + fmt(totalDemandeur) + '</b>', 'text-align:right;font-weight:bold;')}
-      </tr>`;
+      if (data.revenusNets?.conjoint?.enabled) {
+        for (const row of (data.revenusNets.conjoint.comptabiliseRows || [])) {
+          const m = safeN(row.montant);
+          if (!m) continue;
+          tbody += ROW('Conjoint', row.customLabel || row.label || 'Revenus professionnels', `${fmt(m)}/mois`, r2(m * 12));
+        }
+      }
+      tbody += SEP();
     }
 
-    // Séparateur
-    tbody += `<tr><td colspan="4" style="padding:0;height:3px;background:#163E67;border:none;"></td></tr>`;
-
-    // Cohabitants (on ignore les lignes vides sans ressources ni nom)
-    const hasAutreCohabitants = cohDetails.some(c => c.type === 'Autre' && safeN(c.ressourcesTotale) > 0);
-    for (const coh of cohDetails) {
-      if (safeN(coh.ressourcesTotale) === 0) continue;
-      const catLabelCoh = coh.categorie === 1 ? 'Cat. 1 - Cohabitant' : coh.categorie === 2 ? 'Cat. 2 - Isolé' : 'Cat. 3 - Famille';
-      const cohName  = coh.nom  || 'Cohabitant';
-      const cohType  = coh.type || 'Ascendant/Descendant';
-      const isIndicatif = coh.type === 'Autre';
-      const hasExced = !isIndicatif && coh.excedent > 0;
-      const reportAn = r2(coh.montantReporte * 12);
-
-      if (isIndicatif) {
-        // Cohabitant "Autre" : 2 lignes (ressources + mention indicatif)
-        tbody += `<tr>
-          <td rowspan="2" style="padding:7px 9px;border:1px solid #dee2e6;vertical-align:top;background:#f8f9fa;font-weight:bold;">
-            ${cohName}<br/><span style="font-weight:normal;color:#888;font-size:14px;font-style:italic;">${cohType} — indicatif</span>
-          </td>
-          ${cell('Ressources annuelles totales')}
-          ${cell(fmt(coh.ressourcesTotale) + '/an', 'color:#444;')}
-          ${cell(fmt(coh.ressourcesTotale), 'text-align:right;color:#aaa;')}
-        </tr>
-        <tr style="background:#fdf6e3;">
-          ${cell('<i style="color:#b8860b;">À titre indicatif uniquement — non reporté dans le calcul du RI</i>', 'colspan:3;')}
-        </tr>`;
-      } else {
-        // Cohabitant normal : 3 lignes
-        tbody += `<tr>
-          <td rowspan="3" style="padding:7px 9px;border:1px solid #dee2e6;vertical-align:top;background:#f8f9fa;font-weight:bold;">
-            ${cohName}<br/><span style="font-weight:normal;color:#555;font-size:14px;">${cohType}</span>
-          </td>
-          ${cell('Ressources annuelles totales')}
-          ${cell(fmt(coh.ressourcesTotale) + '/an', 'color:#444;')}
-          ${cell(fmt(coh.ressourcesTotale), 'text-align:right;')}
-        </tr>
-        <tr>
-          ${cell('Seuil RI (' + catLabelCoh + ')')}
-          ${cell('Seuil à ne pas dépasser : ' + fmt(coh.seuilRI), 'color:#444;')}
-          ${cell('−' + fmt(coh.seuilRI), 'text-align:right;color:#888;')}
-        </tr>
-        <tr style="${hasExced ? 'background:#fff8dc;' : ''}">
-          ${cell(hasExced ? '<b>Montant excédant le seuil (reporté)</b>' : `<i style="color:#888;">${coh.message || "Pas d'excédent"}</i>`)}
-          ${cell(hasExced ? fmt(coh.montantMensuel) + '/mois' : '', 'color:#444;')}
-          ${cell(hasExced ? '<b>' + fmt(reportAn) + '</b>' : fmt(0), 'text-align:right;' + (hasExced ? 'font-weight:bold;color:#163E67;' : 'color:#aaa;'))}
-        </tr>`;
+    // ════════════════════════════════════════════════════════════════════
+    // SECTION 2 — Revenus professionnels exonérés (par ligne)
+    // ════════════════════════════════════════════════════════════════════
+    const exonLigneAnnuel = r2(
+      (data.revenusNets?.demandeur?.exonereRows || []).reduce((s, r) => s + safeN(r.montant), 0) * 12 +
+      (data.revenusNets?.conjoint?.enabled
+        ? (data.revenusNets.conjoint.exonereRows || []).reduce((s, r) => s + safeN(r.montant), 0) * 12
+        : 0)
+    );
+    if (exonLigneAnnuel > 0) {
+      tbody += SEC('Revenus professionnels exonérés');
+      for (const row of (data.revenusNets?.demandeur?.exonereRows || [])) {
+        const m = safeN(row.montant);
+        if (!m) continue;
+        tbody += ROW(prenomNom, row.type || 'Revenu exonéré', `${fmt(m)}/mois`, r2(m * 12), true);
       }
-
-      tbody += `<tr><td colspan="4" style="padding:0;height:1px;background:#dee2e6;border:none;"></td></tr>`;
+      if (data.revenusNets?.conjoint?.enabled) {
+        for (const row of (data.revenusNets.conjoint.exonereRows || [])) {
+          const m = safeN(row.montant);
+          if (!m) continue;
+          tbody += ROW('Conjoint', row.type || 'Revenu exonéré', `${fmt(m)}/mois`, r2(m * 12), true);
+        }
+      }
+      tbody += SEP();
     }
 
-    // Total général
+    // ════════════════════════════════════════════════════════════════════
+    // SECTION 3 — Exonérations légales Art. 35 (général / étudiant / pénurie)
+    // ════════════════════════════════════════════════════════════════════
+    const art35DemAn = r2(safeN(apercu?.pro?.D4_netDem_Annuel) - safeN(apercu?.pro?.D6_netAvantExoSP_Dem_Annuel));
+    const art35ConjAn = r2(safeN(apercu?.pro?.D5_netConj_Annuel) - safeN(apercu?.pro?.D7_netAvantExoSP_Conj_Annuel));
+    if (art35DemAn > 0 || art35ConjAn > 0) {
+      tbody += SEC('Montants exonérés — Insertion socioprofessionnelle (Art. 35 AR)');
+      if (art35DemAn > 0)
+        tbody += ROW(prenomNom, 'Exonération Art. 35 (général / étudiant / pénurie)', `${fmt(art35DemAn / 12)}/mois`, art35DemAn, true);
+      if (art35ConjAn > 0)
+        tbody += ROW('Conjoint', 'Exonération Art. 35 (général / étudiant / pénurie)', `${fmt(art35ConjAn / 12)}/mois`, art35ConjAn, true);
+      tbody += SEP();
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // SECTION 4 — Chômage / Mutuelle / Remplacement
+    // ════════════════════════════════════════════════════════════════════
+    const chomAnnuel = safeN(apercu?.pro?.D9_chom_Annuel);
+    const mutAnnuel  = safeN(apercu?.pro?.D10_mut_Annuel);
+    const remAnnuel  = safeN(apercu?.pro?.D11_rem_Annuel);
+    if (chomAnnuel + mutAnnuel + remAnnuel > 0) {
+      tbody += SEC('Chômage / Mutuelle / Remplacement');
+      if (chomAnnuel > 0) {
+        const cj = safeN(data.cmr?.chomage?.montantJourAnnuel);
+        const cj26 = safeN(data.cmr?.chomage?.montantJour26);
+        const h = cj > 0 ? `${fmt(cj)}/jour × ${nbJours} jours` : cj26 > 0 ? `${fmt(cj26)}/jour × 26` : `${fmt(chomAnnuel / 12)}/mois`;
+        tbody += ROW(prenomNom, 'Allocation de chômage', h, chomAnnuel);
+      }
+      if (mutAnnuel > 0) {
+        const mj = safeN(data.cmr?.mutuelle?.montantJourAnnuel);
+        const mj26 = safeN(data.cmr?.mutuelle?.montantJour26);
+        const h = mj > 0 ? `${fmt(mj)}/jour × ${nbJours} jours` : mj26 > 0 ? `${fmt(mj26)}/jour × 26` : `${fmt(mutAnnuel / 12)}/mois`;
+        tbody += ROW(prenomNom, 'Indemnité de mutuelle', h, mutAnnuel);
+      }
+      if (remAnnuel > 0) {
+        const cmrR = data.cmr?.remplacement || {};
+        const subs = [
+          { label: 'Pension',                      val: safeN(cmrR.pensionMensuel) },
+          { label: 'Droit passerelle',             val: safeN(cmrR.droitPasserelleMensuel) },
+          { label: 'Allocation handicapé (ARR)',   val: safeN(cmrR.allocationHandicapeMensuel) },
+          { label: 'Indemnisation perte revenus',  val: safeN(cmrR.indemnisation_perte_revenus) },
+          { label: 'Autre revenu remplacement',    val: safeN(cmrR.autres_revenus) },
+        ].filter(s => s.val > 0);
+        subs.forEach(s => tbody += ROW(prenomNom, s.label, `${fmt(s.val)}/mois`, r2(s.val * 12)));
+      }
+      tbody += SEP();
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // SECTION 5 — Ressources diverses
+    // ════════════════════════════════════════════════════════════════════
+    const divItems = [...(data.ressourcesDiverses?.generales || []), ...(data.ressourcesDiverses?.benevoles || [])].filter(r => safeN(r.montant) > 0);
+    if (divItems.length > 0) {
+      tbody += SEC('Ressources diverses');
+      divItems.forEach(r => tbody += ROW(prenomNom, r.label, `${fmt(safeN(r.montant))}/mois`, r2(safeN(r.montant) * 12)));
+      tbody += SEP();
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // SECTION 6 — Avantages en nature
+    // ════════════════════════════════════════════════════════════════════
+    const avantItems = [
+      { label: 'Charges locatives prises en charge par un tiers',      val: safeN(data.avantages?.chargesLocativesTiers) },
+      { label: 'Loyer fictif évalué par un professionnel',             val: safeN(data.avantages?.loyerFictifProfessionnel) },
+      { label: 'Loyer fictif (simulateur / grille de loyers)',         val: safeN(data.avantages?.loyerFictifSimulateur) },
+      { label: 'Prêt hypothécaire pris en charge par un tiers',       val: safeN(data.avantages?.pretHypothecaireTiers) },
+    ].filter(a => a.val > 0);
+    if (avantItems.length > 0) {
+      tbody += SEC('Avantages en nature');
+      avantItems.forEach(a => tbody += ROW(prenomNom, a.label, `${fmt(a.val)}/mois`, r2(a.val * 12)));
+      tbody += SEP();
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // SECTION 7 — Biens mobiliers
+    // ════════════════════════════════════════════════════════════════════
+    const bmAnnuel = safeN(apercu?.autres?.D20_mobiliers_Annuel);
+    if (bmAnnuel > 0) {
+      const bm = data.biensMobiliers || {};
+      tbody += SEC('Biens mobiliers');
+      tbody += ROW(prenomNom, 'Capital mobilier', `${fmt(safeN(bm.montantCapital))} × ${safeN(bm.partConcernee)}%`, bmAnnuel);
+      tbody += SEP();
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // SECTION 8 — Biens immobiliers
+    // ════════════════════════════════════════════════════════════════════
+    const immoAnnuel = safeN(apercu?.autres?.D23_immobiliers_Annuel);
+    if (immoAnnuel > 0) {
+      tbody += SEC('Biens immobiliers');
+      for (const bien of (data.biensImmobiliers?.rows || [])) {
+        const rc = safeN(bien.rcNonIndexe);
+        const loyer = safeN(bien.loyerAnnuel);
+        const type = bien.typeBien || 'Bien immobilier';
+        const loc = bien.localisation ? ` (${bien.localisation})` : '';
+        const hauteur = rc > 0 ? `RC non indexé : ${fmt(rc)} × ${safeN(bien.quotePart)}%` : loyer > 0 ? `Loyer : ${fmt(loyer)}/an` : '—';
+        tbody += ROW(prenomNom, type + loc, hauteur, 0);
+      }
+      tbody += SUBTOT('Total biens immobiliers (calculé)', immoAnnuel);
+      tbody += SEP();
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // SECTION 9 — Cessions de biens
+    // ════════════════════════════════════════════════════════════════════
+    const cessionsAnnuel = safeN(apercu?.autres?.D26_cessions_Annuel);
+    if (cessionsAnnuel > 0) {
+      tbody += SEC('Cessions de biens');
+      for (const c of (data.cessionsBiens?.rows || [])) {
+        const vv = safeN(c.valeurVenale);
+        if (!vv) continue;
+        const type = c.typeBien || 'Bien cédé';
+        const nat = c.natureCession || 'Cession';
+        const hauteur = `${nat} — Valeur vénale : ${fmt(vv)} × ${safeN(c.partConcernee)}% (${c.titrePropriete || 'P.P.'})`;
+        tbody += ROW(prenomNom, type, hauteur, 0);
+      }
+      tbody += SUBTOT('Total cessions (calculé)', cessionsAnnuel);
+      tbody += SEP();
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // SECTION 10 — Cohabitants
+    // ════════════════════════════════════════════════════════════════════
+    const hasCohabitantsData = cohDetails.some(c => safeN(c.ressourcesTotale) > 0);
+    if (hasCohabitantsData) {
+      tbody += SEC('Revenus des cohabitants');
+      for (const coh of cohDetails) {
+        if (safeN(coh.ressourcesTotale) === 0) continue;
+        const catLabelCoh = coh.categorie === 1 ? 'Cat. 1 - Cohabitant' : coh.categorie === 2 ? 'Cat. 2 - Isolé' : 'Cat. 3 - Famille';
+        const cohName    = coh.nom  || 'Cohabitant';
+        const cohType    = coh.type || 'Ascendant/Descendant';
+        const isIndicatif = coh.type === 'Autre';
+        const hasExced   = !isIndicatif && coh.excedent > 0;
+        const reportAn   = r2(coh.montantReporte * 12);
+
+        tbody += ROW(
+          `${cohName}<br/><span style="font-size:13px;font-weight:normal;color:#666;">${cohType}${isIndicatif ? ' — indicatif' : ''}</span>`,
+          'Ressources annuelles totales',
+          `${fmt(coh.ressourcesTotale)}/an`,
+          coh.ressourcesTotale
+        );
+
+        if (!isIndicatif) {
+          tbody += ROW('', `Seuil RI (${catLabelCoh})`, `Seuil : ${fmt(coh.seuilRI)}`, coh.seuilRI, true);
+          if (hasExced) {
+            tbody += `<tr style="background:#fff8dc;">
+              ${cell('')}
+              ${cell('<b>Excédent reporté</b>')}
+              ${cell(fmt(coh.montantMensuel) + '/mois', 'color:#444;')}
+              ${cell('<b>' + fmt(reportAn) + '</b>', 'text-align:right;font-weight:bold;color:#163E67;')}
+            </tr>`;
+          } else {
+            tbody += `<tr><td></td>${cell(`<i style="color:#888;">${coh.message || "Pas d'excédent"}</i>`, 'colspan:3;')}${cell(fmt(0), 'text-align:right;color:#aaa;')}</tr>`;
+          }
+        } else {
+          tbody += `<tr style="background:#fdf6e3;"><td></td>
+            <td colspan="3" style="padding:7px 9px;border:1px solid #dee2e6;font-style:italic;color:#b8860b;">
+              À titre indicatif uniquement — non reporté dans le calcul du RI
+            </td>
+          </tr>`;
+        }
+        tbody += SEP();
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // TOTAL C37 + RÉSULTAT RI
+    // ════════════════════════════════════════════════════════════════════
+    tbody += SEP_STRONG();
+
     const grandTotal = safeN(apercu?.C37_totalRessourcesAnnuelles);
     tbody += `<tr style="background:#163E67;color:white;">
       ${cell('<b>TOTAL DES RESSOURCES (C37)</b>', 'color:white;font-weight:bold;border-color:#163E67;')}
@@ -456,16 +541,15 @@ export async function generateTableauCPAS(data, result, apercu) {
       ${cell('<b>' + fmt(grandTotal) + '</b>', 'text-align:right;font-weight:bold;color:white;border-color:#163E67;')}
     </tr>`;
 
-    // Résultat RI
     const eligible  = result.eligible;
     const riAnnuel  = safeN(apercu?.ri?.C43_riAnnuelNet);
     const riMensuel = safeN(apercu?.ri?.E45_montantMensuel);
-    const riSeuil   = safeN(apercu?.ri?.riAnnuelBrut);
     const bgRI = eligible ? '#d4edda' : '#f8d7da';
     const colRI = eligible ? '#155724' : '#721c24';
     tbody += `<tr style="background:${bgRI};">
       ${cell(`<b>${eligible ? '✅ Éligible au RI' : '❌ Non éligible au RI'}</b>`, `color:${colRI};font-weight:bold;`)}
-      ${cell(eligible ? `Mensuel : ${fmt(riMensuel)}` : '', 'font-size:14px;')}
+      ${cell(eligible ? `Seuil RI (${catLabel}) : ${fmt(safeN(apercu?.ri?.riAnnuelBrut))}` : `Ressources (${fmt(grandTotal)}) ≥ seuil (${fmt(safeN(apercu?.ri?.riAnnuelBrut))})`)}
+      ${cell(eligible ? `Mensuel : ${fmt(riMensuel)}` : '')}
       ${cell(eligible ? '<b>' + fmt(riAnnuel) + '</b>' : '−', 'text-align:right;font-weight:bold;')}
     </tr>`;
 
