@@ -535,7 +535,7 @@ export async function generateTableauCPAS(data, result, apercu) {
 
     const grandTotal = safeN(apercu?.C37_totalRessourcesAnnuelles);
     tbody += `<tr style="background:#163E67;color:white;">
-      ${cell('<b>TOTAL DES RESSOURCES (C37)</b>', 'color:white;font-weight:bold;border-color:#163E67;')}
+      ${cell('<b>TOTAL DES RESSOURCES</b>', 'color:white;font-weight:bold;border-color:#163E67;')}
       ${cell('', 'border-color:#163E67;')}
       ${cell('', 'border-color:#163E67;')}
       ${cell('<b>' + fmt(grandTotal) + '</b>', 'text-align:right;font-weight:bold;color:white;border-color:#163E67;')}
@@ -548,7 +548,6 @@ export async function generateTableauCPAS(data, result, apercu) {
     const colRI = eligible ? '#155724' : '#721c24';
     tbody += `<tr style="background:${bgRI};">
       ${cell(`<b>${eligible ? '✅ Éligible au RI' : '❌ Non éligible au RI'}</b>`, `color:${colRI};font-weight:bold;`)}
-      ${cell(eligible ? `Seuil RI (${catLabel}) : ${fmt(safeN(apercu?.ri?.riAnnuelBrut))}` : `Ressources (${fmt(grandTotal)}) ≥ seuil (${fmt(safeN(apercu?.ri?.riAnnuelBrut))})`)}
       ${cell(eligible ? `Mensuel : ${fmt(riMensuel)}` : '')}
       ${cell(eligible ? '<b>' + fmt(riAnnuel) + '</b>' : '−', 'text-align:right;font-weight:bold;')}
     </tr>`;
