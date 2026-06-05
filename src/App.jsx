@@ -97,7 +97,7 @@ const SECTIONS = [
   { id: "cessions_biens",    label: "Cessions",             icon: "fa-building" },
   { id: "biens_mobiliers",   label: "Biens mobiliers",      icon: "fa-coins" },
   { id: "biens_immobiliers", label: "Immobiliers",          icon: "fa-house" },
-  { id: "ressources_diverses", label: "Ressources diverses", icon: "fa-chart-bar" },
+  { id: "ressources_diverses", label: "Allocations & ressources diverses", icon: "fa-chart-bar" },
   { id: "cohabitants",       label: "Revenus cohabitants",  icon: "fa-people-group" },
   { id: "apercu",            label: "Aperçu",               icon: "fa-table-list" },
 ];
@@ -2522,7 +2522,7 @@ export default function App() {
 
           {active === "ressources_diverses" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Ressources diverses</h2>
+              <h2 style={{ marginTop: 0 }}>Allocations & ressources diverses</h2>
               <Card title="Ressources diverses générales">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
                   {data.ressourcesDiverses.generales.map((r, i) => (
@@ -2659,9 +2659,9 @@ export default function App() {
 
                   <Row highlight label="TOTAL des ressources professionnelles (mensuel)" mensuel={apercu.pro.F8_totalProratises_M} annuel={apercu.pro.F8_totalProratises_M * 12} total={apercu.pro.F8_totalProratises_M * 12} />
 
-                  {/* Ressources diverses */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Ressources diverses</td></tr>
-                  <Row label="Montant total des ressources diverses" mensuel={apercu.autres.D17_diverses_Annuel / 12} annuel={apercu.autres.D17_diverses_Annuel} total={apercu.autres.D17_diverses_Annuel} />
+                  {/* Allocaciones & ressources diverses */}
+                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Allocations & ressources diverses</td></tr>
+                  <Row label="Montant total des allocations & ressources diverses" mensuel={apercu.autres.D17_diverses_Annuel / 12} annuel={apercu.autres.D17_diverses_Annuel} total={apercu.autres.D17_diverses_Annuel} />
 
                   {/* Ressources de biens immobiliers */}
                   <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Ressources de biens immobiliers</td></tr>
