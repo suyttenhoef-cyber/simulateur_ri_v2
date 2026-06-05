@@ -891,22 +891,16 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
 
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Dettes (€)</span>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     value={cession.dettesPersonnelles}
                     onChange={(e) => updateRow(i, { dettesPersonnelles: safeNumber(e.target.value, 0) })}
-                    style={{ padding: "6px", opacity: cession.natureCession === "Cession à titre gratuit" ? 0.5 : 1 }}
+                    style={{ padding: "6px", opacity: cession.natureCession === "Cession à titre gratuit" ? 0.45 : 1 }}
                     disabled={cession.natureCession === "Cession à titre gratuit"}
                   />
-                  {cession.natureCession === "Cession à titre gratuit" && (
-                    <span style={{ fontSize: 14, color: "#666" }}>Non applicable pour cession gratuite</span>
-                  )}
-                </label>
-                <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>Dettes (€)</span>
-                  <input type="number" value={cession.dettesPersonnelles}
-                    onChange={(e) => updateRow(i, { dettesPersonnelles: safeNumber(e.target.value, 0) })}
-                    style={{ padding: "6px" }} />
+                  <span style={{ fontSize: 14, color: "#666", visibility: cession.natureCession === "Cession à titre gratuit" ? "visible" : "hidden" }}>
+                    Non applicable pour cession gratuite
+                  </span>
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
