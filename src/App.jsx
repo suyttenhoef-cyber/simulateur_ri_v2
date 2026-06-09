@@ -357,8 +357,8 @@ function calculateCessionDetailed(cession, categorie) {
   let montantConsideration = montantVenal - dettesApplicables - trancheImmunisee - abattement - dispenseEquite;
   montantConsideration = Math.max(montantConsideration, 0);
   
-  const tranche1 = montantConsideration === 0 ? 0 : round2(Math.min(SEUIL_CESSION_T1, montantConsideration) * part);
-  const tranche2 = montantConsideration > SEUIL_CESSION_T1 ? round2(Math.min(SEUIL_CESSION_T2, montantConsideration) * part) : 0;
+  const tranche1 = montantConsideration === 0 ? 0 : Math.min(SEUIL_CESSION_T1, montantConsideration);
+  const tranche2 = montantConsideration > SEUIL_CESSION_T1 ? Math.min(SEUIL_CESSION_T2, montantConsideration) : 0;
   const tranche3 = montantConsideration > SEUIL_CESSION_T2 ? montantConsideration : 0;
   
   const revenu1 = 0;
