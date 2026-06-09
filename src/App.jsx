@@ -471,7 +471,7 @@ function computeCohabitantsTotal(rows, referenceDate) {
 }
 
 // 3. Composant CohabitantsTable (inspiré de BiensImmobiliersTable)
-function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
+function CohabitantsTable({ rows, onChangeRows, referenceDate, onOpenFiche }) {
   const totals = useMemo(() => 
     computeCohabitantsTotal(rows, referenceDate), 
     [rows, referenceDate]
@@ -525,7 +525,12 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate }) {
                     onChange={(e) => updateRow(i, { ressourcesTotale: safeNumber(e.target.value, 0) })} />
 
                   {/* Prise en charge */}
-                  <Field label="Prise en charge">
+                  <Field label={
+                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      Prise en charge
+                      <FicheBtn ficheKey="prise_en_charge" onOpen={onOpenFiche} />
+                    </span>
+                  }>
                     <select
                       value={r.priseEnCharge}
                       onChange={(e) => {
@@ -1995,12 +2000,111 @@ function computeFromForm(data) {
     apercu,
     cohabitants: cohabitantsTotals // ← AJOUT
   };
-} 
+}
+
+// ─── Fiches pratiques CPASConnect ────────────────────────────────────────────
+const FICHES_PRATIQUES = {
+  // ── En-têtes de sections ──────────────────────────────────────────────────
+  revenus_nets:          { titre: "Revenus nets professionnels",                        url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684897" },
+  cmr:                   { titre: "Chômage / Mutuelle / Remplacement",                 url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684905" },
+  avantages:             { titre: "Avantages en nature",                               url: null },
+  cessions_biens:        { titre: "Cession de biens",                                  url: null },
+  biens_immobiliers:     { titre: "Biens immobiliers",                                 url: null },
+  biens_mobiliers:       { titre: "Biens mobiliers",                                   url: null },
+  ressources_diverses:   { titre: "Allocations & ressources diverses",                 url: null },
+  cohabitants:           { titre: "Revenus des cohabitants",                           url: null },
+  // ── Sous-catégories ───────────────────────────────────────────────────────
+  date_reference:        { titre: "Date de référence (barème)",                        url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684678" },
+  insertion_sociopro:    { titre: "Montants exonérés — Insertion socioprofessionnelle", url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907" },
+  exo_generale_etudiant: { titre: "Exonération Pro. générale / étudiants",             url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907" },
+  exo_penurie:           { titre: "Exonération Pro. pénurie",                          url: "https://myportal.vandenbroeleconnect.be/perma/149746886634385151" },
+  jours_compteur:        { titre: "Jours compteur socioprofessionnel",                 url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684897" },
+  chomage:               { titre: "Chômage",                                           url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684905" },
+  mutuelle:              { titre: "Mutuelle",                                          url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684905" },
+  remplacement:          { titre: "Revenu de remplacement",                            url: null },
+  handicape_arr:         { titre: "Allocation d'Handicapé ARR",                        url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684880" },
+  autre_remplacement:    { titre: "Autre revenu de remplacement",                      url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684904" },
+  prise_en_charge:       { titre: "Prise en charge cohabitant",                        url: null },
+};
+
+function FicheBtn({ ficheKey, onOpen }) {
+  const fiche = FICHES_PRATIQUES[ficheKey];
+  if (!fiche?.url) return null;
+  return (
+    <button
+      onClick={() => onOpen(ficheKey)}
+      title={`Fiche pratique : ${fiche.titre}`}
+      style={{
+        background: "transparent", border: "none", cursor: "pointer",
+        fontSize: "16px", color: "#7F8C8D", padding: "0 2px", lineHeight: 1,
+        display: "inline-flex", alignItems: "center",
+      }}
+    >
+      📋
+    </button>
+  );
+}
+
+function FicheModal({ fiche, onClose }) {
+  if (!fiche) return null;
+  return (
+    <div
+      style={{
+        position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)",
+        zIndex: 1000, display: "flex", alignItems: "center",
+        justifyContent: "center", padding: "20px",
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: "white", borderRadius: "12px",
+          width: "min(920px, 95vw)", height: "min(88vh, 820px)",
+          display: "flex", flexDirection: "column", overflow: "hidden",
+          boxShadow: "0 8px 40px rgba(0,0,0,0.28)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "14px 20px", background: "#163E67", color: "white",
+          borderRadius: "12px 12px 0 0", flexShrink: 0,
+        }}>
+          <span style={{ fontWeight: 700, fontSize: "16px" }}>{fiche.titre}</span>
+          <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
+            <a
+              href={fiche.url} target="_blank" rel="noopener noreferrer"
+              style={{ color: "#2BEBCE", fontSize: "13px", textDecoration: "none", fontWeight: 600 }}
+            >
+              Ouvrir dans un nouvel onglet ↗
+            </a>
+            <button
+              onClick={onClose}
+              style={{
+                background: "transparent", border: "none", color: "white",
+                fontSize: "22px", cursor: "pointer", padding: "0 4px", lineHeight: 1,
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+        <iframe
+          src={fiche.url} title={fiche.titre}
+          style={{ flex: 1, border: "none", width: "100%" }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [active, setActive] = useState("informations");
   const [data, setData] = useState(defaultData); // Une seule déclaration ici
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isGeneratingTableau, setIsGeneratingTableau] = useState(false);
+  const [ficheOuverte, setFicheOuverte] = useState(null);
+  const openFiche = (key) => { const f = FICHES_PRATIQUES[key]; if (f?.url) setFicheOuverte(f); };
 
   const handleExportPDF = async () => {
     if (!result || !apercu) {
@@ -2085,22 +2189,10 @@ export default function App() {
                 }}>
                   <Input
                     label={
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <span>Date de référence (barème)</span>
-                        <a 
-                          href="https://myportal.vandenbroeleconnect.be/perma/149746886634684678" 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          title="Documentation CPASConnect"
-                          style={{ 
-                            color: colors.textLight,
-                            textDecoration: "none",
-                            fontSize: "14px"
-                          }}
-                        >
-                          📋
-                        </a>
-                      </div>
+                      <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        Date de référence (barème)
+                        <FicheBtn ficheKey="date_reference" onOpen={openFiche} />
+                      </span>
                     }
                     type="date"
                     value={data.reference.dateISO}
@@ -2233,19 +2325,7 @@ export default function App() {
             <section style={{ display: "grid", gap: 12 }}>
               <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
                 Revenus nets
-                <a 
-                  href="https://myportal.vandenbroeleconnect.be/perma/149746886634684897" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  title="Documentation CPASConnect"
-                  style={{ 
-                    color: colors.textLight,
-                    textDecoration: "none",
-                    fontSize: "14px"
-                  }}
-                >
-                  📋
-                </a>
+                <FicheBtn ficheKey="revenus_nets" onOpen={openFiche} />
               </h2>
               <RowsTable
                 title="Demandeur"
@@ -2277,11 +2357,7 @@ export default function App() {
               <Card title={
                 <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   Montants exonérés — Insertion socioprofessionnelle (Art. 35 AR)
-                  <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684907"
-                    target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                    style={{ color: colors.textLight, textDecoration: "none", fontSize: "14px" }}>
-                    📋
-                  </a>
+                  <FicheBtn ficheKey="insertion_sociopro" onOpen={openFiche} />
                 </span>
               }>
                 {/* Résumé calculé */}
@@ -2325,26 +2401,22 @@ export default function App() {
                   <div className="card" style={{ padding: 16 }}>
                     <h3 style={{ marginTop: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>Demandeur</h3>
                     {[
-                      { key: "general",   label: "Exonération Pro. générale",           link: "149746886634684907" },
-                      { key: "etudiant",  label: "Exonération Pro. étudiants",          link: "149746886634684907" },
-                      { key: "penurie",   label: "Exonération Pro pénurie",            link: "149746886634385151" },
-                    ].map(({ key, label, link }) => (
+                      { key: "general",  label: "Exonération Pro. générale",  ficheKey: "exo_generale_etudiant" },
+                      { key: "etudiant", label: "Exonération Pro. étudiants", ficheKey: "exo_generale_etudiant" },
+                      { key: "penurie",  label: "Exonération Pro pénurie",    ficheKey: "exo_penurie" },
+                    ].map(({ key, label, ficheKey }) => (
                       <label key={key} style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
                         <input type="checkbox"
                           checked={!!data.exoneration.demandeur[key]}
                           onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration,
                             demandeur: { ...d.exoneration.demandeur, [key]: e.target.checked } } }))} />
                         {label}
-                        <a href={`https://myportal.vandenbroeleconnect.be/perma/${link}`}
-                          target="_blank" rel="noopener noreferrer"
-                          style={{ color: colors.textLight, textDecoration: "none" }}>📋</a>
+                        <FicheBtn ficheKey={ficheKey} onOpen={openFiche} />
                       </label>
                     ))}
                     <Field label={<span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       Jours (si compteur dépassé)
-                      <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684897"
-                        target="_blank" rel="noopener noreferrer"
-                        style={{ color: colors.textLight, textDecoration: "none" }}>📋</a>
+                      <FicheBtn ficheKey="jours_compteur" onOpen={openFiche} />
                     </span>}>
                       <input type="number" value={data.exoneration.demandeur.joursCompteur}
                         onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration,
@@ -2377,9 +2449,7 @@ export default function App() {
                     ))}
                     <Field label={<span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       Jours (si compteur dépassé)
-                      <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684897"
-                        target="_blank" rel="noopener noreferrer"
-                        style={{ color: colors.textLight, textDecoration: "none" }}>📋</a>
+                      <FicheBtn ficheKey="jours_compteur" onOpen={openFiche} />
                     </span>}>
                       <input type="number" value={data.exoneration.conjoint.joursCompteur}
                         onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration,
@@ -2400,16 +2470,15 @@ export default function App() {
 
           {active === "cmr" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Chômage / Mutuelle / Remplacement</h2>
+              <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                Chômage / Mutuelle / Remplacement
+                <FicheBtn ficheKey="cmr" onOpen={openFiche} />
+              </h2>
           
               <Card title={
                 <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   Chômage
-                  <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905"
-                    target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                    style={{ color: colors.textLight, textDecoration: "none", fontSize: "14px" }}>
-                    📋
-                  </a>
+                  <FicheBtn ficheKey="chomage" onOpen={openFiche} />
                 </span>
               }>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
@@ -2425,11 +2494,7 @@ export default function App() {
               <Card title={
                 <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   Mutuelle
-                  <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684905"
-                    target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                    style={{ color: colors.textLight, textDecoration: "none", fontSize: "14px" }}>
-                    📋
-                  </a>
+                  <FicheBtn ficheKey="mutuelle" onOpen={openFiche} />
                 </span>
               }>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
@@ -2442,7 +2507,12 @@ export default function App() {
                 </div>
               </Card>
           
-              <Card title="Remplacement">
+              <Card title={
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  Remplacement
+                  <FicheBtn ficheKey="remplacement" onOpen={openFiche} />
+                </span>
+              }>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
                   <Input label="Pension (mensuel)" type="number" value={data.cmr.remplacement.pensionMensuel}
                     onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, pensionMensuel: safeNumber(e.target.value, 0) } } }))} />
@@ -2452,11 +2522,7 @@ export default function App() {
                     label={
                       <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         Allocation d'Handicapé ARR (mensuel)
-                        <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684880"
-                          target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                          style={{ color: colors.textLight, textDecoration: "none", fontSize: "14px" }}>
-                          📋
-                        </a>
+                        <FicheBtn ficheKey="handicape_arr" onOpen={openFiche} />
                       </span>
                     }
                     type="number" value={data.cmr.remplacement.allocationHandicapeMensuel}
@@ -2467,11 +2533,7 @@ export default function App() {
                     label={
                       <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         Autre revenu de remplacement (mensuel)
-                        <a href="https://myportal.vandenbroeleconnect.be/perma/149746886634684904"
-                          target="_blank" rel="noopener noreferrer" title="Documentation CPASConnect"
-                          style={{ color: colors.textLight, textDecoration: "none", fontSize: "14px" }}>
-                          📋
-                        </a>
+                        <FicheBtn ficheKey="autre_remplacement" onOpen={openFiche} />
                       </span>
                     }
                     type="number" value={data.cmr.remplacement.autres_revenus}
@@ -2482,7 +2544,10 @@ export default function App() {
           )}
           {active === "avantages" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Avantages en nature</h2>
+              <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                Avantages en nature
+                <FicheBtn ficheKey="avantages" onOpen={openFiche} />
+              </h2>
               <Card title="Avantages en nature">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
                   <Input label="Charges locatives prises en charge par un tiers (€/mois)" type="number"
@@ -2504,7 +2569,10 @@ export default function App() {
 
           {active === "cessions_biens" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Cessions de biens</h2>
+              <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                Cessions de biens
+                <FicheBtn ficheKey="cessions_biens" onOpen={openFiche} />
+              </h2>
               <CessionsBiensTable 
                 rows={data.cessionsBiens.rows}
                 categorie={data.menage.situation === "isolé" ? 2 : data.menage.situation === "cohabitant" ? 1 : 3}
@@ -2514,7 +2582,10 @@ export default function App() {
           )}
           {active === "biens_immobiliers" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Biens immobiliers</h2>
+              <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                Biens immobiliers
+                <FicheBtn ficheKey="biens_immobiliers" onOpen={openFiche} />
+              </h2>
               <BiensImmobiliersTable rows={data.biensImmobiliers.rows}
                 onChangeRows={(rows) => setData(d => ({ ...d, biensImmobiliers: { rows } }))} />
             </section>
@@ -2522,7 +2593,10 @@ export default function App() {
 
           {active === "ressources_diverses" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Allocations & ressources diverses</h2>
+              <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                Allocations & ressources diverses
+                <FicheBtn ficheKey="ressources_diverses" onOpen={openFiche} />
+              </h2>
               <Card title="Ressources diverses générales">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
                   {data.ressourcesDiverses.generales.map((r, i) => (
@@ -2552,14 +2626,18 @@ export default function App() {
           )}
           {active === "cohabitants" && (
             <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0 }}>Revenus des cohabitants</h2>
-              <CohabitantsTable 
+              <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                Revenus des cohabitants
+                <FicheBtn ficheKey="cohabitants" onOpen={openFiche} />
+              </h2>
+              <CohabitantsTable
                 rows={data.cohabitants.rows}
                 referenceDate={data.reference.dateISO}
                 onChangeRows={(rows) => setData(d => ({
-                  ...d, 
+                  ...d,
                   cohabitants: { ...d.cohabitants, rows }
-                }))} 
+                }))}
+                onOpenFiche={openFiche}
               />
             </section>
           )}
@@ -2820,6 +2898,7 @@ export default function App() {
           )}
         </main>
       </div>
+      <FicheModal fiche={ficheOuverte} onClose={() => setFicheOuverte(null)} />
     </div>
   );
 }
