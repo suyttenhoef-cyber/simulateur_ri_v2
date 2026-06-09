@@ -168,7 +168,7 @@ export async function generatePDF(data, result, apercu) {
             
             <tr style="background: #e8f4f8; font-weight: bold; border-top: 2px solid #163E67;">
               <td>Total des ressources</td>
-              <td style="text-align: right;">${formatCurrency(apercu.pro.F14_totalRessourcesProAssim_M)}</td>
+              <td style="text-align: right;">${formatCurrency(apercu.C37_totalRessourcesAnnuelles / 12)}</td>
               <td style="text-align: right;">${formatCurrency(apercu.C37_totalRessourcesAnnuelles)}</td>
             </tr>
           </tbody>
@@ -228,9 +228,19 @@ export async function generatePDF(data, result, apercu) {
     });
 
     const imgWidth = 210; // A4 width in mm
+    const pageHeight = 297; // A4 height in mm
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+    let heightLeft = imgHeight;
+    let position = 0;
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+    while (heightLeft > 0) {
+      position -= pageHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
     
     // Nettoyer l'élément temporaire
     document.body.removeChild(pdfElement);
