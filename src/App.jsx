@@ -2008,7 +2008,7 @@ const FICHES_PRATIQUES = {
   revenus_nets:          { titre: "Revenus nets professionnels",                        url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684897" },
   cmr:                   { titre: "Chômage / Mutuelle / Remplacement",                 url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684905" },
   avantages:             { titre: "Avantages en nature",                               url: null },
-  cessions_biens:        { titre: "Cession de biens",                                  url: null },
+  cessions_biens:        { titre: "Cession de biens",                                  url: "https://myportal.vandenbroeleconnect.be/contenu/highlights/detail/720858519162603189"},
   biens_immobiliers:     { titre: "Biens immobiliers",                                 url: null },
   biens_mobiliers:       { titre: "Biens mobiliers",                                   url: null },
   ressources_diverses:   { titre: "Allocations & ressources diverses",                 url: null },
