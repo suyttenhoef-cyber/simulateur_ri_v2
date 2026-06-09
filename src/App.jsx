@@ -2058,41 +2058,63 @@ function FicheModal({ fiche, onClose }) {
     >
       <div
         style={{
-          background: "white", borderRadius: "12px",
-          width: "min(920px, 95vw)", height: "min(88vh, 820px)",
+          background: "white", borderRadius: "16px",
+          width: "min(480px, 95vw)",
           display: "flex", flexDirection: "column", overflow: "hidden",
           boxShadow: "0 8px 40px rgba(0,0,0,0.28)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Header */}
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "14px 20px", background: "#163E67", color: "white",
-          borderRadius: "12px 12px 0 0", flexShrink: 0,
+          padding: "16px 20px", background: "#163E67", color: "white",
+          borderRadius: "16px 16px 0 0",
         }}>
-          <span style={{ fontWeight: 700, fontSize: "16px" }}>{fiche.titre}</span>
-          <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
-            <a
-              href={fiche.url} target="_blank" rel="noopener noreferrer"
-              style={{ color: "#2BEBCE", fontSize: "13px", textDecoration: "none", fontWeight: 600 }}
-            >
-              Ouvrir dans un nouvel onglet ↗
-            </a>
-            <button
-              onClick={onClose}
-              style={{
-                background: "transparent", border: "none", color: "white",
-                fontSize: "22px", cursor: "pointer", padding: "0 4px", lineHeight: 1,
-              }}
-            >
-              ✕
-            </button>
-          </div>
+          <span style={{ fontWeight: 700, fontSize: "15px" }}>Fiche pratique CPASConnect</span>
+          <button
+            onClick={onClose}
+            style={{
+              background: "transparent", border: "none", color: "white",
+              fontSize: "22px", cursor: "pointer", padding: "0 4px", lineHeight: 1,
+            }}
+          >
+            ✕
+          </button>
         </div>
-        <iframe
-          src={fiche.url} title={fiche.titre}
-          style={{ flex: 1, border: "none", width: "100%" }}
-        />
+        {/* Corps */}
+        <div style={{ padding: "32px 28px", textAlign: "center" }}>
+          <div style={{
+            fontSize: "40px", marginBottom: "16px", lineHeight: 1,
+          }}>📋</div>
+          <div style={{
+            fontSize: "18px", fontWeight: 700, color: "#163E67", marginBottom: "8px",
+          }}>
+            {fiche.titre}
+          </div>
+          <div style={{ fontSize: "14px", color: "#7F8C8D", marginBottom: "28px" }}>
+            Cette fiche s'ouvre dans CPASConnect.<br />
+            Assurez-vous d'être connecté pour y accéder.
+          </div>
+          <a
+            href={fiche.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "8px",
+              padding: "12px 28px",
+              background: "#163E67", color: "white",
+              borderRadius: "8px", textDecoration: "none",
+              fontWeight: 700, fontSize: "15px",
+              transition: "background 0.2s",
+            }}
+            onMouseOver={(e) => e.currentTarget.style.background = "#0f2d4d"}
+            onMouseOut={(e) => e.currentTarget.style.background = "#163E67"}
+          >
+            Ouvrir dans CPASConnect ↗
+          </a>
+        </div>
       </div>
     </div>
   );
