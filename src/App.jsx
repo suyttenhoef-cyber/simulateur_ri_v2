@@ -146,13 +146,29 @@ const defaultBienImmobilierRow = () => ({
   revenuImmoEtranger: 0, rcNonIndexe: 0, loyerAnnuel: 0, quotePart: 50
 });
 
+const NATURES_REVENU_COHABITANT = [
+  "Revenus professionnels nets",
+  "Allocation de chômage",
+  "Indemnité de mutuelle",
+  "Pension",
+  "Revenu de remplacement",
+  "Allocation d'handicapé",
+  "Ressources diverses",
+  "Biens immobiliers",
+  "Biens mobiliers",
+  "Autres revenus",
+];
+
+const defaultRevenuDetail = () => ({ id: Math.random(), nature: "Revenus professionnels nets", montant: 0, periode: "mensuel" });
+
 const defaultCohabitantRow = () => ({
   nom: "",
   type: "Ascendant majeur",
   ressourcesTotale: 0,
   priseEnCharge: "Report max",
   pctReport: 30,
-  categorie: 1
+  categorie: 1,
+  revenusDetailes: []
 });
 
 function firstOfCurrentMonth() {
@@ -427,7 +443,13 @@ function computeNetMonthly({ comptabiliseRows, exonereRows }) {
 }
 // 1. Ajouter la fonction de calcul pour un cohabitant individuel
 function computeCohabitantRow(row, referenceDate) {
-  const ressourcesTotale = safeNumber(row.ressourcesTotale, 0);
+  const details = row.revenusDetailes || [];
+  const ressourcesTotale = details.length > 0
+    ? round2(details.reduce((s, r) => {
+        const m = safeNumber(r.montant, 0);
+        return s + (r.periode === "annuel" ? m : m * 12);
+      }, 0))
+    : safeNumber(row.ressourcesTotale, 0);
   const categorie = row.categorie || 1;
   
   // I5: VLOOKUP pour obtenir le seuil RI selon la catégorie
@@ -505,6 +527,17 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate, onOpenFiche }) {
   function addRow() { onChangeRows([...rows, defaultCohabitantRow()]); }
   function removeRow(i) { onChangeRows(rows.filter((_, idx) => idx !== i)); }
 
+  function addRevenuDetail(i) {
+    const row = rows[i];
+    updateRow(i, { revenusDetailes: [...(row.revenusDetailes || []), defaultRevenuDetail()] });
+  }
+  function removeRevenuDetail(i, j) {
+    updateRow(i, { revenusDetailes: (rows[i].revenusDetailes || []).filter((_, idx) => idx !== j) });
+  }
+  function updateRevenuDetail(i, j, patch) {
+    updateRow(i, { revenusDetailes: (rows[i].revenusDetailes || []).map((d, idx) => idx === j ? { ...d, ...patch } : d) });
+  }
+
   return (
     <Card title="Revenus des cohabitants">
       {rows.length === 0 ? (
@@ -541,10 +574,105 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate, onOpenFiche }) {
                       <option value="Autre">Autre</option>
                     </select>
                   </Field>
+                </div>
 
-                  {/* Ressources totales */}
-                  <Input label="Ressources totales (€/an)" type="number" value={r.ressourcesTotale}
-                    onChange={(e) => updateRow(i, { ressourcesTotale: safeNumber(e.target.value, 0) })} />
+                {/* ── Détail des revenus ── */}
+                <div style={{ marginTop: 16 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: colors.primary }}>Revenus (détail)</span>
+                    <button
+                      onClick={() => addRevenuDetail(i)}
+                      style={{
+                        background: colors.primary, color: "#fff", border: "none",
+                        borderRadius: 6, padding: "5px 12px", fontSize: 13,
+                        cursor: "pointer", display: "flex", alignItems: "center", gap: 6
+                      }}
+                    >
+                      <i className="fas fa-plus" aria-hidden="true" /> Ajouter un revenu
+                    </button>
+                  </div>
+
+                  {(r.revenusDetailes || []).length > 0 ? (
+                    <>
+                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                        <thead>
+                          <tr style={{ background: "#EEF4FA" }}>
+                            <th style={{ padding: "6px 8px", textAlign: "left", fontWeight: 700, color: colors.primary, borderBottom: `2px solid ${colors.border}`, width: "45%" }}>Nature</th>
+                            <th style={{ padding: "6px 8px", textAlign: "right", fontWeight: 700, color: colors.primary, borderBottom: `2px solid ${colors.border}`, width: "20%" }}>Montant</th>
+                            <th style={{ padding: "6px 8px", textAlign: "center", fontWeight: 700, color: colors.primary, borderBottom: `2px solid ${colors.border}`, width: "15%" }}>Période</th>
+                            <th style={{ padding: "6px 8px", textAlign: "right", fontWeight: 700, color: colors.primary, borderBottom: `2px solid ${colors.border}`, width: "15%" }}>/an</th>
+                            <th style={{ padding: "6px 8px", borderBottom: `2px solid ${colors.border}`, width: "5%" }}></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(r.revenusDetailes || []).map((d, j) => {
+                            const annualise = d.periode === "annuel" ? safeNumber(d.montant, 0) : safeNumber(d.montant, 0) * 12;
+                            return (
+                              <tr key={d.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                                <td style={{ padding: "5px 6px" }}>
+                                  <select
+                                    className="formControl"
+                                    style={{ padding: "4px 6px", fontSize: 13 }}
+                                    value={d.nature}
+                                    onChange={(e) => updateRevenuDetail(i, j, { nature: e.target.value })}
+                                  >
+                                    {NATURES_REVENU_COHABITANT.map(n => <option key={n} value={n}>{n}</option>)}
+                                  </select>
+                                </td>
+                                <td style={{ padding: "5px 6px" }}>
+                                  <NumInput
+                                    value={d.montant}
+                                    onChange={(e) => updateRevenuDetail(i, j, { montant: safeNumber(e.target.value, 0) })}
+                                    style={{ textAlign: "right", padding: "4px 6px", fontSize: 13, width: "100%" }}
+                                  />
+                                </td>
+                                <td style={{ padding: "5px 6px", textAlign: "center" }}>
+                                  <select
+                                    className="formControl"
+                                    style={{ padding: "4px 6px", fontSize: 13 }}
+                                    value={d.periode}
+                                    onChange={(e) => updateRevenuDetail(i, j, { periode: e.target.value })}
+                                  >
+                                    <option value="mensuel">Mensuel</option>
+                                    <option value="annuel">Annuel</option>
+                                  </select>
+                                </td>
+                                <td style={{ padding: "5px 8px", textAlign: "right", color: colors.primary, fontWeight: 600 }}>
+                                  <Money value={annualise} />
+                                </td>
+                                <td style={{ padding: "5px 4px", textAlign: "center" }}>
+                                  <button
+                                    onClick={() => removeRevenuDetail(i, j)}
+                                    style={{ background: "none", border: "none", cursor: "pointer", color: "#c0392b", fontSize: 14, padding: "2px 4px" }}
+                                    aria-label="Supprimer cette ligne"
+                                  >
+                                    <i className="fas fa-times" aria-hidden="true" />
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr style={{ background: "#EEF4FA" }}>
+                            <td colSpan={3} style={{ padding: "6px 8px", fontWeight: 700, color: colors.primary, textAlign: "right" }}>Total annuel :</td>
+                            <td style={{ padding: "6px 8px", textAlign: "right", fontWeight: 700, color: colors.primary }}>
+                              <Money value={round2((r.revenusDetailes || []).reduce((s, d) => s + (d.periode === "annuel" ? safeNumber(d.montant, 0) : safeNumber(d.montant, 0) * 12), 0))} />
+                            </td>
+                            <td></td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </>
+                  ) : (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+                      <Input label="Ressources totales (€/an)" type="number" value={r.ressourcesTotale}
+                        onChange={(e) => updateRow(i, { ressourcesTotale: safeNumber(e.target.value, 0) })} />
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginTop: 12 }}>
 
                   {/* Prise en charge */}
                   <Field label={
@@ -2697,7 +2825,21 @@ export default function App() {
               flexWrap: "wrap",
               gap: "10px"
             }}>
-              <h2 style={{ marginTop: 0 }}>Aperçu</h2>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                <h2 style={{ marginTop: 0, marginBottom: 0 }}>Aperçu</h2>
+                {result && (
+                  <span style={{
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    padding: "4px 14px", borderRadius: 20, fontWeight: 700, fontSize: 14,
+                    background: result.apercu?.eligible ? "#d4edda" : "#fde8e8",
+                    color: result.apercu?.eligible ? "#1a7a3c" : "#c0392b",
+                    border: `1.5px solid ${result.apercu?.eligible ? "#a3d9b1" : "#f5a0a0"}`,
+                  }}>
+                    <i className={`fas fa-${result.apercu?.eligible ? "circle-check" : "circle-xmark"}`} aria-hidden="true" />
+                    {result.apercu?.eligible ? "Éligible au RI" : "Non éligible au RI"}
+                  </span>
+                )}
+              </div>
               
               <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                 <button
