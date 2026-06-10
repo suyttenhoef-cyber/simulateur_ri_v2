@@ -43,7 +43,7 @@ const colors = {
 function computeCohabitantsMonthly(rows) {
   return rows.reduce((acc, row) => acc + safeNumber(row.mensuel, 0), 0);
 }
-function Row({ label, mensuel, annuel, total, highlight = false, neg = false, grand = false }) {
+function Row({ label, mensuel, annuel, highlight = false, neg = false, grand = false }) {
   const renderMoney = (v) => {
     if (v === null || v === undefined) return "";
     if (neg) return <>−&nbsp;<Money value={Math.abs(v)} /></>;
@@ -66,7 +66,6 @@ function Row({ label, mensuel, annuel, total, highlight = false, neg = false, gr
       <td style={base}>{label}</td>
       <td style={{ ...base, textAlign: "right", paddingLeft: 8 }}>{renderMoney(mensuel)}</td>
       <td style={{ ...base, textAlign: "right", paddingLeft: 8 }}>{renderMoney(annuel)}</td>
-      <td style={{ ...base, textAlign: "right", paddingLeft: 8 }}>{renderMoney(total)}</td>
     </tr>
   );
 }
@@ -74,7 +73,7 @@ function Row({ label, mensuel, annuel, total, highlight = false, neg = false, gr
 function Sec({ children }) {
   return (
     <tr>
-      <td colSpan={4} style={{
+      <td colSpan={3} style={{
         padding: "7px 12px", background: "#163E67", color: "white",
         fontWeight: 700, fontSize: 11, textTransform: "uppercase",
         letterSpacing: "0.7px", borderLeft: "4px solid #2BEBCE",
@@ -86,7 +85,7 @@ function Sec({ children }) {
 }
 
 function Gap() {
-  return <tr><td colSpan={4} style={{ padding: 0, height: 6, background: "#F0F4F8" }} /></tr>;
+  return <tr><td colSpan={3} style={{ padding: 0, height: 6, background: "#F0F4F8" }} /></tr>;
 }
 
 // Valeurs issues de l'image (fixes en euros)
@@ -2750,7 +2749,7 @@ export default function App() {
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
                 <thead>
                   <tr style={{ background: "#F0F4F8" }}>
-                    {["Rubrique", "Mensuel", "Annuel", "Total"].map((h, i) => (
+                    {["Rubrique", "Mensuel", "Annuel"].map((h, i) => (
                       <th key={h} style={{ textAlign: i === 0 ? "left" : "right", padding: "8px 12px", fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.5px", color: "#163E67", borderBottom: "2px solid #163E67" }}>{h}</th>
                     ))}
                   </tr>
@@ -2868,11 +2867,10 @@ export default function App() {
                   <Row grand label="Revenu d’intégration mensuel"
                     mensuel={result.apercu.ri.E45_montantMensuel}
                     annuel={null}
-                    total={result.apercu.ri.E45_montantMensuel * 12}
                   />
                   {/* ===== Calcul du RI pour un mois incomplet (Excel) ===== */}
                   <tr>
-                    <td colSpan={4} style={{ paddingTop: 16 }}>
+                    <td colSpan={3} style={{ paddingTop: 16 }}>
                       <div style={{ border: `2px solid ${colors.primary}`, borderRadius: 10, padding: 14 }}>
                         <div style={{ fontWeight: 800, marginBottom: 10 }}>
                           Calcul du revenu d'intégration pour un mois incomplet
