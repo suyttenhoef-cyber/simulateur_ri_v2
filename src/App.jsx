@@ -2812,59 +2812,48 @@ export default function App() {
 
                   {/* Co-habitants */}
                   <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Cohabitants</td></tr>
-                  <Row 
-                    highlight label="Total des revenus des cohabitants" 
-                    mensuel={result.apercu.autres.D32_cohabitants_Annuel / 12}  // ← Division par 12 pour obtenir le mensuel
-                    annuel={result.apercu.autres.D32_cohabitants_Annuel}        // ← Annuel directement
-                    total={result.apercu.autres.D32_cohabitants_Annuel}         // ← Annuel aussi dans le total
-                  />
-                  {/* ================= C39 ================= */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>
-                    Exonération supplémentaire annuelle
-                  </td></tr>
-
                   <Row
-                    label="Exonération supplémentaire annuelle"
+                    label="Revenus totaux des cohabitants (brut annuel)"
+                    mensuel={null}
+                    annuel={(result.cohabitants?.details || []).reduce((s, d) => s + safeNumber(d.ressourcesTotale, 0), 0)}
+                    total={(result.cohabitants?.details || []).reduce((s, d) => s + safeNumber(d.ressourcesTotale, 0), 0)}
+                  />
+                  <Row
+                    highlight label="Excédent comptabilisé (au-delà du seuil RI)"
+                    mensuel={result.apercu.autres.D32_cohabitants_Annuel > 0 ? result.apercu.autres.D32_cohabitants_Annuel / 12 : null}
+                    annuel={result.apercu.autres.D32_cohabitants_Annuel}
+                    total={result.apercu.autres.D32_cohabitants_Annuel}
+                  />
+
+                  {/* C39 — Exonération supplémentaire annuelle */}
+                  <Row
+                    label="Exonération supplémentaire annuelle (C39)"
                     mensuel={null}
                     annuel={result.apercu.ri.C39_exoSupplAnnuelle}
                     total={result.apercu.ri.C39_exoSupplAnnuelle}
                   />
 
-                  {/* ================= C41 ================= */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>
-                    Total annuel après exonération
-                  </td></tr>
-
+                  {/* C41 — Total annuel après exonération */}
                   <Row
-                    label="Total annuel après exonération"
+                    label="Total annuel après exonération (C41)"
                     mensuel={null}
                     annuel={result.apercu.ri.C41_ressourcesApresExo}
                     total={result.apercu.ri.C41_ressourcesApresExo}
                   />
 
-                  {/* ================= C43 ================= */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>
-                    Revenu d’intégration annuel
-                  </td></tr>
-
+                  {/* C43 + E45 — RI annuel / mensuel */}
                   <Row
                     label="Revenu d’intégration annuel"
                     mensuel={null}
                     annuel={result.apercu.ri.C43_riAnnuelNet}
                     total={result.apercu.ri.C43_riAnnuelNet}
                   />
-
-                  {/* ================= E45 ================= */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>
-                    Revenu d’intégration mensuel
-                  </td></tr>
-
                   <Row
                     highlight label="Revenu d’intégration mensuel"
                     mensuel={result.apercu.ri.E45_montantMensuel}
                     annuel={null}
                     total={result.apercu.ri.E45_montantMensuel * 12}
-                    />
+                  />
                   {/* ===== Calcul du RI pour un mois incomplet (Excel) ===== */}
                   <tr>
                     <td colSpan={4} style={{ paddingTop: 16 }}>
