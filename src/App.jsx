@@ -2252,14 +2252,6 @@ export default function App() {
                     value={data.reference.dateISO}
                     onChange={(e) => setData(d => ({ ...d, reference: { ...d.reference, dateISO: e.target.value } }))}
                   />
-                  <Input
-                    label="Jours pris en compte (prorata)"
-                    type="number"
-                    placeholder="Laissez vide pour mois complet"
-                    hint=""
-                    value={data.reference.joursPrisEnCompte}
-                    onChange={(e) => setData(d => ({ ...d, reference: { ...d.reference, joursPrisEnCompte: e.target.value } }))}
-                  />
                 </div>
               </Card>
 
