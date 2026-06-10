@@ -2833,7 +2833,7 @@ export default function App() {
                   <Gap />
 
                   {/* ── TOTAL C37 ── */}
-                  <Row grand label="TOTAL TOUTES RESSOURCES (C37)"
+                  <Row grand label="TOTAL TOUTES RESSOURCES"
                     mensuel={result.apercu.C37_totalRessourcesAnnuelles / 12}
                     annuel={result.apercu.C37_totalRessourcesAnnuelles}
                     total={result.apercu.C37_totalRessourcesAnnuelles}
@@ -2849,7 +2849,7 @@ export default function App() {
                     total={result.apercu.ri.riAnnuelBrut}
                   />
                   {result.apercu.ri.C39_exoSupplAnnuelle !== 0 && (
-                    <Row neg label="(−) Exonération supplémentaire (C39)"
+                    <Row neg label="(−) Exonération supplémentaire"
                       mensuel={null}
                       annuel={result.apercu.ri.C39_exoSupplAnnuelle}
                       total={result.apercu.ri.C39_exoSupplAnnuelle}
@@ -2860,7 +2860,7 @@ export default function App() {
                     annuel={result.apercu.ri.C41_ressourcesApresExo}
                     total={result.apercu.ri.C41_ressourcesApresExo}
                   />
-                  <Row label="Revenu d’intégration annuel (C43)"
+                  <Row label="Revenu d’intégration annuel"
                     mensuel={null}
                     annuel={result.apercu.ri.C43_riAnnuelNet}
                     total={result.apercu.ri.C43_riAnnuelNet}
