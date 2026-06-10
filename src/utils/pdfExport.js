@@ -137,7 +137,7 @@ export async function generatePDF(data, result, apercu) {
           <div style="margin-top: 15px;">
             <div><strong>Montant mensuel :</strong> ${formatCurrency(result.apercu.ri.E45_montantMensuel)}</div>
             <div><strong>Montant annuel :</strong> ${formatCurrency(result.apercu.ri.C43_riAnnuelNet)}</div>
-            <div><strong>Date de référence :</strong> ${data.reference.dateISO}</div>
+            <div><strong>Date d'octroi / révision :</strong> ${data.reference.dateISO}</div>
           </div>
         ` : ''}
       </div>
@@ -581,7 +581,7 @@ export async function generateTableauCPAS(data, result, apercu) {
           ${logoBase64 ? `<img src="${logoBase64}" style="height:38px;margin-right:14px;"/>` : ''}
           <div>
             <div style="font-size:18px;font-weight:bold;color:#163E67;">Tableau des ressources — Droit à l'intégration sociale</div>
-            <div style="font-size:14px;color:#888;margin-top:2px;">Date de référence : ${dateISO} &nbsp;|&nbsp; Généré le ${new Date().toLocaleDateString('fr-BE')}</div>
+            <div style="font-size:14px;color:#888;margin-top:2px;">Date d'octroi / révision : ${dateISO} &nbsp;|&nbsp; Généré le ${new Date().toLocaleDateString('fr-BE')}</div>
           </div>
         </div>
         <div style="margin-bottom:14px;padding:8px 12px;background:#f0f4f8;border-radius:6px;font-size:14px;">

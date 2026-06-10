@@ -138,8 +138,13 @@ const defaultCohabitantRow = () => ({
   categorie: 1
 });
 
+function firstOfCurrentMonth() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+}
+
 const defaultData = {
-  reference: { dateISO: "2026-03-01", joursPrisEnCompte: "" },
+  reference: { dateISO: firstOfCurrentMonth(), joursPrisEnCompte: "" },
   identite: { nom: "", prenom: "", dateNaissance: "", nationalite: "" },
   menage: { situation: "isolé", nbEnfants: 0 },
   revenusNets: {
@@ -214,7 +219,7 @@ const RI_ANNUEL_TABLE = [
   { date: "2023-11-01", cat1: 10105.38, cat2: 15158.08, cat3: 20485.33 },
   { date: "2024-05-01", cat1: 10307.68, cat2: 15461.53, cat3: 20895.43 },
   { date: "2025-02-01", cat1: 10513.60, cat2: 15770.41, cat3: 21312.87 },
-  { date: "2026-03-01", cat1: 10723.75, cat2: 16085.64, cat3: 21738.88 },
+  { date: firstOfCurrentMonth(), cat1: 10723.75, cat2: 16085.64, cat3: 21738.88 },
 ];
 
 // VLOOKUP Données!K3:O (exonérations) : date -> montants (mensuel/annuel)
@@ -224,7 +229,7 @@ const EXO_TABLE = [
   { date: "2024-01-01", generalMensuel: 297.46, artistiqueAnnuel: 3569.56, etudiantMensuel: 297.46, penurieMensuel: null },
   { date: "2024-05-01", generalMensuel: 303.42, artistiqueAnnuel: 3641.02, etudiantMensuel: 303.42, penurieMensuel: 434.83 },
   { date: "2025-02-01", generalMensuel: 309.48, artistiqueAnnuel: 3713.76, etudiantMensuel: 309.48, penurieMensuel: 443.52 },
-  { date: "2026-03-01", generalMensuel: 315.67, artistiqueAnnuel: 3787.99, etudiantMensuel: 315.67, penurieMensuel: 452.39 },
+  { date: firstOfCurrentMonth(), generalMensuel: 315.67, artistiqueAnnuel: 3787.99, etudiantMensuel: 315.67, penurieMensuel: 452.39 },
 ];
 
 // Données!Q3:S3 (Exonération supplémentaire annuelle ©)
@@ -1452,7 +1457,7 @@ function Sidebar({ active, onSelect }) {
     };
   }
 function computeApercuExcelLike({ data, pieces }) {
-  const dateISO = data.reference.dateISO || "2026-03-01";
+  const dateISO = data.reference.dateISO || firstOfCurrentMonth();
   const dim = daysInMonth(dateISO);
 
   // Excel Informations!C18 : jours période (si 0 => mois complet)
@@ -1924,7 +1929,7 @@ function computeFromForm(data) {
     data.menage.situation === "isolé" ? 2 :
     data.menage.situation === "cohabitant" ? 1 : 3;
 
-  const dateISO = data.reference.dateISO || "2026-03-01";
+  const dateISO = data.reference.dateISO || firstOfCurrentMonth();
   const [yearStr] = dateISO.split("-");
   const year = safeNumber(yearStr, 2026);
 
@@ -2023,7 +2028,7 @@ const FICHES_PRATIQUES = {
   ressources_diverses:   { titre: "Allocations & ressources diverses",                 url: null },
   cohabitants:           { titre: "Revenus des cohabitants",                           url: null },
   // ── Sous-catégories ───────────────────────────────────────────────────────
-  date_reference:        { titre: "Date de référence (barème)",                        url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684678" },
+  date_reference:        { titre: "Date d'octroi / révision",                        url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684678" },
   insertion_sociopro:    { titre: "Montants exonérés — Insertion socioprofessionnelle", url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907" },
   exo_generale_etudiant: { titre: "Exonération Pro. générale / étudiants",             url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907" },
   exo_penurie:           { titre: "Exonération Pro. pénurie",                          url: "https://myportal.vandenbroeleconnect.be/perma/149746886634385151" },
@@ -2221,7 +2226,7 @@ export default function App() {
                   <Input
                     label={
                       <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        Date de référence (barème)
+                        Date d'octroi / révision
                         <FicheBtn ficheKey="date_reference" onOpen={openFiche} />
                       </span>
                     }
@@ -2394,7 +2399,7 @@ export default function App() {
                 {/* Résumé calculé */}
                 {(() => {
                   const exoCalc = computeExonerationExcel({
-                    dateISO: data.reference.dateISO || "2026-03-01",
+                    dateISO: data.reference.dateISO || firstOfCurrentMonth(),
                     exo: data.exoneration,
                   });
                   return (
