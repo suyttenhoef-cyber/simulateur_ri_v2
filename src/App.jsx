@@ -43,34 +43,50 @@ const colors = {
 function computeCohabitantsMonthly(rows) {
   return rows.reduce((acc, row) => acc + safeNumber(row.mensuel, 0), 0);
 }
-function Row({ label, mensuel, annuel, total, highlight = false, neg = false }) {
+function Row({ label, mensuel, annuel, total, highlight = false, neg = false, grand = false }) {
   const renderMoney = (v) => {
     if (v === null || v === undefined) return "";
-    if (neg) return <span style={{ color: "#c0392b" }}>−&nbsp;<Money value={Math.abs(v)} /></span>;
+    if (neg) return <>−&nbsp;<Money value={Math.abs(v)} /></>;
     return <Money value={v} />;
   };
 
-  const cellStyle = {
-    padding: "6px 8px",
-    ...(highlight && {
-      color: "#163E67",
-      fontStyle: "italic",
-      fontWeight: 700,
-      background: "#EEF4FA",
-      borderTop: "1px solid #C5D8EE",
-      borderBottom: "1px solid #C5D8EE",
-    }),
-    ...(neg && { color: "#c0392b" }),
-  };
+  let base;
+  if (grand) {
+    base = { padding: "9px 12px", background: "#163E67", color: "white", fontWeight: 800, fontSize: 14, borderTop: "3px solid #2BEBCE" };
+  } else if (highlight) {
+    base = { padding: "6px 12px", background: "#DDE9F5", color: "#163E67", fontWeight: 700, borderTop: "1px solid #B8D0EC" };
+  } else if (neg) {
+    base = { padding: "5px 8px 5px 24px", color: "#c0392b", fontStyle: "italic", fontSize: 13 };
+  } else {
+    base = { padding: "5px 8px 5px 20px", color: "#2C3E50" };
+  }
 
   return (
     <tr>
-      <td style={cellStyle}>{label}</td>
-      <td style={{ ...cellStyle, textAlign: "right" }}>{renderMoney(mensuel)}</td>
-      <td style={{ ...cellStyle, textAlign: "right" }}>{renderMoney(annuel)}</td>
-      <td style={{ ...cellStyle, textAlign: "right" }}>{renderMoney(total)}</td>
+      <td style={base}>{label}</td>
+      <td style={{ ...base, textAlign: "right", paddingLeft: 8 }}>{renderMoney(mensuel)}</td>
+      <td style={{ ...base, textAlign: "right", paddingLeft: 8 }}>{renderMoney(annuel)}</td>
+      <td style={{ ...base, textAlign: "right", paddingLeft: 8 }}>{renderMoney(total)}</td>
     </tr>
   );
+}
+
+function Sec({ children }) {
+  return (
+    <tr>
+      <td colSpan={4} style={{
+        padding: "7px 12px", background: "#163E67", color: "white",
+        fontWeight: 700, fontSize: 11, textTransform: "uppercase",
+        letterSpacing: "0.7px", borderLeft: "4px solid #2BEBCE",
+      }}>
+        {children}
+      </td>
+    </tr>
+  );
+}
+
+function Gap() {
+  return <tr><td colSpan={4} style={{ padding: 0, height: 6, background: "#F0F4F8" }} /></tr>;
 }
 
 // Valeurs issues de l'image (fixes en euros)
@@ -2741,21 +2757,18 @@ export default function App() {
 
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
                 <thead>
-                  <tr>
-                    <th style={{ textAlign: "left", padding: "6px 8px", borderBottom: "1px solid #ddd" }}>Rubrique</th>
-                    <th style={{ textAlign: "right", padding: "6px 8px", borderBottom: "1px solid #ddd" }}>Mensuel</th>
-                    <th style={{ textAlign: "right", padding: "6px 8px", borderBottom: "1px solid #ddd" }}>Annuel</th>
-                    <th style={{ textAlign: "right", padding: "6px 8px", borderBottom: "1px solid #ddd" }}>Total</th>
+                  <tr style={{ background: "#F0F4F8" }}>
+                    {["Rubrique", "Mensuel", "Annuel", "Total"].map((h, i) => (
+                      <th key={h} style={{ textAlign: i === 0 ? "left" : "right", padding: "8px 12px", fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.5px", color: "#163E67", borderBottom: "2px solid #163E67" }}>{h}</th>
+                    ))}
                   </tr>
                 </thead>
 
                 <tbody>
-                  {/* Ressources professionnelles */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Ressources professionnelles</td></tr>
-
-                  <Row label="Revenu net demandeur" mensuel={apercu.pro.D4_netDem_Annuel / 12} annuel={apercu.pro.D4_netDem_Annuel} total={apercu.pro.D4_netDem_Annuel} />
-                  <Row label="Revenu net conjoint" mensuel={apercu.pro.D5_netConj_Annuel / 12} annuel={apercu.pro.D5_netConj_Annuel} total={apercu.pro.D5_netConj_Annuel} />
-
+                  {/* ── Ressources professionnelles ── */}
+                  <Sec>Ressources professionnelles</Sec>
+                  <Row label="Revenu net — Demandeur" mensuel={apercu.pro.D4_netDem_Annuel / 12} annuel={apercu.pro.D4_netDem_Annuel} total={apercu.pro.D4_netDem_Annuel} />
+                  <Row label="Revenu net — Conjoint" mensuel={apercu.pro.D5_netConj_Annuel / 12} annuel={apercu.pro.D5_netConj_Annuel} total={apercu.pro.D5_netConj_Annuel} />
                   {apercu.pro.D4_netDem_Annuel > apercu.pro.D6_netAvantExoSP_Dem_Annuel && (
                     <Row neg label="(−) Exonération Art. 35 — Demandeur"
                       mensuel={(apercu.pro.D4_netDem_Annuel - apercu.pro.D6_netAvantExoSP_Dem_Annuel) / 12}
@@ -2770,86 +2783,97 @@ export default function App() {
                       total={apercu.pro.D5_netConj_Annuel - apercu.pro.D7_netAvantExoSP_Conj_Annuel}
                     />
                   )}
+                  <Row label="Net après exo. Art. 35 — Demandeur" mensuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel / 12} annuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel} total={apercu.pro.D6_netAvantExoSP_Dem_Annuel} />
+                  <Row label="Net après exo. Art. 35 — Conjoint"  mensuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel / 12} annuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel} total={apercu.pro.D7_netAvantExoSP_Conj_Annuel} />
+                  {apercu.pro.D8_netAvecArt_Annuel > 0 && (
+                    <Row label="Net avec exo. artistique (dem. + conj.)" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
+                  )}
+                  <Row label="Allocation de chômage"   mensuel={apercu.pro.D9_chom_Annuel / 12}  annuel={apercu.pro.D9_chom_Annuel}  total={apercu.pro.D9_chom_Annuel} />
+                  <Row label="Mutuelle"                mensuel={apercu.pro.D10_mut_Annuel / 12}  annuel={apercu.pro.D10_mut_Annuel}  total={apercu.pro.D10_mut_Annuel} />
+                  <Row label="Revenus de remplacement" mensuel={apercu.pro.D11_rem_Annuel / 12}  annuel={apercu.pro.D11_rem_Annuel}  total={apercu.pro.D11_rem_Annuel} />
+                  <Row highlight label="Sous-total ressources professionnelles" mensuel={apercu.pro.F8_totalProratises_M} annuel={apercu.pro.F8_totalProratises_M * 12} total={apercu.pro.F8_totalProratises_M * 12} />
 
-                  <Row label="Montant net (après exo. Art. 35) — Demandeur" mensuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel / 12} annuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel} total={apercu.pro.D6_netAvantExoSP_Dem_Annuel} />
-                  <Row label="Montant net (après exo. Art. 35) — Conjoint" mensuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel / 12} annuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel} total={apercu.pro.D7_netAvantExoSP_Conj_Annuel} />
+                  <Gap />
 
-                  <Row label="Montant net (avec exo. artistique) - Demandeur" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
-                  <Row label="Montant net (avec exo. artistique) - Conjoint" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
+                  {/* ── Allocations & ressources diverses ── */}
+                  <Sec>Allocations &amp; ressources diverses</Sec>
+                  <Row label="Allocations & ressources diverses" mensuel={apercu.autres.D17_diverses_Annuel / 12} annuel={apercu.autres.D17_diverses_Annuel} total={apercu.autres.D17_diverses_Annuel} />
 
-                  <Row label="Allocation de chômage" mensuel={apercu.pro.D9_chom_Annuel / 12} annuel={apercu.pro.D9_chom_Annuel} total={apercu.pro.D9_chom_Annuel} />
-                  <Row label="Mutuelle" mensuel={apercu.pro.D10_mut_Annuel / 12} annuel={apercu.pro.D10_mut_Annuel} total={apercu.pro.D10_mut_Annuel} />
-                  <Row label="Revenus de remplacement" mensuel={apercu.pro.D11_rem_Annuel / 12} annuel={apercu.pro.D11_rem_Annuel} total={apercu.pro.D11_rem_Annuel} />
+                  <Gap />
 
-                  <Row label="Total ressources proratisables" 
-                    mensuel={apercu.pro.totalProratisables_M} 
-                    annuel={apercu.pro.totalProratisables_M * 12} 
-                    total={apercu.pro.totalProratisables_M * 12} />
-
-                  <Row label="Critère du montant du revenu d’intégration (proratisé)" mensuel={apercu.pro.critereRIProrata_M} annuel={apercu.pro.critereRIProrata_M * 12} total={apercu.pro.critereRIProrata_M * 12} />
-
-                  <Row highlight label="TOTAL des ressources professionnelles (mensuel)" mensuel={apercu.pro.F8_totalProratises_M} annuel={apercu.pro.F8_totalProratises_M * 12} total={apercu.pro.F8_totalProratises_M * 12} />
-
-                  {/* Allocaciones & ressources diverses */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Allocations & ressources diverses</td></tr>
-                  <Row label="Montant total des allocations & ressources diverses" mensuel={apercu.autres.D17_diverses_Annuel / 12} annuel={apercu.autres.D17_diverses_Annuel} total={apercu.autres.D17_diverses_Annuel} />
-
-                  {/* Ressources de biens immobiliers */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Ressources de biens immobiliers</td></tr>
-                  <Row label="Montant des biens immobiliers" mensuel={apercu.autres.D23_immobiliers_Annuel / 12} annuel={apercu.autres.D23_immobiliers_Annuel} total={apercu.autres.D23_immobiliers_Annuel} />
-
-                  {/* Ressources de biens mobiliers */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Ressources de biens mobiliers</td></tr>
+                  {/* ── Biens mobiliers ── */}
+                  <Sec>Biens mobiliers</Sec>
                   <Row label="Montant des biens mobiliers" mensuel={apercu.autres.D20_mobiliers_Annuel / 12} annuel={apercu.autres.D20_mobiliers_Annuel} total={apercu.autres.D20_mobiliers_Annuel} />
 
-                  {/* Cessions de biens */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Cessions de biens</td></tr>
+                  <Gap />
+
+                  {/* ── Biens immobiliers ── */}
+                  <Sec>Biens immobiliers</Sec>
+                  <Row label="Montant des biens immobiliers" mensuel={apercu.autres.D23_immobiliers_Annuel / 12} annuel={apercu.autres.D23_immobiliers_Annuel} total={apercu.autres.D23_immobiliers_Annuel} />
+
+                  <Gap />
+
+                  {/* ── Cessions de biens ── */}
+                  <Sec>Cessions de biens</Sec>
                   <Row label="Montant total des cessions" mensuel={apercu.autres.D26_cessions_Annuel / 12} annuel={apercu.autres.D26_cessions_Annuel} total={apercu.autres.D26_cessions_Annuel} />
 
-                  {/* Avantages en nature */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Avantages en nature</td></tr>
+                  <Gap />
+
+                  {/* ── Avantages en nature ── */}
+                  <Sec>Avantages en nature</Sec>
                   <Row label="Montant total des avantages en nature" mensuel={apercu.autres.D29_avantages_Annuel / 12} annuel={apercu.autres.D29_avantages_Annuel} total={apercu.autres.D29_avantages_Annuel} />
 
-                  {/* Co-habitants */}
-                  <tr><td colSpan={4} style={{ padding: "10px 8px", fontWeight: 700 }}>Cohabitants</td></tr>
-                  <Row
-                    label="Revenus totaux des cohabitants (brut annuel)"
+                  <Gap />
+
+                  {/* ── Cohabitants ── */}
+                  <Sec>Cohabitants</Sec>
+                  <Row label="Revenus totaux (brut annuel)"
                     mensuel={null}
                     annuel={(result.cohabitants?.details || []).reduce((s, d) => s + safeNumber(d.ressourcesTotale, 0), 0)}
                     total={(result.cohabitants?.details || []).reduce((s, d) => s + safeNumber(d.ressourcesTotale, 0), 0)}
                   />
-                  <Row
-                    highlight label="Excédent comptabilisé (au-delà du seuil RI)"
+                  <Row highlight label="Excédent comptabilisé (au-delà du seuil RI)"
                     mensuel={result.apercu.autres.D32_cohabitants_Annuel > 0 ? result.apercu.autres.D32_cohabitants_Annuel / 12 : null}
                     annuel={result.apercu.autres.D32_cohabitants_Annuel}
                     total={result.apercu.autres.D32_cohabitants_Annuel}
                   />
 
-                  {/* C39 — Exonération supplémentaire annuelle */}
-                  <Row
-                    label="Exonération supplémentaire annuelle (C39)"
-                    mensuel={null}
-                    annuel={result.apercu.ri.C39_exoSupplAnnuelle}
-                    total={result.apercu.ri.C39_exoSupplAnnuelle}
+                  <Gap />
+
+                  {/* ── TOTAL C37 ── */}
+                  <Row grand label="TOTAL TOUTES RESSOURCES (C37)"
+                    mensuel={result.apercu.C37_totalRessourcesAnnuelles / 12}
+                    annuel={result.apercu.C37_totalRessourcesAnnuelles}
+                    total={result.apercu.C37_totalRessourcesAnnuelles}
                   />
 
-                  {/* C41 — Total annuel après exonération */}
-                  <Row
-                    label="Total annuel après exonération (C41)"
+                  <Gap />
+
+                  {/* ── Calcul du droit au RI ── */}
+                  <Sec>Calcul du droit au RI</Sec>
+                  <Row label={`Seuil RI — Cat. ${data.menage.situation === "isolé" ? "2 (Isolé)" : data.menage.situation === "cohabitant" ? "1 (Cohabitant)" : "3 (Famille)"}`}
+                    mensuel={null}
+                    annuel={result.apercu.ri.riAnnuelBrut}
+                    total={result.apercu.ri.riAnnuelBrut}
+                  />
+                  {result.apercu.ri.C39_exoSupplAnnuelle !== 0 && (
+                    <Row neg label="(−) Exonération supplémentaire (C39)"
+                      mensuel={null}
+                      annuel={result.apercu.ri.C39_exoSupplAnnuelle}
+                      total={result.apercu.ri.C39_exoSupplAnnuelle}
+                    />
+                  )}
+                  <Row highlight label="Total ressources après exonération (C41)"
                     mensuel={null}
                     annuel={result.apercu.ri.C41_ressourcesApresExo}
                     total={result.apercu.ri.C41_ressourcesApresExo}
                   />
-
-                  {/* C43 + E45 — RI annuel / mensuel */}
-                  <Row
-                    label="Revenu d’intégration annuel"
+                  <Row label="Revenu d’intégration annuel (C43)"
                     mensuel={null}
                     annuel={result.apercu.ri.C43_riAnnuelNet}
                     total={result.apercu.ri.C43_riAnnuelNet}
                   />
-                  <Row
-                    highlight label="Revenu d’intégration mensuel"
+                  <Row grand label="Revenu d’intégration mensuel"
                     mensuel={result.apercu.ri.E45_montantMensuel}
                     annuel={null}
                     total={result.apercu.ri.E45_montantMensuel * 12}
