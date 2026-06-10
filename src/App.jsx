@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { generatePDF, generateTableauCPAS } from './utils/pdfExport.js';
 import './App.css';
 
@@ -549,10 +549,8 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate, onOpenFiche }) {
 
                   {/* % Report */}
                   <Field label="% Report">
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      value={r.priseEnCharge === "Report max" ? 100 : r.priseEnCharge === "Pas de report" ? "" : (r.pctReport || "")}
+                    <NumInput
+                      value={r.priseEnCharge === "Report max" ? 100 : r.priseEnCharge === "Pas de report" ? 0 : (r.pctReport || 0)}
                       disabled={r.priseEnCharge !== "Report partiel"}
                       onChange={(e) => updateRow(i, { pctReport: safeNumber(e.target.value, 0) })}
                       style={{ opacity: r.priseEnCharge === "Report partiel" ? 1 : 0.45, cursor: r.priseEnCharge === "Report partiel" ? "auto" : "not-allowed" }}
@@ -725,7 +723,7 @@ function RowsTable({ title, comptabiliseRows, exonereRows, onChangeComptabilise,
                   style={{ border: "2px solid #2BEBCE", background: "#F0FFFE" }} />
               )}
             </div>
-            <input type="text" inputMode="decimal" value={r.montant || ""} onChange={(e) => updateC(i, { montant: safeNumber(e.target.value, 0) })} />
+            <NumInput value={r.montant} onChange={(e) => updateC(i, { montant: safeNumber(e.target.value, 0) })} />
             {trashBtn(() => removeC(i))}
           </div>
         ))}
@@ -746,7 +744,7 @@ function RowsTable({ title, comptabiliseRows, exonereRows, onChangeComptabilise,
             <select value={r.type || ""} onChange={(e) => updateE(i, { type: e.target.value })}>
               {REVENUS_EXONERES_SUGGESTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
-            <input type="text" inputMode="decimal" value={r.montant || ""} onChange={(e) => updateE(i, { montant: safeNumber(e.target.value, 0) })} />
+            <NumInput value={r.montant} onChange={(e) => updateE(i, { montant: safeNumber(e.target.value, 0) })} />
             {trashBtn(() => removeE(i))}
           </div>
         ))}
@@ -858,14 +856,14 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
 
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Valeur vénale (€)</span>
-                  <input type="text" inputMode="decimal" value={cession.valeurVenale || ""}
+                  <NumInput value={cession.valeurVenale}
                     onChange={(e) => updateRow(i, { valeurVenale: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }} />
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Part (%)</span>
-                  <input type="text" inputMode="decimal" value={cession.partConcernee || ""}
+                  <NumInput value={cession.partConcernee}
                     onChange={(e) => updateRow(i, { partConcernee: safeNumber(e.target.value, 100) })}
                     style={{ padding: "6px" }} />
                 </label>
@@ -896,10 +894,8 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
 
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Dettes (€)</span>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={cession.dettesPersonnelles || ""}
+                  <NumInput
+                    value={cession.dettesPersonnelles}
                     onChange={(e) => updateRow(i, { dettesPersonnelles: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px", opacity: cession.natureCession === "Cession à titre gratuit" ? 0.45 : 1 }}
                     disabled={cession.natureCession === "Cession à titre gratuit"}
@@ -911,7 +907,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
 
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Dispense d'équité (€)</span>
-                  <input type="text" inputMode="decimal" value={cession.dispenseEquite || ""}
+                  <NumInput value={cession.dispenseEquite}
                     onChange={(e) => updateRow(i, { dispenseEquite: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }} />
                 </label>
@@ -1024,69 +1020,45 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
 
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>RC non indexé (€)</span>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={r.rcNonIndexe || ""}
+                  <NumInput value={r.rcNonIndexe}
                     onChange={(e) => updateRow(i, { rcNonIndexe: safeNumber(e.target.value, 0) })}
-                    style={{ padding: "6px" }}
-                  />
+                    style={{ padding: "6px" }} />
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Quote-part (%)</span>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={r.quotePart || ""}
+                  <NumInput value={r.quotePart}
                     onChange={(e) => updateRow(i, { quotePart: safeNumber(e.target.value, 50) })}
-                    style={{ padding: "6px" }}
-                  />
+                    style={{ padding: "6px" }} />
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Loyer annuel (€)</span>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={r.loyerAnnuel || ""}
+                  <NumInput value={r.loyerAnnuel}
                     onChange={(e) => updateRow(i, { loyerAnnuel: safeNumber(e.target.value, 0) })}
-                    style={{ padding: "6px" }}
-                  />
+                    style={{ padding: "6px" }} />
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Intérêts payés (€)</span>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={r.interetsPaye || ""}
+                  <NumInput value={r.interetsPaye}
                     onChange={(e) => updateRow(i, { interetsPaye: safeNumber(e.target.value, 0) })}
-                    style={{ padding: "6px" }}
-                  />
+                    style={{ padding: "6px" }} />
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Rente annuelle (€)</span>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={r.renteAnnuelle || ""}
+                  <NumInput value={r.renteAnnuelle}
                     onChange={(e) => updateRow(i, { renteAnnuelle: safeNumber(e.target.value, 0) })}
-                    style={{ padding: "6px" }}
-                  />
+                    style={{ padding: "6px" }} />
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Revenu étranger (€)</span>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={r.revenuImmoEtranger || ""}
+                  <NumInput value={r.revenuImmoEtranger}
                     onChange={(e) => updateRow(i, { revenuImmoEtranger: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }}
-                    disabled={r.typeBien !== "Étranger"}
-                  />
+                    disabled={r.typeBien !== "Étranger"} />
                   {r.typeBien !== "Étranger" && (
                     <span style={{ fontSize: 14, color: "#666" }}>Uniquement pour biens étrangers</span>
                   )}
@@ -1288,25 +1260,55 @@ function Card({ title, children, level = 3 }) {
   );
 }
 
+// Champ numérique : garde le texte brut pendant la frappe (permet "152." ou "1445,"),
+// normalise à l'affichage seulement au blur, vide quand valeur = 0.
+function NumInput({ value, onChange, style, disabled, placeholder, ...rest }) {
+  const [draft, setDraft] = useState(() => (!value && value !== 0) || value === 0 ? "" : String(value));
+  const focused = useRef(false);
+
+  useEffect(() => {
+    if (!focused.current) {
+      setDraft(value === 0 || value == null ? "" : String(value));
+    }
+  }, [value]);
+
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      value={draft}
+      placeholder={placeholder}
+      style={style}
+      disabled={disabled}
+      onFocus={() => { focused.current = true; }}
+      onBlur={() => {
+        focused.current = false;
+        const n = safeNumber(draft, 0);
+        setDraft(n === 0 ? "" : String(n));
+        if (onChange) onChange({ target: { value: draft } });
+      }}
+      onChange={(e) => {
+        setDraft(e.target.value);
+        if (onChange) onChange(e);
+      }}
+      {...rest}
+    />
+  );
+}
+
+const numInputStyle = {
+  padding: "10px 12px", borderRadius: "8px",
+  border: `1px solid ${colors.border}`, fontSize: "14px",
+  width: "100%", boxSizing: "border-box",
+};
+
 function Input({ label, type = "text", value, onChange, placeholder, hint }) {
-  const isNumeric = type === "number";
   return (
     <Field label={label} hint={hint}>
-      <input
-        type={isNumeric ? "text" : type}
-        inputMode={isNumeric ? "decimal" : undefined}
-        value={isNumeric ? (value || "") : value}
-        onChange={onChange}
-        placeholder={placeholder}
-        style={{
-          padding: "10px 12px",
-          borderRadius: "8px",
-          border: `1px solid ${colors.border}`,
-          fontSize: "14px",
-          width: "100%",
-          boxSizing: "border-box"
-        }}
-      />
+      {type === "number"
+        ? <NumInput value={value} onChange={onChange} placeholder={placeholder} style={numInputStyle} />
+        : <input type={type} value={value} onChange={onChange} placeholder={placeholder} style={numInputStyle} />
+      }
     </Field>
   );
 }
@@ -2447,7 +2449,7 @@ export default function App() {
                       Jours (si compteur dépassé)
                       <FicheBtn ficheKey="jours_compteur" onOpen={openFiche} />
                     </span>}>
-                      <input type="text" inputMode="decimal" value={data.exoneration.demandeur.joursCompteur || ""}
+                      <NumInput value={data.exoneration.demandeur.joursCompteur}
                         onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration,
                           demandeur: { ...d.exoneration.demandeur, joursCompteur: safeNumber(e.target.value, 0) } } }))} />
                     </Field>
@@ -2480,7 +2482,7 @@ export default function App() {
                       Jours (si compteur dépassé)
                       <FicheBtn ficheKey="jours_compteur" onOpen={openFiche} />
                     </span>}>
-                      <input type="text" inputMode="decimal" value={data.exoneration.conjoint.joursCompteur || ""}
+                      <NumInput value={data.exoneration.conjoint.joursCompteur}
                         onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration,
                           conjoint: { ...d.exoneration.conjoint, joursCompteur: safeNumber(e.target.value, 0) } } }))} />
                     </Field>
@@ -2852,11 +2854,9 @@ export default function App() {
                           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                             <div>Nbre de jours pris en compte dans la période concernée :</div>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <input
+                              <NumInput
                                 style={{ width: 70, padding: "6px 8px" }}
-                                type="text"
-                                inputMode="decimal"
-                                value={data.reference.joursPrisEnCompte || ""}
+                                value={data.reference.joursPrisEnCompte}
                                 onChange={(e) =>
                                   setData((prev) => ({
                                     ...prev,
