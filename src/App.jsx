@@ -43,9 +43,10 @@ const colors = {
 function computeCohabitantsMonthly(rows) {
   return rows.reduce((acc, row) => acc + safeNumber(row.mensuel, 0), 0);
 }
-function Row({ label, mensuel, annuel, total, highlight = false }) {
+function Row({ label, mensuel, annuel, total, highlight = false, neg = false }) {
   const renderMoney = (v) => {
     if (v === null || v === undefined) return "";
+    if (neg) return <span style={{ color: "#c0392b" }}>−&nbsp;<Money value={Math.abs(v)} /></span>;
     return <Money value={v} />;
   };
 
@@ -59,6 +60,7 @@ function Row({ label, mensuel, annuel, total, highlight = false }) {
       borderTop: "1px solid #C5D8EE",
       borderBottom: "1px solid #C5D8EE",
     }),
+    ...(neg && { color: "#c0392b" }),
   };
 
   return (
@@ -2754,8 +2756,23 @@ export default function App() {
                   <Row label="Revenu net demandeur" mensuel={apercu.pro.D4_netDem_Annuel / 12} annuel={apercu.pro.D4_netDem_Annuel} total={apercu.pro.D4_netDem_Annuel} />
                   <Row label="Revenu net conjoint" mensuel={apercu.pro.D5_netConj_Annuel / 12} annuel={apercu.pro.D5_netConj_Annuel} total={apercu.pro.D5_netConj_Annuel} />
 
-                  <Row label="Montant net (avant exo.) - Demandeur" mensuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel / 12} annuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel} total={apercu.pro.D6_netAvantExoSP_Dem_Annuel} />
-                  <Row label="Montant net (avant exo.) - Conjoint" mensuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel / 12} annuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel} total={apercu.pro.D7_netAvantExoSP_Conj_Annuel} />
+                  {apercu.pro.D4_netDem_Annuel > apercu.pro.D6_netAvantExoSP_Dem_Annuel && (
+                    <Row neg label="(−) Exonération Art. 35 — Demandeur"
+                      mensuel={(apercu.pro.D4_netDem_Annuel - apercu.pro.D6_netAvantExoSP_Dem_Annuel) / 12}
+                      annuel={apercu.pro.D4_netDem_Annuel - apercu.pro.D6_netAvantExoSP_Dem_Annuel}
+                      total={apercu.pro.D4_netDem_Annuel - apercu.pro.D6_netAvantExoSP_Dem_Annuel}
+                    />
+                  )}
+                  {apercu.pro.D5_netConj_Annuel > apercu.pro.D7_netAvantExoSP_Conj_Annuel && (
+                    <Row neg label="(−) Exonération Art. 35 — Conjoint"
+                      mensuel={(apercu.pro.D5_netConj_Annuel - apercu.pro.D7_netAvantExoSP_Conj_Annuel) / 12}
+                      annuel={apercu.pro.D5_netConj_Annuel - apercu.pro.D7_netAvantExoSP_Conj_Annuel}
+                      total={apercu.pro.D5_netConj_Annuel - apercu.pro.D7_netAvantExoSP_Conj_Annuel}
+                    />
+                  )}
+
+                  <Row label="Montant net (après exo. Art. 35) — Demandeur" mensuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel / 12} annuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel} total={apercu.pro.D6_netAvantExoSP_Dem_Annuel} />
+                  <Row label="Montant net (après exo. Art. 35) — Conjoint" mensuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel / 12} annuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel} total={apercu.pro.D7_netAvantExoSP_Conj_Annuel} />
 
                   <Row label="Montant net (avec exo. artistique) - Demandeur" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
                   <Row label="Montant net (avec exo. artistique) - Conjoint" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
