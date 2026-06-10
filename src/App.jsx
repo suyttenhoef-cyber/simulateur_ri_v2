@@ -2854,7 +2854,7 @@ export default function App() {
                       total={result.apercu.ri.C39_exoSupplAnnuelle}
                     />
                   )}
-                  <Row highlight label="Total ressources après exonération (C41)"
+                  <Row highlight label="Total ressources après exonération"
                     mensuel={null}
                     annuel={result.apercu.ri.C41_ressourcesApresExo}
                     total={result.apercu.ri.C41_ressourcesApresExo}
