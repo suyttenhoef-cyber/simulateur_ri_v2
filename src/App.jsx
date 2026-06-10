@@ -2299,19 +2299,19 @@ export default function App() {
                            value: "cohabitant",
                            cat: "Cat. 1",
                            label: "Cohabitant",
-                           desc: "Vit sous le même toit qu'une ou plusieurs personnes qui disposent de revenus propres"
+                           desc: "Personne qui partage un logement et met en commun ses dépenses quotidiennes avec une ou plusieurs autres personnes majeures (partenaire, colocataire, parents)."
                          },
                          {
                            value: "isolé",
                            cat: "Cat. 2",
                            label: "Isolé",
-                           desc: "Vit seul ou uniquement avec des personnes exclusivement à sa charge"
+                           desc: " Personne célibataire, veuve, divorcée ou séparée vivant seule, ou personne vivant avec d'autres adultes mais sans partager les dépenses avec eux"
                          },
                          {
                            value: "famille",
                            cat: "Cat. 3",
                            label: "Famille avec charge",
-                           desc: "Cohabite avec conjoint et/ou enfants dont il/elle assume la charge"
+                           desc: "Personne (isolée ou cohabitante) qui subvient seule aux besoins d'un ou plusieurs enfants mineurs célibataires vivant sous le même toit et économiquement à sa charge."
                          }
                        ].map(opt => {
                          const selected = data.menage.situation === opt.value;
