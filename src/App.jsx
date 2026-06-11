@@ -2351,10 +2351,7 @@ export default function App() {
     data.ressourcesDiverses // ← AJOUTER CE CHAMP
   ]); 
   // Utilise uniquement les champs nécessaires
-  const apercu = result?.apercu;  // ✅ Assure-toi que `result` a bien un champ `apercu`
-  if (!apercu) {
-    return <div>Erreur: Aperçu non défini</div>;  // Gère l'erreur si `apercu` est manquant
-  }
+  const apercu = result?.apercu;
 
   return (
     <div className="app-layout-wrapper">
