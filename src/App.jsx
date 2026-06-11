@@ -487,6 +487,7 @@ function computeCohabitantRow(row, referenceDate) {
 
   return {
     ...row,
+    ressourcesTotale,  // surcharge la valeur brute par le calcul depuis revenusDetailes
     seuilRI,
     excedent,
     montantMensuel,
