@@ -2881,12 +2881,7 @@ export default function App() {
             </div>
 
             <div className="card" style={{ padding: 16 }}>
-              <div style={{ fontSize: 14, opacity: 0.7 }}>Statut</div>
-              <div style={{ fontSize: 24, fontWeight: 750 }}>
-                {result.eligible ? "Éligible" : "Non éligible"}
-              </div>
-
-              <hr style={{ margin: "12px 0" }} />
+              <hr style={{ margin: "0 0 12px 0" }} />
 
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
                 <thead>
