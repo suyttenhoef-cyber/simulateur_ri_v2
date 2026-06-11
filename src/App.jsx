@@ -179,7 +179,7 @@ function firstOfCurrentMonth() {
 const defaultData = {
   reference: { dateISO: firstOfCurrentMonth(), joursPrisEnCompte: "" },
   identite: { nom: "", prenom: "", dateNaissance: "", nationalite: "" },
-  menage: { situation: "isolé", nbEnfants: 0 },
+  menage: { situation: "", nbEnfants: 0 },
   revenusNets: {
     demandeur: {
       comptabiliseRows: [{ label: "", customLabel: null, montant: 0 }],
@@ -2073,7 +2073,10 @@ function computeCessionsExcel(rows, montantOAnnuel, trancheImmunisee, seuilR, se
 function computeFromForm(data) {
   const categorie =
     data.menage.situation === "isolé" ? 2 :
-    data.menage.situation === "cohabitant" ? 1 : 3;
+    data.menage.situation === "cohabitant" ? 1 :
+    data.menage.situation === "famille" ? 3 : null;
+
+  if (categorie === null) return null;
 
   const dateISO = data.reference.dateISO || firstOfCurrentMonth();
   const [yearStr] = dateISO.split("-");
@@ -2416,12 +2419,17 @@ export default function App() {
 
                    {/* Sélecteur situation familiale */}
                    <div>
-                     <span style={{ fontSize: 14, opacity: 0.85 }}>Situation familiale</span>
+                     <span style={{ fontSize: 14, opacity: 0.85 }}>
+                       Situation familiale <span style={{ color: "#c0392b", fontWeight: 700 }}>*</span>
+                     </span>
                      <div style={{
                        display: "grid",
                        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
                        gap: 10,
-                       marginTop: 8
+                       marginTop: 8,
+                       borderRadius: 10,
+                       outline: !data.menage.situation ? "2px solid #e74c3c" : "none",
+                       outlineOffset: 4,
                      }}>
                        {[
                          {
@@ -2481,6 +2489,12 @@ export default function App() {
                          );
                        })}
                      </div>
+                     {!data.menage.situation && (
+                       <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8, color: "#c0392b", fontSize: 13, fontWeight: 600 }}>
+                         <i className="fas fa-circle-exclamation" aria-hidden="true" />
+                         Veuillez sélectionner une situation familiale pour continuer.
+                       </div>
+                     )}
                    </div>
 
                    <Input
@@ -2818,10 +2832,18 @@ export default function App() {
 
          {active === "apercu" && (
           <section style={{ display: "grid", gap: 12 }}>
+            {!result && (
+              <div className="alert alert--warning" style={{ fontSize: 15 }}>
+                <i className="fas fa-circle-exclamation" aria-hidden="true" />
+                <span>
+                  Veuillez d'abord sélectionner une <strong>situation familiale</strong> dans l'onglet <strong>Référence & ménage</strong> pour calculer le droit au RI.
+                </span>
+              </div>
+            )}
             {/* Titre et bouton d'export */}
-            <div style={{ 
-              display: "flex", 
-              justifyContent: "space-between", 
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
               alignItems: "center",
               flexWrap: "wrap",
               gap: "10px"
@@ -2881,7 +2903,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="card" style={{ padding: 16 }}>
+            {result && <div className="card" style={{ padding: 16 }}>
               <hr style={{ margin: "0 0 12px 0" }} />
 
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
@@ -3054,7 +3076,7 @@ export default function App() {
                   </tr>
                 </tbody>
               </table>
-            </div>
+            </div>}
           </section>
         )}
           {active === "biens_mobiliers" && (
