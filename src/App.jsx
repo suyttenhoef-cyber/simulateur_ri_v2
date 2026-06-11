@@ -2854,12 +2854,12 @@ export default function App() {
                   <span style={{
                     display: "inline-flex", alignItems: "center", gap: 6,
                     padding: "4px 14px", borderRadius: 20, fontWeight: 700, fontSize: 14,
-                    background: result.apercu?.eligible ? "#d4edda" : "#fde8e8",
-                    color: result.apercu?.eligible ? "#1a7a3c" : "#c0392b",
-                    border: `1.5px solid ${result.apercu?.eligible ? "#a3d9b1" : "#f5a0a0"}`,
+                    background: result.apercu?.ri?.eligible ? "#d4edda" : "#fde8e8",
+                    color: result.apercu?.ri?.eligible ? "#1a7a3c" : "#c0392b",
+                    border: `1.5px solid ${result.apercu?.ri?.eligible ? "#a3d9b1" : "#f5a0a0"}`,
                   }}>
-                    <i className={`fas fa-${result.apercu?.eligible ? "circle-check" : "circle-xmark"}`} aria-hidden="true" />
-                    {result.apercu?.eligible ? "Éligible au RI" : "Non éligible au RI"}
+                    <i className={`fas fa-${result.apercu?.ri?.eligible ? "circle-check" : "circle-xmark"}`} aria-hidden="true" />
+                    {result.apercu?.ri?.eligible ? "Éligible au RI" : "Non éligible au RI"}
                   </span>
                 )}
               </div>
