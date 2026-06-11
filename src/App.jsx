@@ -107,16 +107,16 @@ const TITRE_USUFRUIT = 0.4;         // Coefficient Usufruit (40%)
 const TITRE_NU_PROPRIETE = 0.6;     // Coefficient Nu-Propriété (60%)
 
 const SECTIONS = [
-  { id: "informations",      label: "Informations",         icon: "fa-address-card" },
-  { id: "revenus_nets",      label: "Revenus nets",          icon: "fa-sack-dollar" },
-  { id: "cmr",               label: "Chômage / Mutuelle",   icon: "fa-file-medical" },
+  { id: "informations",      label: "Informations demandeur",         icon: "fa-address-card" },
+  { id: "revenus_nets",      label: "Revenus nets & exonérations",          icon: "fa-sack-dollar" },
+  { id: "cmr",               label: "Chômage, mutuelle & remplacement",   icon: "fa-file-medical" },
   { id: "avantages",         label: "Avantages en nature",  icon: "fa-house-user" },
-  { id: "cessions_biens",    label: "Cessions",             icon: "fa-building" },
+  { id: "cessions_biens",    label: "Cessions de biens",             icon: "fa-building" },
   { id: "biens_mobiliers",   label: "Biens mobiliers",      icon: "fa-coins" },
-  { id: "biens_immobiliers", label: "Immobiliers",          icon: "fa-house" },
+  { id: "biens_immobiliers", label: "Revenus immobiliers",          icon: "fa-house" },
   { id: "ressources_diverses", label: "Allocations & ressources diverses", icon: "fa-chart-bar" },
-  { id: "cohabitants",       label: "Revenus cohabitants",  icon: "fa-people-group" },
-  { id: "apercu",            label: "Aperçu",               icon: "fa-table-list" },
+  { id: "cohabitants",       label: "Revenus des cohabitants",  icon: "fa-people-group" },
+  { id: "apercu",            label: "Aperçu du calcul",               icon: "fa-table-list" },
 ];
 
 const defaultRow = () => ({
