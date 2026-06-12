@@ -168,7 +168,9 @@ const defaultCohabitantRow = () => ({
   priseEnCharge: "Report max",
   pctReport: 30,
   categorie: 1,
-  revenusDetailes: []
+  revenusDetailes: [],
+  chargesAdmissibles: 0,
+  chargesInadmissibles: 0,
 });
 
 function firstOfCurrentMonth() {
@@ -223,7 +225,12 @@ const defaultData = {
     },
   },
   cohabitants: {
-    rows: [defaultCohabitantRow()] // ← CHANGER de [] à [defaultCohabitantRow()]
+    modeCalcul: "groupe",          // "groupe" (circulaire 16/01/2026) | "individuel"
+    priseEnCompte: "legale",       // "legale" | "equite" | "aucune"
+    montantRetenuAnnuel: 0,        // utilisé si priseEnCompte === "equite"
+    risOctroyeCible: "",           // RIS mensuel cible → recalcule montantRetenuAnnuel
+    chargesAdmissiblesDemandeur: 0,
+    rows: [defaultCohabitantRow()]
   },
   ressourcesDiverses: {
     generales: [
@@ -498,39 +505,80 @@ function computeCohabitantRow(row, referenceDate) {
   };
 }
 
-// 2. Fonction pour calculer le total des cohabitants
-function computeCohabitantsTotal(rows, referenceDate) {
-  if (!rows || rows.length === 0) {
-    return { totalAnnuel: 0, totalMensuel: 0, details: [] };
+// 2. Calcul groupé — Circulaire 16/01/2026
+function computeCohabitantsGrouped(cohabitantsData, referenceDate) {
+  const rows = cohabitantsData.rows || [];
+  const modeCalcul = cohabitantsData.modeCalcul || "groupe";
+  const priseEnCompte = cohabitantsData.priseEnCompte || "legale";
+  const montantRetenuAnnuel = safeNumber(cohabitantsData.montantRetenuAnnuel, 0);
+
+  if (rows.length === 0) {
+    return { totalAnnuel: 0, totalMensuel: 0, details: [], modeCalcul };
   }
-  
+
   const details = rows.map(row => computeCohabitantRow(row, referenceDate));
-  // Utiliser montantReporte au lieu de ressourcesProrata
-  const totalMensuel = details.reduce((sum, row) => sum + row.montantReporte, 0);
-  
+
+  if (modeCalcul === "individuel") {
+    const totalMensuel = round2(details.reduce((s, d) => s + d.montantReporte, 0));
+    return { totalAnnuel: round2(totalMensuel * 12), totalMensuel, details, modeCalcul };
+  }
+
+  // Mode groupé : excédent = somme(ressources) − somme(seuils individuels)
+  const ressourcesTotal = round2(details.reduce((s, d) => s + d.ressourcesTotale, 0));
+  const seuilTotal      = round2(details.reduce((s, d) => s + d.seuilRI, 0));
+  const excedentGroupe  = Math.max(0, round2(ressourcesTotal - seuilTotal));
+
+  const montantAnnuel =
+    priseEnCompte === "legale" ? excedentGroupe :
+    priseEnCompte === "equite" ? montantRetenuAnnuel : 0;
+
   return {
-    totalAnnuel: round2(totalMensuel * 12),
-    totalMensuel: round2(totalMensuel),
-    details
+    totalAnnuel: round2(montantAnnuel),
+    totalMensuel: round2(montantAnnuel / 12),
+    details,
+    modeCalcul,
+    ressourcesTotal,
+    seuilTotal,
+    excedentGroupe,
+    priseEnCompte,
+    montantRetenuAnnuel,
   };
 }
 
-// 3. Composant CohabitantsTable (inspiré de BiensImmobiliersTable)
-function CohabitantsTable({ rows, onChangeRows, referenceDate, onOpenFiche }) {
-  const totals = useMemo(() => 
-    computeCohabitantsTotal(rows, referenceDate), 
-    [rows, referenceDate]
-  );
+// Compatibilité — conservé pour les exports qui appellent encore cette fonction
+function computeCohabitantsTotal(rows, referenceDate) {
+  return computeCohabitantsGrouped({ rows, modeCalcul: "individuel" }, referenceDate);
+}
 
-  function updateRow(i, patch) {
-    onChangeRows(rows.map((r, idx) => idx === i ? { ...r, ...patch } : r));
-  }
-  function addRow() { onChangeRows([...rows, defaultCohabitantRow()]); }
-  function removeRow(i) { onChangeRows(rows.filter((_, idx) => idx !== i)); }
+// 3. Composant CohabitantsTable
+function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, categorieDemandeur, onOpenFiche }) {
+  const rows             = cohabitants.rows || [];
+  const modeCalcul       = cohabitants.modeCalcul || "groupe";
+  const priseEnCompte    = cohabitants.priseEnCompte || "legale";
+  const montantRetenuAnnuel = safeNumber(cohabitants.montantRetenuAnnuel, 0);
+  const risOctroyeCible  = cohabitants.risOctroyeCible ?? "";
+  const chargesAdmDem    = safeNumber(cohabitants.chargesAdmissiblesDemandeur, 0);
+
+  const grouped = useMemo(() => computeCohabitantsGrouped(cohabitants, referenceDate), [cohabitants, referenceDate]);
+
+  // Fourchette RIS
+  const seuilDem     = categorieDemandeur ? getRIAnnuel(referenceDate, categorieDemandeur) : 0;
+  const exoSupplDem  = categorieDemandeur ? safeNumber(EXO_SUPPL_ANNUEL[categorieDemandeur], 0) : 0;
+  const risMaxMensuel = seuilDem > 0 ? round2(seuilDem / 12) : null;
+  const risMinLegalMensuel = (modeCalcul === "groupe" && seuilDem > 0 && grouped.excedentGroupe != null)
+    ? round2(Math.max(0, seuilDem - Math.max(0, grouped.excedentGroupe - exoSupplDem)) / 12)
+    : null;
+  const risOctroyeMensuel = (priseEnCompte === "equite" && seuilDem > 0)
+    ? round2(Math.max(0, seuilDem - Math.max(0, montantRetenuAnnuel - exoSupplDem)) / 12)
+    : null;
+
+  function update(patch) { onChangeCohabitants({ ...cohabitants, ...patch }); }
+  function updateRow(i, patch) { update({ rows: rows.map((r, idx) => idx === i ? { ...r, ...patch } : r) }); }
+  function addRow() { update({ rows: [...rows, defaultCohabitantRow()] }); }
+  function removeRow(i) { update({ rows: rows.filter((_, idx) => idx !== i) }); }
 
   function addRevenuDetail(i) {
-    const row = rows[i];
-    updateRow(i, { revenusDetailes: [...(row.revenusDetailes || []), defaultRevenuDetail()] });
+    updateRow(i, { revenusDetailes: [...(rows[i].revenusDetailes || []), defaultRevenuDetail()] });
   }
   function removeRevenuDetail(i, j) {
     updateRow(i, { revenusDetailes: (rows[i].revenusDetailes || []).filter((_, idx) => idx !== j) });
@@ -538,9 +586,58 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate, onOpenFiche }) {
   function updateRevenuDetail(i, j, patch) {
     updateRow(i, { revenusDetailes: (rows[i].revenusDetailes || []).map((d, idx) => idx === j ? { ...d, ...patch } : d) });
   }
+  function handleRisOctroyeCible(val) {
+    const risNum = safeNumber(val, 0);
+    const montant = (risNum > 0 && seuilDem > 0)
+      ? round2(Math.max(0, seuilDem + exoSupplDem - risNum * 12))
+      : montantRetenuAnnuel;
+    update({ risOctroyeCible: val, montantRetenuAnnuel: risNum > 0 ? montant : montantRetenuAnnuel });
+  }
+
+  const hasAnyBudget = rows.some(r => safeNumber(r.chargesAdmissibles, 0) > 0 || safeNumber(r.chargesInadmissibles, 0) > 0) || chargesAdmDem > 0;
+  const totalChargesAdmCohab   = rows.reduce((s, r) => s + safeNumber(r.chargesAdmissibles, 0), 0);
+  const totalChargesInadmCohab = rows.reduce((s, r) => s + safeNumber(r.chargesInadmissibles, 0), 0);
+  const ressourcesMensuelles   = grouped.ressourcesTotal != null ? round2(grouped.ressourcesTotal / 12) : 0;
+  const disponibleAdm          = round2(ressourcesMensuelles - totalChargesAdmCohab - chargesAdmDem);
+  const disponibleTotal        = round2(ressourcesMensuelles - totalChargesAdmCohab - totalChargesInadmCohab - chargesAdmDem);
+
+  const btnMode = (value, label, desc) => {
+    const sel = modeCalcul === value;
+    return (
+      <button key={value} onClick={() => update({ modeCalcul: value })}
+        style={{ border: `2px solid ${sel ? colors.primary : colors.border}`, borderRadius: 10, padding: "10px 12px", background: sel ? "#EEF4FA" : colors.white, cursor: "pointer", textAlign: "left", transition: "all 0.2s", fontFamily: "'Source Sans Pro', sans-serif" }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: sel ? colors.primary : colors.text, marginBottom: 3 }}>{label}</div>
+        <div style={{ fontSize: 13, color: colors.textLight, lineHeight: 1.4 }}>{desc}</div>
+      </button>
+    );
+  };
+
+  const btnPrise = (value, label, sub) => {
+    const sel = priseEnCompte === value;
+    return (
+      <button key={value} onClick={() => update({ priseEnCompte: value })}
+        style={{ border: `2px solid ${sel ? colors.primary : colors.border}`, borderRadius: 10, padding: "10px 12px", background: sel ? "#EEF4FA" : colors.white, cursor: "pointer", textAlign: "left", transition: "all 0.2s", fontFamily: "'Source Sans Pro', sans-serif" }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: sel ? colors.primary : colors.text, marginBottom: 2 }}>{label}</div>
+        <div style={{ fontSize: 12, color: colors.textLight }}>{sub}</div>
+      </button>
+    );
+  };
 
   return (
     <Card title="Revenus des cohabitants">
+
+      {/* ── Mode de calcul ── */}
+      <div style={{ marginBottom: 16 }}>
+        <span style={{ fontSize: 14, fontWeight: 700, color: colors.primary, display: "block", marginBottom: 8 }}>
+          Mode de calcul
+        </span>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {btnMode("groupe",     "Groupé — Circulaire 16/01/2026",  "Seuil calculé sur l'ensemble des cohabitants combinés (recommandé)")}
+          {btnMode("individuel", "Individuel (ancienne méthode)",    "Excédent calculé séparément pour chaque cohabitant")}
+        </div>
+      </div>
+
+      {/* ── Liste des cohabitants ── */}
       {rows.length === 0 ? (
         <p style={{ opacity: 0.6 }}>Aucun cohabitant enregistré</p>
       ) : (
@@ -749,6 +846,30 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate, onOpenFiche }) {
                   </div>
                 )}
 
+                {/* ── Budget mensuel accordion ── */}
+                <details style={{ marginTop: 14 }}>
+                  <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, color: colors.primary, padding: "6px 0", userSelect: "none", listStyle: "none", display: "flex", alignItems: "center", gap: 6 }}>
+                    <i className="fas fa-chevron-right" style={{ fontSize: 11, transition: "transform 0.2s" }} aria-hidden="true" />
+                    Budget mensuel <span style={{ fontWeight: 400, color: colors.textLight }}>(facultatif — pour analyse d'équité)</span>
+                  </summary>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 10, paddingLeft: 4 }}>
+                    <Input label="Charges admissibles (€/mois)" type="number"
+                      value={r.chargesAdmissibles}
+                      onChange={(e) => updateRow(i, { chargesAdmissibles: safeNumber(e.target.value, 0) })} />
+                    <Input label="Charges inadmissibles (€/mois)" type="number"
+                      value={r.chargesInadmissibles}
+                      onChange={(e) => updateRow(i, { chargesInadmissibles: safeNumber(e.target.value, 0) })} />
+                  </div>
+                  {safeNumber(r.chargesAdmissibles, 0) > 0 && (
+                    <div style={{ marginTop: 6, paddingLeft: 4, fontSize: 13, color: colors.textLight }}>
+                      Disponible (après charges admissibles) :&nbsp;
+                      <strong style={{ color: round2(safeNumber(calc.ressourcesTotale, 0) / 12 - safeNumber(r.chargesAdmissibles, 0)) >= 0 ? "#1a7a3c" : "#c0392b" }}>
+                        <Money value={round2(safeNumber(calc.ressourcesTotale, 0) / 12 - safeNumber(r.chargesAdmissibles, 0))} /> /mois
+                      </strong>
+                    </div>
+                  )}
+                </details>
+
                 <div className="summary-box" style={{ marginTop: 10, fontSize: 14 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8 }}>
                     <div><strong>Seuil RI (catégorie {calc.categorie}):</strong> <Money value={calc.seuilRI} /></div>
@@ -769,13 +890,151 @@ function CohabitantsTable({ rows, onChangeRows, referenceDate, onOpenFiche }) {
         </>
       )}
 
-      {/* Totaux — à l'intérieur du return, après la liste */}
-      <div className="summary-box" style={{ marginTop: 12 }}>
-        <div><b>Total annuel des cohabitants : <Money value={totals.totalAnnuel} /></b></div>
-        <div><b>Total mensuel des cohabitants : <Money value={totals.totalMensuel} /></b></div>
-      </div>
+      {/* ── Synthèse groupée + prise en compte ── */}
+      {modeCalcul === "groupe" && rows.length > 0 && (
+        <div style={{ marginTop: 16, border: `2px solid ${colors.primary}`, borderRadius: 12, padding: 16 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: colors.primary, textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: 12 }}>
+            Synthèse groupée — Circulaire 16/01/2026
+          </div>
 
-      <button onClick={addRow} className="btn-add">
+          {/* Tableau excédent */}
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, marginBottom: 16 }}>
+            <tbody>
+              <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
+                <td style={{ padding: "6px 8px", color: colors.text }}>Ressources combinées</td>
+                <td style={{ padding: "6px 8px", textAlign: "right", fontWeight: 600 }}><Money value={grouped.ressourcesTotal} /> /an</td>
+              </tr>
+              <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
+                <td style={{ padding: "6px 8px", color: colors.text }}>Seuil garanti ({rows.length} cohabitant{rows.length > 1 ? "s" : ""})</td>
+                <td style={{ padding: "6px 8px", textAlign: "right", color: "#c0392b", fontWeight: 600 }}>−&nbsp;<Money value={grouped.seuilTotal} /> /an</td>
+              </tr>
+              <tr style={{ background: "#EEF4FA" }}>
+                <td style={{ padding: "7px 8px", fontWeight: 700, color: colors.primary }}>Excédent légal</td>
+                <td style={{ padding: "7px 8px", textAlign: "right", fontWeight: 700, color: colors.primary }}>
+                  <Money value={grouped.excedentGroupe} /> /an
+                  {grouped.excedentGroupe > 0 && (
+                    <span style={{ color: colors.textLight, fontWeight: 400, fontSize: 12, marginLeft: 8 }}>
+                      = <Money value={round2(grouped.excedentGroupe / 12)} />/mois
+                    </span>
+                  )}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* Prise en compte */}
+          <div style={{ marginBottom: 14 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: colors.primary, display: "block", marginBottom: 8 }}>Prise en compte des ressources</span>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+              {btnPrise("legale",  "Légale complète",  grouped.excedentGroupe > 0 ? `${round2(grouped.excedentGroupe / 12).toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €/mois` : "0 €")}
+              {btnPrise("equite",  "Par équité",        "Montant réduit — raisons d'équité")}
+              {btnPrise("aucune",  "Pas de report",     "0 € comptabilisé")}
+            </div>
+          </div>
+
+          {/* Saisie équité */}
+          {priseEnCompte === "equite" && (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, background: "#FFF8E1", border: "1px solid #f0d060", borderRadius: 8, padding: 12, marginBottom: 14 }}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, color: colors.primary }}>Ressources retenues (€/an)</div>
+                <NumInput value={montantRetenuAnnuel}
+                  onChange={(e) => update({ montantRetenuAnnuel: safeNumber(e.target.value, 0), risOctroyeCible: "" })} />
+                <div style={{ fontSize: 12, color: colors.textLight, marginTop: 3 }}>Maximum légal : <Money value={grouped.excedentGroupe} /> €/an</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, color: colors.primary }}>— ou — RIS visé (€/mois)</div>
+                <NumInput value={risOctroyeCible}
+                  onChange={(e) => handleRisOctroyeCible(e.target.value)} />
+                <div style={{ fontSize: 12, color: colors.textLight, marginTop: 3 }}>→ Recalcule automatiquement les ressources retenues</div>
+              </div>
+            </div>
+          )}
+
+          {/* Balance budgétaire ménage */}
+          {(hasAnyBudget || chargesAdmDem > 0) && (
+            <details style={{ marginBottom: 14 }}>
+              <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, color: colors.primary, padding: "4px 0", userSelect: "none" }}>
+                Balance budgétaire du ménage
+              </summary>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, marginTop: 8 }}>
+                <tbody>
+                  <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
+                    <td style={{ padding: "5px 8px" }}>Ressources totales (cohabitants)</td>
+                    <td style={{ padding: "5px 8px", textAlign: "right", fontWeight: 600 }}><Money value={ressourcesMensuelles} /> /mois</td>
+                  </tr>
+                  <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
+                    <td style={{ padding: "5px 8px" }}>Charges admissibles (cohabitants)</td>
+                    <td style={{ padding: "5px 8px", textAlign: "right", color: "#c0392b" }}>−&nbsp;<Money value={totalChargesAdmCohab} /> /mois</td>
+                  </tr>
+                  <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
+                    <td style={{ padding: "5px 8px" }}>
+                      Charges admissibles (demandeur)
+                    </td>
+                    <td style={{ padding: "5px 8px", textAlign: "right" }}>
+                      <NumInput value={chargesAdmDem}
+                        onChange={(e) => update({ chargesAdmissiblesDemandeur: safeNumber(e.target.value, 0) })}
+                        style={{ width: 90, textAlign: "right", padding: "3px 6px", fontSize: 13 }} />
+                      <span style={{ color: colors.textLight, marginLeft: 4 }}>€/mois</span>
+                    </td>
+                  </tr>
+                  {totalChargesInadmCohab > 0 && (
+                    <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
+                      <td style={{ padding: "5px 8px", fontStyle: "italic", color: colors.textLight }}>Charges inadmissibles (cohabitants)</td>
+                      <td style={{ padding: "5px 8px", textAlign: "right", color: colors.textLight }}>−&nbsp;<Money value={totalChargesInadmCohab} /> /mois</td>
+                    </tr>
+                  )}
+                  <tr style={{ background: disponibleAdm >= 0 ? "#d4edda" : "#fde8e8", fontWeight: 700 }}>
+                    <td style={{ padding: "6px 8px", color: disponibleAdm >= 0 ? "#1a7a3c" : "#c0392b" }}>Disponible ménage (charges admissibles)</td>
+                    <td style={{ padding: "6px 8px", textAlign: "right", color: disponibleAdm >= 0 ? "#1a7a3c" : "#c0392b" }}><Money value={disponibleAdm} /> /mois</td>
+                  </tr>
+                  {totalChargesInadmCohab > 0 && (
+                    <tr style={{ background: disponibleTotal >= 0 ? "#d4edda" : "#fde8e8" }}>
+                      <td style={{ padding: "6px 8px", color: disponibleTotal >= 0 ? "#1a7a3c" : "#c0392b", fontStyle: "italic", fontSize: 12 }}>Disponible ménage (toutes charges)</td>
+                      <td style={{ padding: "6px 8px", textAlign: "right", color: disponibleTotal >= 0 ? "#1a7a3c" : "#c0392b", fontSize: 12 }}><Money value={disponibleTotal} /> /mois</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </details>
+          )}
+
+          {/* Fourchette RIS */}
+          {categorieDemandeur && risMaxMensuel != null && (
+            <div>
+              <span style={{ fontSize: 13, fontWeight: 700, color: colors.primary, display: "block", marginBottom: 8 }}>Fourchette RIS</span>
+              <div style={{ display: "grid", gridTemplateColumns: priseEnCompte === "equite" ? "1fr 1fr 1fr" : "1fr 1fr", gap: 8 }}>
+                <div style={{ background: "#fde8e8", borderRadius: 8, padding: "8px 12px" }}>
+                  <div style={{ fontSize: 12, color: "#c0392b", fontWeight: 600, marginBottom: 2 }}>Minimum légal</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: "#c0392b" }}><Money value={risMinLegalMensuel} /> /mois</div>
+                  <div style={{ fontSize: 11, color: colors.textLight }}>Application stricte</div>
+                </div>
+                {priseEnCompte === "equite" && (
+                  <div style={{ background: "#fff8e1", border: "1px solid #f0d060", borderRadius: 8, padding: "8px 12px" }}>
+                    <div style={{ fontSize: 12, color: "#b8860b", fontWeight: 600, marginBottom: 2 }}>Montant octroyé</div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: "#b8860b" }}><Money value={risOctroyeMensuel} /> /mois</div>
+                    <div style={{ fontSize: 11, color: colors.textLight }}>Par équité</div>
+                  </div>
+                )}
+                <div style={{ background: "#d4edda", borderRadius: 8, padding: "8px 12px" }}>
+                  <div style={{ fontSize: 12, color: "#1a7a3c", fontWeight: 600, marginBottom: 2 }}>Maximum</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: "#1a7a3c" }}><Money value={risMaxMensuel} /> /mois</div>
+                  <div style={{ fontSize: 11, color: colors.textLight }}>Taux plein Cat. {categorieDemandeur}</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Totaux (mode individuel) */}
+      {modeCalcul === "individuel" && rows.length > 0 && (
+        <div className="summary-box" style={{ marginTop: 12 }}>
+          <div><b>Total annuel reporté : <Money value={grouped.totalAnnuel} /></b></div>
+          <div><b>Total mensuel reporté : <Money value={grouped.totalMensuel} /></b></div>
+        </div>
+      )}
+
+      <button onClick={addRow} className="btn-add" style={{ marginTop: 12 }}>
         + Ajouter un cohabitant
       </button>
     </Card>
@@ -2118,7 +2377,7 @@ function computeFromForm(data) {
   const bm = computeBiensMobiliersExcel(data.biensMobiliers || { montantCapital: 0, partConcernee: 100 });
   
   // Calcul des cohabitants
-  const cohabitantsTotals = computeCohabitantsTotal(data.cohabitants?.rows || [], dateISO);
+  const cohabitantsTotals = computeCohabitantsGrouped(data.cohabitants || { rows: [] }, dateISO);
   // Exonération
   const exo = computeExonerationExcel({ dateISO, exo: data.exoneration });
 
@@ -2816,12 +3075,10 @@ export default function App() {
                 <FicheBtn ficheKey="cohabitants" onOpen={openFiche} />
               </h2>
               <CohabitantsTable
-                rows={data.cohabitants.rows}
+                cohabitants={data.cohabitants}
                 referenceDate={data.reference.dateISO}
-                onChangeRows={(rows) => setData(d => ({
-                  ...d,
-                  cohabitants: { ...d.cohabitants, rows }
-                }))}
+                onChangeCohabitants={(cohabitants) => setData(d => ({ ...d, cohabitants }))}
+                categorieDemandeur={data.menage.situation === "isolé" ? 2 : data.menage.situation === "cohabitant" ? 1 : data.menage.situation === "famille" ? 3 : null}
                 onOpenFiche={openFiche}
               />
             </section>
