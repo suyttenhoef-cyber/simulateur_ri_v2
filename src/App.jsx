@@ -529,10 +529,14 @@ function computeCohabitantsGrouped(cohabitantsData, referenceDate) {
     };
   }
 
-  // Mode groupé : excédent = somme(ressources débiteurs) − somme(seuils), "Pas de report" exclus
+  // Mode groupé : excédent = somme(ressources débiteurs) − somme(seuils débiteurs + seuils "Autre")
+  // Les cohabitants "Autre" contribuent leur seuil au dénominateur mais pas leurs revenus.
   const activeDebiteurs = debiteurs.filter(d => d.priseEnCharge !== "Pas de report");
   const ressourcesTotal = round2(activeDebiteurs.reduce((s, d) => s + d.ressourcesTotale, 0));
-  const seuilTotal      = round2(activeDebiteurs.reduce((s, d) => s + d.seuilRI, 0));
+  const seuilTotal      = round2(
+    activeDebiteurs.reduce((s, d) => s + d.seuilRI, 0) +
+    autresCohabitants.reduce((s, d) => s + d.seuilRI, 0)
+  );
   const rawExcedent     = Math.max(0, round2(ressourcesTotal - seuilTotal));
 
   // Appliquer pctReport si des débiteurs sont en "Report partiel"
@@ -826,8 +830,8 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                   <span style={{ fontSize: 14, opacity: 0.85, display: "block", marginBottom: 8 }}>Catégorie (seuil RI applicable)</span>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                     {[
-                      { value: 1, cat: "Cat. 1", label: "Cohabitant", desc: "Vit avec d'autres personnes disposant de ressources propres — sans charge exclusive de famille" },
-                      { value: 3, cat: "Cat. 3", label: "Famille avec charge", desc: "A un conjoint et/ou des enfants entièrement à sa charge dans la même composition de ménage" },
+                      { value: 1, cat: "Cat. 1", label: "Cohabitant" },
+                      { value: 3, cat: "Cat. 3", label: "Famille avec charge" },
                     ].map(opt => {
                       const sel = r.categorie === opt.value;
                       return (
@@ -915,16 +919,21 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
           {/* Tableau excédent */}
           {(() => {
             const debCount = (grouped.debiteurs || []).filter(d => d.priseEnCharge !== "Pas de report").length;
+            const autreCount = (grouped.autresCohabitants || []).length;
+            const totalSeuilCount = debCount + autreCount;
             const hasPartiel = (grouped.debiteurs || []).some(d => d.priseEnCharge === "Report partiel");
             return (
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, marginBottom: 16 }}>
                 <tbody>
                   <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
-                    <td style={{ padding: "6px 8px", color: colors.text }}>Ressources combinées (débiteurs)</td>
+                    <td style={{ padding: "6px 8px", color: colors.text }}>Ressources combinées (débiteurs d'aliments)</td>
                     <td style={{ padding: "6px 8px", textAlign: "right", fontWeight: 600 }}><Money value={grouped.ressourcesTotal} /> /an</td>
                   </tr>
                   <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
-                    <td style={{ padding: "6px 8px", color: colors.text }}>Seuil garanti ({debCount} débiteur{debCount !== 1 ? "s" : ""})</td>
+                    <td style={{ padding: "6px 8px", color: colors.text }}>
+                      Seuil garanti ({totalSeuilCount} cohabitant{totalSeuilCount !== 1 ? "s" : ""})
+                      {autreCount > 0 && <span style={{ color: colors.textLight, fontSize: 12, marginLeft: 6 }}>dont {autreCount} « Autre » (seuil uniquement)</span>}
+                    </td>
                     <td style={{ padding: "6px 8px", textAlign: "right", color: "#c0392b", fontWeight: 600 }}>−&nbsp;<Money value={grouped.seuilTotal} /> /an</td>
                   </tr>
                   <tr style={{ borderBottom: `1px solid ${colors.border}`, background: hasPartiel ? undefined : "#EEF4FA" }}>
@@ -3232,15 +3241,9 @@ export default function App() {
 
                   {/* ── Allocations & ressources diverses ── */}
                   <Sec>Allocations &amp; ressources diverses</Sec>
-                  {apercu.pro.D9_chom_Annuel > 0 && (
-                    <Row label="Allocation de chômage"   mensuel={apercu.pro.D9_chom_Annuel / 12}  annuel={apercu.pro.D9_chom_Annuel}  total={apercu.pro.D9_chom_Annuel} />
-                  )}
-                  {apercu.pro.D10_mut_Annuel > 0 && (
-                    <Row label="Mutuelle"                mensuel={apercu.pro.D10_mut_Annuel / 12}  annuel={apercu.pro.D10_mut_Annuel}  total={apercu.pro.D10_mut_Annuel} />
-                  )}
-                  {apercu.pro.D11_rem_Annuel > 0 && (
-                    <Row label="Revenus de remplacement" mensuel={apercu.pro.D11_rem_Annuel / 12}  annuel={apercu.pro.D11_rem_Annuel}  total={apercu.pro.D11_rem_Annuel} />
-                  )}
+                  <Row label="Allocation de chômage"   mensuel={apercu.pro.D9_chom_Annuel / 12}  annuel={apercu.pro.D9_chom_Annuel}  total={apercu.pro.D9_chom_Annuel} />
+                  <Row label="Mutuelle"                mensuel={apercu.pro.D10_mut_Annuel / 12}  annuel={apercu.pro.D10_mut_Annuel}  total={apercu.pro.D10_mut_Annuel} />
+                  <Row label="Revenus de remplacement" mensuel={apercu.pro.D11_rem_Annuel / 12}  annuel={apercu.pro.D11_rem_Annuel}  total={apercu.pro.D11_rem_Annuel} />
                   <Row label="Allocations & ressources diverses" mensuel={apercu.autres.D17_diverses_Annuel / 12} annuel={apercu.autres.D17_diverses_Annuel} total={apercu.autres.D17_diverses_Annuel} />
 
                   <Gap />
@@ -3300,53 +3303,20 @@ export default function App() {
                     annuel={result.apercu.ri.riAnnuelBrut}
                     total={result.apercu.ri.riAnnuelBrut}
                   />
-                  {result.apercu.ri.C39_exoSupplAnnuelle !== 0 && (
-                    <Row neg label="(−) Exonération supplémentaire"
-                      mensuel={null}
-                      annuel={result.apercu.ri.C39_exoSupplAnnuelle}
-                      total={result.apercu.ri.C39_exoSupplAnnuelle}
-                    />
-                  )}
                   <Row highlight label="Total ressources après exonération"
                     mensuel={null}
                     annuel={result.apercu.ri.C41_ressourcesApresExo}
                     total={result.apercu.ri.C41_ressourcesApresExo}
                   />
-                  <Row label="Revenu d’intégration annuel"
+                  <Row grand label="Revenu d’intégration annuel"
                     mensuel={null}
                     annuel={result.apercu.ri.C43_riAnnuelNet}
                     total={result.apercu.ri.C43_riAnnuelNet}
                   />
                   <Row grand label="Revenu d’intégration mensuel"
                     mensuel={result.apercu.ri.E45_montantMensuel}
-                    annuel={null}
+                    annuel={result.apercu.ri.C43_riAnnuelNet}
                   />
-                  {/* ── Autres cohabitants — informatif uniquement ── */}
-                  {(result.cohabitants?.autresCohabitants || []).length > 0 && (
-                    <>
-                      <Gap />
-                      <tr>
-                        <td colSpan={3} style={{ padding: "6px 12px 2px" }}>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: "#b8860b", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                            Autres cohabitants — à titre informatif uniquement (non comptabilisés dans le RIS)
-                          </span>
-                        </td>
-                      </tr>
-                      {(result.cohabitants.autresCohabitants).map((d, i) => (
-                        <tr key={i} style={{ background: "#fdf6e3" }}>
-                          <td style={{ padding: "5px 12px", fontSize: 13, color: "#7a6000" }}>
-                            {d.nom || "Cohabitant"} <span style={{ fontStyle: "italic", color: "#b8860b" }}>(Autre)</span>
-                          </td>
-                          <td style={{ padding: "5px 12px", textAlign: "right", color: "#7a6000", fontSize: 13 }}>
-                            <Money value={round2(safeNumber(d.ressourcesTotale, 0) / 12)} />
-                          </td>
-                          <td style={{ padding: "5px 12px", textAlign: "right", color: "#7a6000", fontSize: 13 }}>
-                            <Money value={safeNumber(d.ressourcesTotale, 0)} />
-                          </td>
-                        </tr>
-                      ))}
-                    </>
-                  )}
 
                   {/* ===== Calcul du RI pour un mois incomplet (Excel) ===== */}
                   <tr>
@@ -3397,6 +3367,40 @@ export default function App() {
                 </tbody>
               </table>
             </div>}
+
+          {/* ── Autres cohabitants — informatif uniquement, après le tableau ── */}
+          {result && (result.cohabitants?.autresCohabitants || []).length > 0 && (
+            <div className="card" style={{ padding: 16, borderLeft: "4px solid #f0d060", background: "#fdf6e3" }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#b8860b", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 10 }}>
+                Autres cohabitants — à titre informatif (non comptabilisés dans le RIS)
+              </div>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left", padding: "4px 8px", color: "#7a6000", fontWeight: 600 }}>Cohabitant</th>
+                    <th style={{ textAlign: "right", padding: "4px 8px", color: "#7a6000", fontWeight: 600 }}>Mensuel</th>
+                    <th style={{ textAlign: "right", padding: "4px 8px", color: "#7a6000", fontWeight: 600 }}>Annuel</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.cohabitants.autresCohabitants.map((d, i) => (
+                    <tr key={i} style={{ borderTop: "1px solid #f0d060" }}>
+                      <td style={{ padding: "5px 8px", color: "#7a6000" }}>
+                        {d.nom || "Cohabitant"} <span style={{ fontStyle: "italic" }}>(Autre — seuil : <Money value={safeNumber(d.seuilRI, 0)} />/an)</span>
+                      </td>
+                      <td style={{ padding: "5px 8px", textAlign: "right", color: "#7a6000" }}>
+                        <Money value={round2(safeNumber(d.ressourcesTotale, 0) / 12)} />
+                      </td>
+                      <td style={{ padding: "5px 8px", textAlign: "right", color: "#7a6000" }}>
+                        <Money value={safeNumber(d.ressourcesTotale, 0)} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
           </section>
         )}
           {active === "biens_mobiliers" && (
