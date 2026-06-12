@@ -101,6 +101,96 @@ export async function generatePDF(data, result, apercu) {
     pdfElement.style.fontFamily = "'Source Sans Pro', sans-serif";
     document.body.appendChild(pdfElement);
 
+    // Helpers pour construire les lignes de revenus du simple PDF
+    const fmtS = formatCurrency;
+    const safeNS = (v) => isNaN(parseFloat(v)) ? 0 : parseFloat(v);
+    const rowS = (label, monthly, annual, style = '') =>
+      annual > 0 || monthly > 0
+        ? `<tr${style ? ` style="${style}"` : ''}><td style="padding:6px 8px;">${label}</td><td style="text-align:right;padding:6px 8px;">${fmtS(monthly)}</td><td style="text-align:right;padding:6px 8px;">${fmtS(annual)}</td></tr>`
+        : '';
+    const secS = (label) =>
+      `<tr><td colspan="3" style="padding:10px 8px;font-weight:bold;background:#f0f8ff;">${label}</td></tr>`;
+
+    // Revenus professionnels demandeur + conjoint (ligne par ligne, filtrés à > 0)
+    const proRows = (() => {
+      let html = '';
+      for (const r of (data.revenusNets?.demandeur?.comptabiliseRows || [])) {
+        const m = safeNS(r.montant);
+        if (m > 0) html += rowS(r.customLabel || r.label || 'Revenu net professionnel', m, m * 12);
+      }
+      for (const r of (data.revenusNets?.demandeur?.exonereRows || [])) {
+        const m = safeNS(r.montant);
+        if (m > 0) html += rowS(`(−) ${r.customLabel || r.label || 'Revenu exonéré'}`, m, m * 12, 'color:#c0392b;');
+      }
+      if (data.revenusNets?.conjoint?.enabled) {
+        for (const r of (data.revenusNets.conjoint.comptabiliseRows || [])) {
+          const m = safeNS(r.montant);
+          if (m > 0) html += rowS(`Conjoint — ${r.customLabel || r.label || 'Revenu net professionnel'}`, m, m * 12);
+        }
+        for (const r of (data.revenusNets.conjoint.exonereRows || [])) {
+          const m = safeNS(r.montant);
+          if (m > 0) html += rowS(`Conjoint — (−) ${r.customLabel || r.label || 'Exonération'}`, m, m * 12, 'color:#c0392b;');
+        }
+      }
+      return html;
+    })();
+
+    // Allocations & ressources diverses (chômage, mutuelle, remplacement, diverses)
+    const allocRows = (() => {
+      let html = '';
+      const chom = safeNS(apercu?.pro?.D9_chom_Annuel);
+      const mut  = safeNS(apercu?.pro?.D10_mut_Annuel);
+      const rem  = safeNS(apercu?.pro?.D11_rem_Annuel);
+      const div  = safeNS(apercu?.autres?.D17_diverses_Annuel);
+      if (chom > 0) html += rowS('Allocation de chômage', chom / 12, chom);
+      if (mut  > 0) html += rowS('Indemnité de mutuelle', mut / 12, mut);
+      if (rem  > 0) html += rowS('Revenus de remplacement', rem / 12, rem);
+      if (div  > 0) {
+        for (const r of [...(data.ressourcesDiverses?.generales || []), ...(data.ressourcesDiverses?.benevoles || [])]) {
+          const m = safeNS(r.montant);
+          if (m > 0) html += rowS(r.label || 'Allocation diverse', m, m * 12);
+        }
+      }
+      return html;
+    })();
+
+    // Autres ressources (biens, cessions, avantages)
+    const autresRows = (() => {
+      let html = '';
+      const immo = safeNS(apercu?.autres?.D23_immobiliers_Annuel);
+      const mob  = safeNS(apercu?.autres?.D20_mobiliers_Annuel);
+      const cess = safeNS(apercu?.autres?.D26_cessions_Annuel);
+      const avt  = safeNS(apercu?.autres?.D29_avantages_Annuel);
+      if (immo > 0) html += rowS('Revenus immobiliers', immo / 12, immo);
+      if (mob  > 0) html += rowS('Biens mobiliers', mob / 12, mob);
+      if (cess > 0) html += rowS('Cessions de biens', cess / 12, cess);
+      if (avt  > 0) html += rowS('Avantages en nature', avt / 12, avt);
+      return html;
+    })();
+
+    // Cohabitants débiteurs (filtrés par type)
+    const cohRows = (() => {
+      let html = '';
+      const debs = (result.cohabitants?.debiteurs || []);
+      const coh32 = safeNS(apercu?.autres?.D32_cohabitants_Annuel);
+      if (debs.length > 0) {
+        for (const d of debs) {
+          const res = safeNS(d.ressourcesTotale);
+          html += rowS(d.nom ? `Cohabitant : ${d.nom} (${d.type})` : `Cohabitant (${d.type})`, res / 12, res);
+        }
+        if (coh32 > 0) html += rowS('<b>Excédent comptabilisé</b>', coh32 / 12, coh32, 'font-style:italic;');
+      }
+      const autres = (result.cohabitants?.autresCohabitants || []);
+      if (autres.length > 0) {
+        html += `<tr><td colspan="3" style="padding:5px 8px;font-size:12px;color:#b8860b;font-style:italic;">Autres cohabitants (informatif uniquement)</td></tr>`;
+        for (const d of autres) {
+          const res = safeNS(d.ressourcesTotale);
+          html += `<tr style="color:#b8860b;"><td style="padding:4px 8px;font-size:13px;">${d.nom || 'Cohabitant'} (Autre — non comptabilisé)</td><td style="text-align:right;padding:4px 8px;font-size:13px;">${fmtS(res/12)}</td><td style="text-align:right;padding:4px 8px;font-size:13px;">${fmtS(res)}</td></tr>`;
+        }
+      }
+      return html;
+    })();
+
     // Générer le contenu HTML pour le PDF
     pdfElement.innerHTML = `
       <div style="text-align: center; margin-bottom: 30px;">
@@ -145,31 +235,23 @@ export async function generatePDF(data, result, apercu) {
       <!-- Synthèse des revenus -->
       <div style="margin-bottom: 30px;">
         <h2 style="color: #163E67; border-bottom: 2px solid #2BEBCE; padding-bottom: 8px;">Synthèse des revenus</h2>
-        <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px;">
           <thead>
             <tr style="background: #f8f9fa;">
-              <th style="text-align: left; padding: 12px 8px; border-bottom: 2px solid #dee2e6;">Rubrique</th>
-              <th style="text-align: right; padding: 12px 8px; border-bottom: 2px solid #dee2e6;">Mensuel</th>
-              <th style="text-align: right; padding: 12px 8px; border-bottom: 2px solid #dee2e6;">Annuel</th>
+              <th style="text-align: left; padding: 8px; border-bottom: 2px solid #dee2e6;">Rubrique</th>
+              <th style="text-align: right; padding: 8px; border-bottom: 2px solid #dee2e6;">Mensuel</th>
+              <th style="text-align: right; padding: 8px; border-bottom: 2px solid #dee2e6;">Annuel</th>
             </tr>
           </thead>
           <tbody>
-            <tr><td colspan="3" style="padding: 10px 8px; font-weight: bold; background: #f0f8ff;">Ressources professionnelles</td></tr>
-            <tr><td>Revenu net demandeur</td><td style="text-align: right;">${formatCurrency(apercu.pro.D4_netDem_Annuel / 12)}</td><td style="text-align: right;">${formatCurrency(apercu.pro.D4_netDem_Annuel)}</td></tr>
-            <tr><td>Revenu net conjoint</td><td style="text-align: right;">${formatCurrency(apercu.pro.D5_netConj_Annuel / 12)}</td><td style="text-align: right;">${formatCurrency(apercu.pro.D5_netConj_Annuel)}</td></tr>
-            <tr><td>Allocation de chômage</td><td style="text-align: right;">${formatCurrency(apercu.pro.D9_chom_Annuel / 12)}</td><td style="text-align: right;">${formatCurrency(apercu.pro.D9_chom_Annuel)}</td></tr>
-            
-            <tr><td colspan="3" style="padding: 10px 8px; font-weight: bold; background: #f0f8ff; border-top: 1px solid #dee2e6;">Autres ressources</td></tr>
-            <tr><td>Ressources diverses</td><td style="text-align: right;">${formatCurrency(apercu.autres.D17_diverses_Annuel / 12)}</td><td style="text-align: right;">${formatCurrency(apercu.autres.D17_diverses_Annuel)}</td></tr>
-            <tr><td>Biens immobiliers</td><td style="text-align: right;">${formatCurrency(apercu.autres.D23_immobiliers_Annuel / 12)}</td><td style="text-align: right;">${formatCurrency(apercu.autres.D23_immobiliers_Annuel)}</td></tr>
-            <tr><td>Biens mobiliers</td><td style="text-align: right;">${formatCurrency(apercu.autres.D20_mobiliers_Annuel / 12)}</td><td style="text-align: right;">${formatCurrency(apercu.autres.D20_mobiliers_Annuel)}</td></tr>
-            <tr><td>Cessions de biens</td><td style="text-align: right;">${formatCurrency(apercu.autres.D26_cessions_Annuel / 12)}</td><td style="text-align: right;">${formatCurrency(apercu.autres.D26_cessions_Annuel)}</td></tr>
-            <tr><td>Cohabitants</td><td style="text-align: right;">${formatCurrency(apercu.autres.D32_cohabitants_Annuel / 12)}</td><td style="text-align: right;">${formatCurrency(apercu.autres.D32_cohabitants_Annuel)}</td></tr>
-            
+            ${proRows ? secS('Revenus professionnels nets') + proRows : ''}
+            ${allocRows ? secS('Allocations &amp; ressources diverses') + allocRows : ''}
+            ${autresRows ? secS('Autres ressources') + autresRows : ''}
+            ${cohRows ? secS('Cohabitants') + cohRows : ''}
             <tr style="background: #e8f4f8; font-weight: bold; border-top: 2px solid #163E67;">
-              <td>Total des ressources</td>
-              <td style="text-align: right;">${formatCurrency(apercu.C37_totalRessourcesAnnuelles / 12)}</td>
-              <td style="text-align: right;">${formatCurrency(apercu.C37_totalRessourcesAnnuelles)}</td>
+              <td style="padding:8px;">Total des ressources</td>
+              <td style="text-align:right;padding:8px;">${formatCurrency(apercu.C37_totalRessourcesAnnuelles / 12)}</td>
+              <td style="text-align:right;padding:8px;">${formatCurrency(apercu.C37_totalRessourcesAnnuelles)}</td>
             </tr>
           </tbody>
         </table>

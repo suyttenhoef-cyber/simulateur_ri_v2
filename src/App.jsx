@@ -637,7 +637,9 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
   };
 
   return (
-    <Card title="Revenus des cohabitants">
+    <Card title="Revenus des cohabitants" action={
+      <button onClick={addRow} className="btn-add">+ Ajouter un cohabitant</button>
+    }>
 
       {/* ── Mode de calcul ── */}
       <div style={{ marginBottom: 16 }}>
@@ -1070,9 +1072,6 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
         </div>
       )}
 
-      <button onClick={addRow} className="btn-add" style={{ marginTop: 12 }}>
-        + Ajouter un cohabitant
-      </button>
     </Card>
   );
 }
@@ -1680,7 +1679,7 @@ function Button({ children, onClick, variant = "primary", icon, disabled = false
     </button>
   );
 }
-function Card({ title, children, level = 3 }) {
+function Card({ title, children, level = 3, action }) {
   const Tag = `h${level}`;
   return (
     <div style={{
@@ -1690,17 +1689,15 @@ function Card({ title, children, level = 3 }) {
       background: colors.white,
       boxShadow: "0 2px 8px rgba(0,0,0,0.04)"
     }}>
-      <Tag style={{
-        marginTop: 0,
-        marginBottom: "16px",
-        fontSize: level === 2 ? "20px" : "16px",
-        fontWeight: "700",
-        color: colors.primary,
-        paddingBottom: "12px",
-        borderBottom: `2px solid #F0F4F8`
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        marginBottom: "16px", paddingBottom: "12px", borderBottom: `2px solid #F0F4F8`
       }}>
-        {title}
-      </Tag>
+        <Tag style={{ margin: 0, fontSize: level === 2 ? "20px" : "16px", fontWeight: "700", color: colors.primary }}>
+          {title}
+        </Tag>
+        {action && <div>{action}</div>}
+      </div>
       {children}
     </div>
   );
