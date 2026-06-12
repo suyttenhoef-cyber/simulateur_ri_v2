@@ -107,16 +107,16 @@ const TITRE_USUFRUIT = 0.4;         // Coefficient Usufruit (40%)
 const TITRE_NU_PROPRIETE = 0.6;     // Coefficient Nu-Propriété (60%)
 
 const SECTIONS = [
-  { id: "informations",      label: "Informations demandeur",         icon: "fa-address-card" },
-  { id: "revenus_nets",      label: "Revenus nets & exonérations",          icon: "fa-sack-dollar" },
-  { id: "cmr",               label: "Chômage, mutuelle & remplacement",   icon: "fa-file-medical" },
-  { id: "avantages",         label: "Avantages en nature",  icon: "fa-house-user" },
-  { id: "cessions_biens",    label: "Cessions de biens",             icon: "fa-building" },
-  { id: "biens_mobiliers",   label: "Biens mobiliers",      icon: "fa-coins" },
-  { id: "biens_immobiliers", label: "Revenus immobiliers",          icon: "fa-house" },
+  { id: "informations",        label: "Informations demandeur",            icon: "fa-address-card" },
+  { id: "revenus_nets",        label: "Revenus nets & exonérations",       icon: "fa-sack-dollar" },
+  { id: "cmr",                 label: "Chômage, mutuelle & remplacement",  icon: "fa-file-medical" },
   { id: "ressources_diverses", label: "Allocations & ressources diverses", icon: "fa-chart-bar" },
-  { id: "cohabitants",       label: "Revenus des cohabitants",  icon: "fa-people-group" },
-  { id: "apercu",            label: "Aperçu du calcul",               icon: "fa-table-list" },
+  { id: "avantages",           label: "Avantages en nature",               icon: "fa-house-user" },
+  { id: "cessions_biens",      label: "Cessions de biens",                 icon: "fa-building" },
+  { id: "biens_mobiliers",     label: "Biens mobiliers",                   icon: "fa-coins" },
+  { id: "biens_immobiliers",   label: "Revenus immobiliers",               icon: "fa-house" },
+  { id: "cohabitants",         label: "Revenus des cohabitants",           icon: "fa-people-group" },
+  { id: "apercu",              label: "Aperçu du calcul",                  icon: "fa-table-list" },
 ];
 
 const defaultRow = () => ({
@@ -159,7 +159,7 @@ const NATURES_REVENU_COHABITANT = [
   "Autres revenus",
 ];
 
-const defaultRevenuDetail = () => ({ id: Math.random(), nature: "Revenus professionnels nets", montant: 0, periode: "mensuel" });
+const defaultRevenuDetail = () => ({ id: Math.random(), nature: "Revenu net professionnel", montant: 0, periode: "mensuel" });
 
 const defaultCohabitantRow = () => ({
   nom: "",
@@ -513,20 +513,37 @@ function computeCohabitantsGrouped(cohabitantsData, referenceDate) {
   const montantRetenuAnnuel = safeNumber(cohabitantsData.montantRetenuAnnuel, 0);
 
   if (rows.length === 0) {
-    return { totalAnnuel: 0, totalMensuel: 0, details: [], modeCalcul };
+    return { totalAnnuel: 0, totalMensuel: 0, details: [], debiteurs: [], autresCohabitants: [], modeCalcul };
   }
 
   const details = rows.map(row => computeCohabitantRow(row, referenceDate));
+  // Séparer débiteurs d'aliments (Ascendant/Descendant) des cohabitants "Autre" (indicatif)
+  const debiteurs = details.filter(d => !d.isIndicatifOnly);
+  const autresCohabitants = details.filter(d => d.isIndicatifOnly);
 
   if (modeCalcul === "individuel") {
-    const totalMensuel = round2(details.reduce((s, d) => s + d.montantReporte, 0));
-    return { totalAnnuel: round2(totalMensuel * 12), totalMensuel, details, modeCalcul };
+    const totalMensuel = round2(debiteurs.reduce((s, d) => s + d.montantReporte, 0));
+    return {
+      totalAnnuel: round2(totalMensuel * 12), totalMensuel,
+      details, debiteurs, autresCohabitants, modeCalcul,
+    };
   }
 
-  // Mode groupé : excédent = somme(ressources) − somme(seuils individuels)
-  const ressourcesTotal = round2(details.reduce((s, d) => s + d.ressourcesTotale, 0));
-  const seuilTotal      = round2(details.reduce((s, d) => s + d.seuilRI, 0));
-  const excedentGroupe  = Math.max(0, round2(ressourcesTotal - seuilTotal));
+  // Mode groupé : excédent = somme(ressources débiteurs) − somme(seuils), "Pas de report" exclus
+  const activeDebiteurs = debiteurs.filter(d => d.priseEnCharge !== "Pas de report");
+  const ressourcesTotal = round2(activeDebiteurs.reduce((s, d) => s + d.ressourcesTotale, 0));
+  const seuilTotal      = round2(activeDebiteurs.reduce((s, d) => s + d.seuilRI, 0));
+  const rawExcedent     = Math.max(0, round2(ressourcesTotal - seuilTotal));
+
+  // Appliquer pctReport si des débiteurs sont en "Report partiel"
+  let excedentGroupe = rawExcedent;
+  if (rawExcedent > 0 && ressourcesTotal > 0 && activeDebiteurs.some(d => d.priseEnCharge === "Report partiel")) {
+    excedentGroupe = round2(activeDebiteurs.reduce((s, d) => {
+      const ratio = d.ressourcesTotale / ressourcesTotal;
+      const pct = d.priseEnCharge === "Report partiel" ? safeNumber(d.pctReport, 0) / 100 : 1;
+      return s + rawExcedent * ratio * pct;
+    }, 0));
+  }
 
   const montantAnnuel =
     priseEnCompte === "legale" ? excedentGroupe :
@@ -535,13 +552,9 @@ function computeCohabitantsGrouped(cohabitantsData, referenceDate) {
   return {
     totalAnnuel: round2(montantAnnuel),
     totalMensuel: round2(montantAnnuel / 12),
-    details,
-    modeCalcul,
-    ressourcesTotal,
-    seuilTotal,
-    excedentGroupe,
-    priseEnCompte,
-    montantRetenuAnnuel,
+    details, debiteurs, autresCohabitants,
+    modeCalcul, ressourcesTotal, seuilTotal, rawExcedent, excedentGroupe,
+    priseEnCompte, montantRetenuAnnuel,
   };
 }
 
@@ -714,7 +727,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                                     value={d.nature}
                                     onChange={(e) => updateRevenuDetail(i, j, { nature: e.target.value })}
                                   >
-                                    {NATURES_REVENU_COHABITANT.map(n => <option key={n} value={n}>{n}</option>)}
+                                    {REVENUS_COMPTABILISES_SUGGESTIONS.filter(n => n.value !== "").map(n => <option key={n.value} value={n.value}>{n.label}</option>)}
                                   </select>
                                 </td>
                                 <td style={{ padding: "5px 6px" }}>
@@ -898,29 +911,52 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
           </div>
 
           {/* Tableau excédent */}
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, marginBottom: 16 }}>
-            <tbody>
-              <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
-                <td style={{ padding: "6px 8px", color: colors.text }}>Ressources combinées</td>
-                <td style={{ padding: "6px 8px", textAlign: "right", fontWeight: 600 }}><Money value={grouped.ressourcesTotal} /> /an</td>
-              </tr>
-              <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
-                <td style={{ padding: "6px 8px", color: colors.text }}>Seuil garanti ({rows.length} cohabitant{rows.length > 1 ? "s" : ""})</td>
-                <td style={{ padding: "6px 8px", textAlign: "right", color: "#c0392b", fontWeight: 600 }}>−&nbsp;<Money value={grouped.seuilTotal} /> /an</td>
-              </tr>
-              <tr style={{ background: "#EEF4FA" }}>
-                <td style={{ padding: "7px 8px", fontWeight: 700, color: colors.primary }}>Excédent légal</td>
-                <td style={{ padding: "7px 8px", textAlign: "right", fontWeight: 700, color: colors.primary }}>
-                  <Money value={grouped.excedentGroupe} /> /an
-                  {grouped.excedentGroupe > 0 && (
-                    <span style={{ color: colors.textLight, fontWeight: 400, fontSize: 12, marginLeft: 8 }}>
-                      = <Money value={round2(grouped.excedentGroupe / 12)} />/mois
-                    </span>
+          {(() => {
+            const debCount = (grouped.debiteurs || []).filter(d => d.priseEnCharge !== "Pas de report").length;
+            const hasPartiel = (grouped.debiteurs || []).some(d => d.priseEnCharge === "Report partiel");
+            return (
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, marginBottom: 16 }}>
+                <tbody>
+                  <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
+                    <td style={{ padding: "6px 8px", color: colors.text }}>Ressources combinées (débiteurs)</td>
+                    <td style={{ padding: "6px 8px", textAlign: "right", fontWeight: 600 }}><Money value={grouped.ressourcesTotal} /> /an</td>
+                  </tr>
+                  <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
+                    <td style={{ padding: "6px 8px", color: colors.text }}>Seuil garanti ({debCount} débiteur{debCount !== 1 ? "s" : ""})</td>
+                    <td style={{ padding: "6px 8px", textAlign: "right", color: "#c0392b", fontWeight: 600 }}>−&nbsp;<Money value={grouped.seuilTotal} /> /an</td>
+                  </tr>
+                  <tr style={{ borderBottom: `1px solid ${colors.border}`, background: hasPartiel ? undefined : "#EEF4FA" }}>
+                    <td style={{ padding: "7px 8px", fontWeight: hasPartiel ? 500 : 700, color: colors.primary }}>
+                      Excédent légal brut
+                    </td>
+                    <td style={{ padding: "7px 8px", textAlign: "right", fontWeight: 700, color: colors.primary }}>
+                      <Money value={grouped.rawExcedent} /> /an
+                    </td>
+                  </tr>
+                  {hasPartiel && (
+                    <tr style={{ background: "#EEF4FA" }}>
+                      <td style={{ padding: "7px 8px", fontWeight: 700, color: colors.primary }}>
+                        Excédent ajusté (report partiel appliqué)
+                      </td>
+                      <td style={{ padding: "7px 8px", textAlign: "right", fontWeight: 700, color: colors.primary }}>
+                        <Money value={grouped.excedentGroupe} /> /an
+                        <span style={{ color: colors.textLight, fontWeight: 400, fontSize: 12, marginLeft: 8 }}>
+                          = <Money value={round2(grouped.excedentGroupe / 12)} />/mois
+                        </span>
+                      </td>
+                    </tr>
                   )}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                  {!hasPartiel && grouped.rawExcedent > 0 && (
+                    <tr style={{ background: "#EEF4FA" }}>
+                      <td colSpan={2} style={{ padding: "3px 8px 5px", textAlign: "right", color: colors.textLight, fontSize: 12 }}>
+                        = <Money value={round2(grouped.excedentGroupe / 12)} />/mois
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            );
+          })()}
 
           {/* Prise en compte */}
           <div style={{ marginBottom: 14 }}>
@@ -3193,15 +3229,21 @@ export default function App() {
                   {apercu.pro.D8_netAvecArt_Annuel > 0 && (
                     <Row label="Net avec exo. artistique (dem. + conj.)" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
                   )}
-                  <Row label="Allocation de chômage"   mensuel={apercu.pro.D9_chom_Annuel / 12}  annuel={apercu.pro.D9_chom_Annuel}  total={apercu.pro.D9_chom_Annuel} />
-                  <Row label="Mutuelle"                mensuel={apercu.pro.D10_mut_Annuel / 12}  annuel={apercu.pro.D10_mut_Annuel}  total={apercu.pro.D10_mut_Annuel} />
-                  <Row label="Revenus de remplacement" mensuel={apercu.pro.D11_rem_Annuel / 12}  annuel={apercu.pro.D11_rem_Annuel}  total={apercu.pro.D11_rem_Annuel} />
-                  <Row highlight label="Sous-total ressources professionnelles" mensuel={apercu.pro.F8_totalProratises_M} annuel={apercu.pro.F8_totalProratises_M * 12} total={apercu.pro.F8_totalProratises_M * 12} />
+                  <Row highlight label="Sous-total revenus professionnels nets" mensuel={apercu.pro.F8_totalProratises_M} annuel={apercu.pro.F8_totalProratises_M * 12} total={apercu.pro.F8_totalProratises_M * 12} />
 
                   <Gap />
 
                   {/* ── Allocations & ressources diverses ── */}
                   <Sec>Allocations &amp; ressources diverses</Sec>
+                  {apercu.pro.D9_chom_Annuel > 0 && (
+                    <Row label="Allocation de chômage"   mensuel={apercu.pro.D9_chom_Annuel / 12}  annuel={apercu.pro.D9_chom_Annuel}  total={apercu.pro.D9_chom_Annuel} />
+                  )}
+                  {apercu.pro.D10_mut_Annuel > 0 && (
+                    <Row label="Mutuelle"                mensuel={apercu.pro.D10_mut_Annuel / 12}  annuel={apercu.pro.D10_mut_Annuel}  total={apercu.pro.D10_mut_Annuel} />
+                  )}
+                  {apercu.pro.D11_rem_Annuel > 0 && (
+                    <Row label="Revenus de remplacement" mensuel={apercu.pro.D11_rem_Annuel / 12}  annuel={apercu.pro.D11_rem_Annuel}  total={apercu.pro.D11_rem_Annuel} />
+                  )}
                   <Row label="Allocations & ressources diverses" mensuel={apercu.autres.D17_diverses_Annuel / 12} annuel={apercu.autres.D17_diverses_Annuel} total={apercu.autres.D17_diverses_Annuel} />
 
                   <Gap />
@@ -3230,12 +3272,12 @@ export default function App() {
 
                   <Gap />
 
-                  {/* ── Cohabitants ── */}
-                  <Sec>Cohabitants</Sec>
-                  <Row label="Revenus totaux (brut annuel)"
+                  {/* ── Cohabitants débiteurs d'aliments ── */}
+                  <Sec>Cohabitants — débiteurs d'aliments</Sec>
+                  <Row label="Revenus totaux débiteurs (brut annuel)"
                     mensuel={null}
-                    annuel={(result.cohabitants?.details || []).reduce((s, d) => s + safeNumber(d.ressourcesTotale, 0), 0)}
-                    total={(result.cohabitants?.details || []).reduce((s, d) => s + safeNumber(d.ressourcesTotale, 0), 0)}
+                    annuel={(result.cohabitants?.debiteurs || []).reduce((s, d) => s + safeNumber(d.ressourcesTotale, 0), 0)}
+                    total={(result.cohabitants?.debiteurs || []).reduce((s, d) => s + safeNumber(d.ressourcesTotale, 0), 0)}
                   />
                   <Row highlight label="Excédent comptabilisé (au-delà du seuil RI)"
                     mensuel={result.apercu.autres.D32_cohabitants_Annuel > 0 ? result.apercu.autres.D32_cohabitants_Annuel / 12 : null}
@@ -3282,6 +3324,33 @@ export default function App() {
                     mensuel={result.apercu.ri.E45_montantMensuel}
                     annuel={null}
                   />
+                  {/* ── Autres cohabitants — informatif uniquement ── */}
+                  {(result.cohabitants?.autresCohabitants || []).length > 0 && (
+                    <>
+                      <Gap />
+                      <tr>
+                        <td colSpan={3} style={{ padding: "6px 12px 2px" }}>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "#b8860b", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                            Autres cohabitants — à titre informatif uniquement (non comptabilisés dans le RIS)
+                          </span>
+                        </td>
+                      </tr>
+                      {(result.cohabitants.autresCohabitants).map((d, i) => (
+                        <tr key={i} style={{ background: "#fdf6e3" }}>
+                          <td style={{ padding: "5px 12px", fontSize: 13, color: "#7a6000" }}>
+                            {d.nom || "Cohabitant"} <span style={{ fontStyle: "italic", color: "#b8860b" }}>(Autre)</span>
+                          </td>
+                          <td style={{ padding: "5px 12px", textAlign: "right", color: "#7a6000", fontSize: 13 }}>
+                            <Money value={round2(safeNumber(d.ressourcesTotale, 0) / 12)} />
+                          </td>
+                          <td style={{ padding: "5px 12px", textAlign: "right", color: "#7a6000", fontSize: 13 }}>
+                            <Money value={safeNumber(d.ressourcesTotale, 0)} />
+                          </td>
+                        </tr>
+                      ))}
+                    </>
+                  )}
+
                   {/* ===== Calcul du RI pour un mois incomplet (Excel) ===== */}
                   <tr>
                     <td colSpan={3} style={{ paddingTop: 16 }}>

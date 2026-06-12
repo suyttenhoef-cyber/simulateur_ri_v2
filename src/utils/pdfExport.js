@@ -496,44 +496,78 @@ export async function generateTableauCPAS(data, result, apercu) {
     // ════════════════════════════════════════════════════════════════════
     // SECTION 10 — Cohabitants
     // ════════════════════════════════════════════════════════════════════
-    const hasCohabitantsData = cohDetails.some(c => safeN(c.ressourcesTotale) > 0);
-    if (hasCohabitantsData) {
-      tbody += SEC('Revenus des cohabitants');
-      for (const coh of cohDetails) {
-        if (safeN(coh.ressourcesTotale) === 0) continue;
-        const catLabelCoh = coh.categorie === 1 ? 'Cat. 1 - Cohabitant' : coh.categorie === 2 ? 'Cat. 2 - Isolé' : 'Cat. 3 - Famille';
-        const cohName    = coh.nom  || 'Cohabitant';
-        const cohType    = coh.type || 'Ascendant/Descendant';
-        const isIndicatif = coh.type === 'Autre';
-        const hasExced   = !isIndicatif && coh.excedent > 0;
-        const reportAn   = r2(coh.montantReporte * 12);
+    const debiteursCoh = cohDetails.filter(c => c.type !== 'Autre');
+    const autresCoh    = cohDetails.filter(c => c.type === 'Autre');
 
-        tbody += ROW(
-          `${cohName}<br/><span style="font-size:13px;font-weight:normal;color:#666;">${cohType}${isIndicatif ? ' — indicatif' : ''}</span>`,
-          'Ressources annuelles totales',
-          `${fmt(coh.ressourcesTotale)}/an`,
-          coh.ressourcesTotale
-        );
+    function renderCohDetail(coh) {
+      const catLabelCoh = coh.categorie === 1 ? 'Cat. 1 - Cohabitant' : coh.categorie === 2 ? 'Cat. 2 - Isolé' : 'Cat. 3 - Famille';
+      const cohName    = coh.nom  || 'Cohabitant';
+      const cohType    = coh.type || 'Ascendant/Descendant';
+      const hasExced   = coh.excedent > 0;
+      const reportAn   = r2(coh.montantReporte * 12);
 
-        if (!isIndicatif) {
-          tbody += ROW('', `Seuil RI (${catLabelCoh})`, `Seuil : ${fmt(coh.seuilRI)}`, coh.seuilRI, true);
-          if (hasExced) {
-            tbody += `<tr style="background:#fff8dc;">
-              ${cell('')}
-              ${cell('<b>Excédent reporté</b>')}
-              ${cell(fmt(coh.montantMensuel) + '/mois', 'color:#444;')}
-              ${cell('<b>' + fmt(reportAn) + '</b>', 'text-align:right;font-weight:bold;color:#163E67;')}
-            </tr>`;
-          } else {
-            tbody += `<tr><td></td>${cell(`<i style="color:#888;">${coh.message || "Pas d'excédent"}</i>`, 'colspan:3;')}${cell(fmt(0), 'text-align:right;color:#aaa;')}</tr>`;
-          }
-        } else {
-          tbody += `<tr style="background:#fdf6e3;"><td></td>
-            <td colspan="3" style="padding:7px 9px;border:1px solid #dee2e6;font-style:italic;color:#b8860b;">
-              À titre indicatif uniquement — non reporté dans le calcul du RI
-            </td>
+      let html = ROW(
+        `${cohName}<br/><span style="font-size:13px;font-weight:normal;color:#666;">${cohType}</span>`,
+        'Ressources annuelles totales',
+        `${fmt(coh.ressourcesTotale)}/an`,
+        coh.ressourcesTotale
+      );
+
+      // Détail des revenus encodés (filtré : montant > 0)
+      const details = (coh.revenusDetailes || []).filter(d => safeN(d.montant) > 0);
+      if (details.length > 0) {
+        for (const d of details) {
+          const annualise = d.periode === 'annuel' ? safeN(d.montant) : r2(safeN(d.montant) * 12);
+          html += `<tr style="background:#f8fbff;">
+            ${cell('')}
+            ${cell(`<span style="color:#555;font-style:italic;">${d.nature || 'Revenu'}</span>`)}
+            ${cell(`${fmt(safeN(d.montant))}/${d.periode === 'annuel' ? 'an' : 'mois'}`, 'color:#555;')}
+            ${cell(fmt(annualise), 'text-align:right;color:#555;')}
           </tr>`;
         }
+      }
+
+      html += ROW('', `Seuil RI (${catLabelCoh})`, `Seuil : ${fmt(coh.seuilRI)}`, coh.seuilRI, true);
+      if (hasExced) {
+        html += `<tr style="background:#fff8dc;">
+          ${cell('')}
+          ${cell('<b>Excédent reporté</b>')}
+          ${cell(fmt(coh.montantMensuel) + '/mois', 'color:#444;')}
+          ${cell('<b>' + fmt(reportAn) + '</b>', 'text-align:right;font-weight:bold;color:#163E67;')}
+        </tr>`;
+      } else {
+        html += `<tr><td></td>${cell(`<i style="color:#888;">${coh.message || "Pas d'excédent"}</i>`)}${cell('')}${cell(fmt(0), 'text-align:right;color:#aaa;')}</tr>`;
+      }
+      return html;
+    }
+
+    if (debiteursCoh.length > 0) {
+      tbody += SEC('Revenus des cohabitants — débiteurs d\'aliments');
+      for (const coh of debiteursCoh) {
+        tbody += renderCohDetail(coh);
+        tbody += SEP();
+      }
+    }
+
+    if (autresCoh.length > 0) {
+      tbody += `<tr style="background:#fdf6e3;">
+        <td colspan="4" style="padding:8px 12px;font-size:13px;font-weight:700;color:#b8860b;border:1px solid #dee2e6;letter-spacing:0.4px;">
+          Autres cohabitants — à titre indicatif (non pris en compte dans le calcul du RI)
+        </td>
+      </tr>`;
+      for (const coh of autresCoh) {
+        const cohName = coh.nom || 'Cohabitant';
+        tbody += `<tr style="background:#fdf6e3;">
+          ${cell(`${cohName} <span style="font-style:italic;color:#b8860b;">(Autre)</span>`)}
+          ${cell('Ressources annuelles')}
+          ${cell(fmt(coh.ressourcesTotale) + '/an', 'color:#7a6000;')}
+          ${cell(fmt(coh.ressourcesTotale), 'text-align:right;color:#b8860b;')}
+        </tr>
+        <tr style="background:#fdf6e3;"><td></td>
+          <td colspan="3" style="padding:5px 9px;border:1px solid #dee2e6;font-style:italic;color:#b8860b;font-size:12px;">
+            Non reporté dans le calcul du RI
+          </td>
+        </tr>`;
         tbody += SEP();
       }
     }
