@@ -161,16 +161,27 @@ const NATURES_REVENU_COHABITANT = [
 
 const defaultRevenuDetail = () => ({ id: Math.random(), nature: "Revenu net professionnel", montant: 0, periode: "mensuel" });
 
+const defaultSimpleRow = () => ({ id: Math.random(), label: "", montant: 0, periode: "mensuel" });
+
 const defaultCohabitantRow = () => ({
   nom: "",
   type: "Ascendant majeur",
-  ressourcesTotale: 0,
+  categorie: 1,
   priseEnCharge: "Report max",
   pctReport: 30,
-  categorie: 1,
-  revenusDetailes: [],
   chargesAdmissibles: 0,
   chargesInadmissibles: 0,
+  // Sections structurées (revenus détaillés par catégorie)
+  proRows: [],           // Revenus professionnels nets
+  cmrRows: [],           // Chômage / mutuelle / remplacement
+  cessionsBiens: { rows: [] },
+  biensImmobiliers: { rows: [] },
+  biensMobiliers: { montantCapital: 0, partConcernee: 100 },
+  avantages: { chargesLocativesTiers: 0, loyerFictifSimulateur: 0, pretHypothecaireTiers: 0, autresAvantages: 0 },
+  ressourcesDiverses: { allocationsFamiliales: 0, pensionAlimentairePercue: 0, autresRessources: 0 },
+  // Héritage (compatibilité ancienne saisie)
+  revenusDetailes: [],
+  ressourcesTotale: 0,
 });
 
 function firstOfCurrentMonth() {
@@ -448,15 +459,48 @@ function computeNetMonthly({ comptabiliseRows, exonereRows }) {
   const sumE = (exonereRows     || []).reduce((acc, r) => acc + safeNumber(r.montant, 0), 0);
   return { sumComptabilise: sumC, sumExonere: sumE, net: sumC - sumE };
 }
+function sumSimpleRows(rows) {
+  return round2((rows || []).reduce((s, r) => {
+    const m = safeNumber(r.montant, 0);
+    return s + (r.periode === "annuel" ? m : m * 12);
+  }, 0));
+}
+
+function hasStructuredRevenues(row) {
+  return (row.proRows?.length > 0) ||
+    (row.cmrRows?.length > 0) ||
+    (row.cessionsBiens?.rows?.length > 0) ||
+    (row.biensImmobiliers?.rows?.length > 0) ||
+    safeNumber(row.biensMobiliers?.montantCapital, 0) > 0 ||
+    Object.values(row.avantages || {}).some(v => safeNumber(v, 0) > 0) ||
+    Object.values(row.ressourcesDiverses || {}).some(v => safeNumber(v, 0) > 0);
+}
+
 // 1. Ajouter la fonction de calcul pour un cohabitant individuel
 function computeCohabitantRow(row, referenceDate) {
-  const details = row.revenusDetailes || [];
-  const ressourcesTotale = details.length > 0
-    ? round2(details.reduce((s, r) => {
-        const m = safeNumber(r.montant, 0);
-        return s + (r.periode === "annuel" ? m : m * 12);
-      }, 0))
-    : safeNumber(row.ressourcesTotale, 0);
+  let ressourcesTotale;
+  let breakdown = {};
+
+  if (hasStructuredRevenues(row)) {
+    const proAnnuel      = sumSimpleRows(row.proRows);
+    const cmrAnnuel      = sumSimpleRows(row.cmrRows);
+    const cessionsAnnuel = computeCessionsTotalAnnuel(row.cessionsBiens?.rows || [], row.categorie || 1).totalAnnuel;
+    const immoAnnuel     = computeImmoExcel(row.biensImmobiliers?.rows || [], 0).totalAnnuel;
+    const mobAnnuel      = computeBiensMobiliersExcel(row.biensMobiliers || { montantCapital: 0, partConcernee: 100 }).totalAnnuel;
+    const avantagesAnnuel = round2(Object.values(row.avantages || {}).reduce((s, v) => s + safeNumber(v, 0), 0) * 12);
+    const diversesAnnuel  = round2(Object.values(row.ressourcesDiverses || {}).reduce((s, v) => s + safeNumber(v, 0), 0) * 12);
+    ressourcesTotale = round2(proAnnuel + cmrAnnuel + cessionsAnnuel + immoAnnuel + mobAnnuel + avantagesAnnuel + diversesAnnuel);
+    breakdown = { proAnnuel, cmrAnnuel, cessionsAnnuel, immoAnnuel, mobAnnuel, avantagesAnnuel, diversesAnnuel };
+  } else {
+    const details = row.revenusDetailes || [];
+    ressourcesTotale = details.length > 0
+      ? round2(details.reduce((s, r) => {
+          const m = safeNumber(r.montant, 0);
+          return s + (r.periode === "annuel" ? m : m * 12);
+        }, 0))
+      : safeNumber(row.ressourcesTotale, 0);
+  }
+
   const categorie = row.categorie || 1;
   
   // I5: VLOOKUP pour obtenir le seuil RI selon la catégorie
@@ -494,14 +538,15 @@ function computeCohabitantRow(row, referenceDate) {
 
   return {
     ...row,
-    ressourcesTotale,  // surcharge la valeur brute par le calcul depuis revenusDetailes
+    ressourcesTotale,
     seuilRI,
     excedent,
     montantMensuel,
     ressourcesProrata,
     montantReporte,
     isIndicatifOnly,
-    message
+    message,
+    breakdown,
   };
 }
 
@@ -594,15 +639,19 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
   function addRow() { update({ rows: [...rows, defaultCohabitantRow()] }); }
   function removeRow(i) { update({ rows: rows.filter((_, idx) => idx !== i) }); }
 
-  function addRevenuDetail(i) {
-    updateRow(i, { revenusDetailes: [...(rows[i].revenusDetailes || []), defaultRevenuDetail()] });
-  }
-  function removeRevenuDetail(i, j) {
-    updateRow(i, { revenusDetailes: (rows[i].revenusDetailes || []).filter((_, idx) => idx !== j) });
-  }
-  function updateRevenuDetail(i, j, patch) {
-    updateRow(i, { revenusDetailes: (rows[i].revenusDetailes || []).map((d, idx) => idx === j ? { ...d, ...patch } : d) });
-  }
+  function addProRow(i)            { updateRow(i, { proRows: [...(rows[i].proRows || []), defaultSimpleRow()] }); }
+  function removeProRow(i, j)      { updateRow(i, { proRows: (rows[i].proRows || []).filter((_, k) => k !== j) }); }
+  function updateProRow(i, j, p)   { updateRow(i, { proRows: (rows[i].proRows || []).map((d, k) => k === j ? { ...d, ...p } : d) }); }
+
+  function addCmrRow(i)            { updateRow(i, { cmrRows: [...(rows[i].cmrRows || []), defaultSimpleRow()] }); }
+  function removeCmrRow(i, j)      { updateRow(i, { cmrRows: (rows[i].cmrRows || []).filter((_, k) => k !== j) }); }
+  function updateCmrRow(i, j, p)   { updateRow(i, { cmrRows: (rows[i].cmrRows || []).map((d, k) => k === j ? { ...d, ...p } : d) }); }
+
+  function updateCessions(i, rows2) { updateRow(i, { cessionsBiens: { rows: rows2 } }); }
+  function updateImmo(i, rows2)     { updateRow(i, { biensImmobiliers: { rows: rows2 } }); }
+  function updateMob(i, patch)      { updateRow(i, { biensMobiliers: { ...rows[i].biensMobiliers, ...patch } }); }
+  function updateAvantages(i, p)    { updateRow(i, { avantages: { ...rows[i].avantages, ...p } }); }
+  function updateDiverses(i, p)     { updateRow(i, { ressourcesDiverses: { ...rows[i].ressourcesDiverses, ...p } }); }
   function handleRisOctroyeCible(val) {
     const risNum = safeNumber(val, 0);
     const montant = (risNum > 0 && seuilDem > 0)
@@ -694,101 +743,228 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                   </Field>
                 </div>
 
-                {/* ── Détail des revenus ── */}
-                <div style={{ marginTop: 16 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: colors.primary }}>Revenus (détail)</span>
-                    <button
-                      onClick={() => addRevenuDetail(i)}
-                      style={{
-                        background: colors.primary, color: "#fff", border: "none",
-                        borderRadius: 6, padding: "5px 12px", fontSize: 13,
-                        cursor: "pointer", display: "flex", alignItems: "center", gap: 6
-                      }}
-                    >
-                      <i className="fas fa-plus" aria-hidden="true" /> Ajouter un revenu
-                    </button>
-                  </div>
-
-                  {(r.revenusDetailes || []).length > 0 ? (
-                    <>
-                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                        <thead>
-                          <tr style={{ background: "#EEF4FA" }}>
-                            <th style={{ padding: "6px 8px", textAlign: "left", fontWeight: 700, color: colors.primary, borderBottom: `2px solid ${colors.border}`, width: "45%" }}>Nature</th>
-                            <th style={{ padding: "6px 8px", textAlign: "right", fontWeight: 700, color: colors.primary, borderBottom: `2px solid ${colors.border}`, width: "20%" }}>Montant</th>
-                            <th style={{ padding: "6px 8px", textAlign: "center", fontWeight: 700, color: colors.primary, borderBottom: `2px solid ${colors.border}`, width: "15%" }}>Période</th>
-                            <th style={{ padding: "6px 8px", textAlign: "right", fontWeight: 700, color: colors.primary, borderBottom: `2px solid ${colors.border}`, width: "15%" }}>/an</th>
-                            <th style={{ padding: "6px 8px", borderBottom: `2px solid ${colors.border}`, width: "5%" }}></th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {(r.revenusDetailes || []).map((d, j) => {
-                            const annualise = d.periode === "annuel" ? safeNumber(d.montant, 0) : safeNumber(d.montant, 0) * 12;
-                            return (
-                              <tr key={d.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
-                                <td style={{ padding: "5px 6px" }}>
-                                  <select
-                                    className="formControl"
-                                    style={{ padding: "4px 6px", fontSize: 13 }}
-                                    value={d.nature}
-                                    onChange={(e) => updateRevenuDetail(i, j, { nature: e.target.value })}
-                                  >
-                                    {REVENUS_COMPTABILISES_SUGGESTIONS.filter(n => n.value !== "").map(n => <option key={n.value} value={n.value}>{n.label}</option>)}
-                                  </select>
-                                </td>
-                                <td style={{ padding: "5px 6px" }}>
-                                  <NumInput
-                                    value={d.montant}
-                                    onChange={(e) => updateRevenuDetail(i, j, { montant: safeNumber(e.target.value, 0) })}
-                                    style={{ textAlign: "right", padding: "4px 6px", fontSize: 13, width: "100%" }}
-                                  />
-                                </td>
-                                <td style={{ padding: "5px 6px", textAlign: "center" }}>
-                                  <select
-                                    className="formControl"
-                                    style={{ padding: "4px 6px", fontSize: 13 }}
-                                    value={d.periode}
-                                    onChange={(e) => updateRevenuDetail(i, j, { periode: e.target.value })}
-                                  >
-                                    <option value="mensuel">Mensuel</option>
-                                    <option value="annuel">Annuel</option>
-                                  </select>
-                                </td>
-                                <td style={{ padding: "5px 8px", textAlign: "right", color: colors.primary, fontWeight: 600 }}>
-                                  <Money value={annualise} />
-                                </td>
-                                <td style={{ padding: "5px 4px", textAlign: "center" }}>
-                                  <button
-                                    onClick={() => removeRevenuDetail(i, j)}
-                                    style={{ background: "none", border: "none", cursor: "pointer", color: "#c0392b", fontSize: 14, padding: "2px 4px" }}
-                                    aria-label="Supprimer cette ligne"
-                                  >
-                                    <i className="fas fa-times" aria-hidden="true" />
-                                  </button>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                        <tfoot>
-                          <tr style={{ background: "#EEF4FA" }}>
-                            <td colSpan={3} style={{ padding: "6px 8px", fontWeight: 700, color: colors.primary, textAlign: "right" }}>Total annuel :</td>
-                            <td style={{ padding: "6px 8px", textAlign: "right", fontWeight: 700, color: colors.primary }}>
-                              <Money value={round2((r.revenusDetailes || []).reduce((s, d) => s + (d.periode === "annuel" ? safeNumber(d.montant, 0) : safeNumber(d.montant, 0) * 12), 0))} />
-                            </td>
-                            <td></td>
-                          </tr>
-                        </tfoot>
-                      </table>
-                    </>
-                  ) : (
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
-                      <Input label="Ressources totales (€/an)" type="number" value={r.ressourcesTotale}
-                        onChange={(e) => updateRow(i, { ressourcesTotale: safeNumber(e.target.value, 0) })} />
+                {/* ── Sections revenus accordéon ── */}
+                {(() => {
+                  const accStyle = { marginTop: 8, border: `1px solid ${colors.border}`, borderRadius: 8, overflow: "hidden" };
+                  const sumStyle = { fontSize: 12, color: colors.textLight, marginLeft: 8 };
+                  const secHdr = (icon, label, total) => (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 12px", background: "#F7F9FB", cursor: "pointer", userSelect: "none" }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: colors.primary }}>
+                        <i className={`fas ${icon}`} style={{ marginRight: 6, fontSize: 12, opacity: 0.7 }} aria-hidden="true" />
+                        {label}
+                      </span>
+                      {total > 0 && <span style={sumStyle}><Money value={total} />/an</span>}
                     </div>
-                  )}
-                </div>
+                  );
+                  const simpleTable = (rowList, onAdd, onRemove, onUpdate, suggestions) => (
+                    <div style={{ padding: "10px 12px" }}>
+                      {rowList.length > 0 && (
+                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, marginBottom: 8 }}>
+                          <thead>
+                            <tr style={{ background: "#EEF4FA" }}>
+                              <th style={{ padding: "4px 6px", textAlign: "left", fontWeight: 600, color: colors.primary, width: "42%" }}>Nature</th>
+                              <th style={{ padding: "4px 6px", textAlign: "right", fontWeight: 600, color: colors.primary, width: "22%" }}>Montant</th>
+                              <th style={{ padding: "4px 6px", textAlign: "center", fontWeight: 600, color: colors.primary, width: "18%" }}>Période</th>
+                              <th style={{ padding: "4px 6px", textAlign: "right", fontWeight: 600, color: colors.primary, width: "13%" }}>/an</th>
+                              <th style={{ width: "5%" }}></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {rowList.map((d, j) => {
+                              const an = d.periode === "annuel" ? safeNumber(d.montant, 0) : safeNumber(d.montant, 0) * 12;
+                              return (
+                                <tr key={d.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                                  <td style={{ padding: "4px 5px" }}>
+                                    {suggestions ? (
+                                      <select className="formControl" style={{ padding: "3px 5px", fontSize: 13 }}
+                                        value={d.label}
+                                        onChange={(e) => onUpdate(j, { label: e.target.value })}>
+                                        {suggestions.map(s => <option key={s} value={s}>{s}</option>)}
+                                      </select>
+                                    ) : (
+                                      <input className="formControl" style={{ padding: "3px 5px", fontSize: 13, width: "100%" }}
+                                        value={d.label} placeholder="Nature du revenu"
+                                        onChange={(e) => onUpdate(j, { label: e.target.value })} />
+                                    )}
+                                  </td>
+                                  <td style={{ padding: "4px 5px" }}>
+                                    <NumInput value={d.montant}
+                                      onChange={(e) => onUpdate(j, { montant: safeNumber(e.target.value, 0) })}
+                                      style={{ textAlign: "right", padding: "3px 5px", fontSize: 13, width: "100%" }} />
+                                  </td>
+                                  <td style={{ padding: "4px 5px", textAlign: "center" }}>
+                                    <select className="formControl" style={{ padding: "3px 5px", fontSize: 13 }}
+                                      value={d.periode}
+                                      onChange={(e) => onUpdate(j, { periode: e.target.value })}>
+                                      <option value="mensuel">Mensuel</option>
+                                      <option value="annuel">Annuel</option>
+                                    </select>
+                                  </td>
+                                  <td style={{ padding: "4px 7px", textAlign: "right", fontWeight: 600, color: colors.primary }}>
+                                    <Money value={an} />
+                                  </td>
+                                  <td style={{ textAlign: "center" }}>
+                                    <button onClick={() => onRemove(j)}
+                                      style={{ background: "none", border: "none", cursor: "pointer", color: "#c0392b", fontSize: 13, padding: "2px 4px" }}
+                                      aria-label="Supprimer">
+                                      <i className="fas fa-times" aria-hidden="true" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                          <tfoot>
+                            <tr style={{ background: "#EEF4FA" }}>
+                              <td colSpan={3} style={{ padding: "4px 6px", fontWeight: 700, color: colors.primary, textAlign: "right" }}>Total annuel :</td>
+                              <td style={{ padding: "4px 6px", textAlign: "right", fontWeight: 700, color: colors.primary }}>
+                                <Money value={sumSimpleRows(rowList)} />
+                              </td>
+                              <td />
+                            </tr>
+                          </tfoot>
+                        </table>
+                      )}
+                      <button onClick={onAdd}
+                        style={{ background: colors.primary, color: "#fff", border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+                        <i className="fas fa-plus" aria-hidden="true" /> Ajouter une ligne
+                      </button>
+                    </div>
+                  );
+
+                  const proTotal    = sumSimpleRows(r.proRows);
+                  const cmrTotal    = sumSimpleRows(r.cmrRows);
+                  const cesTotal    = computeCessionsTotalAnnuel(r.cessionsBiens?.rows || [], r.categorie || 1).totalAnnuel;
+                  const immoTotal   = computeImmoExcel(r.biensImmobiliers?.rows || [], 0).totalAnnuel;
+                  const bmData      = r.biensMobiliers || { montantCapital: 0, partConcernee: 100 };
+                  const bmCalc      = computeBiensMobiliersExcel(bmData);
+                  const avTotal     = round2(Object.values(r.avantages || {}).reduce((s, v) => s + safeNumber(v, 0), 0) * 12);
+                  const divTotal    = round2(Object.values(r.ressourcesDiverses || {}).reduce((s, v) => s + safeNumber(v, 0), 0) * 12);
+
+                  return (
+                    <div style={{ marginTop: 12 }}>
+
+                      {/* Revenus professionnels nets */}
+                      <details style={accStyle}>
+                        <summary style={{ listStyle: "none" }}>
+                          {secHdr("fa-briefcase", "Revenus professionnels nets", proTotal)}
+                        </summary>
+                        {simpleTable(
+                          r.proRows || [],
+                          () => addProRow(i),
+                          (j) => removeProRow(i, j),
+                          (j, p) => updateProRow(i, j, p),
+                          null
+                        )}
+                      </details>
+
+                      {/* Chômage, mutuelle & remplacement */}
+                      <details style={{ ...accStyle, marginTop: 4 }}>
+                        <summary style={{ listStyle: "none" }}>
+                          {secHdr("fa-file-medical", "Chômage, mutuelle & remplacement", cmrTotal)}
+                        </summary>
+                        {simpleTable(
+                          r.cmrRows || [],
+                          () => addCmrRow(i),
+                          (j) => removeCmrRow(i, j),
+                          (j, p) => updateCmrRow(i, j, p),
+                          ["Allocations de chômage", "Indemnités de mutuelle", "Pension de retraite", "Revenu de remplacement", "Allocation d'handicapé", "Droit passerelle", "Autre"]
+                        )}
+                      </details>
+
+                      {/* Cessions de biens */}
+                      <details style={{ ...accStyle, marginTop: 4 }}>
+                        <summary style={{ listStyle: "none" }}>
+                          {secHdr("fa-building", "Cessions de biens", cesTotal)}
+                        </summary>
+                        <div style={{ padding: "10px 12px" }}>
+                          <CessionsBiensTable
+                            rows={r.cessionsBiens?.rows || []}
+                            categorie={r.categorie || 1}
+                            onChangeRows={(rows2) => updateCessions(i, rows2)} />
+                        </div>
+                      </details>
+
+                      {/* Biens immobiliers */}
+                      <details style={{ ...accStyle, marginTop: 4 }}>
+                        <summary style={{ listStyle: "none" }}>
+                          {secHdr("fa-house", "Biens immobiliers", immoTotal)}
+                        </summary>
+                        <div style={{ padding: "10px 12px" }}>
+                          <BiensImmobiliersTable
+                            rows={r.biensImmobiliers?.rows || []}
+                            onChangeRows={(rows2) => updateImmo(i, rows2)} />
+                        </div>
+                      </details>
+
+                      {/* Biens mobiliers */}
+                      <details style={{ ...accStyle, marginTop: 4 }}>
+                        <summary style={{ listStyle: "none" }}>
+                          {secHdr("fa-coins", "Biens mobiliers", bmCalc.totalAnnuel)}
+                        </summary>
+                        <div style={{ padding: "10px 12px" }}>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                            <Input label="Capital (€)" type="number" value={bmData.montantCapital}
+                              onChange={(e) => updateMob(i, { montantCapital: safeNumber(e.target.value, 0) })} />
+                            <Input label="Part concernée (%)" type="number" value={bmData.partConcernee}
+                              onChange={(e) => updateMob(i, { partConcernee: safeNumber(e.target.value, 100) })} />
+                          </div>
+                          {bmCalc.totalAnnuel > 0 && (
+                            <div style={{ marginTop: 8, fontSize: 13, color: colors.textLight }}>
+                              {safeNumber(bmData.montantCapital, 0) > MOB_SEUIL_R && (
+                                <div>Tranche 2 ({MOB_SEUIL_R.toLocaleString("fr-BE")}–{MOB_SEUIL_S.toLocaleString("fr-BE")} €) × 6% = <strong><Money value={bmCalc.E6} /></strong>/an</div>
+                              )}
+                              {safeNumber(bmData.montantCapital, 0) > MOB_SEUIL_S && (
+                                <div>Tranche 3 (&gt;{MOB_SEUIL_S.toLocaleString("fr-BE")} €) × 10% = <strong><Money value={bmCalc.E7} /></strong>/an</div>
+                              )}
+                              <div style={{ fontWeight: 700, color: colors.primary }}>Total : <Money value={bmCalc.totalAnnuel} />/an</div>
+                            </div>
+                          )}
+                        </div>
+                      </details>
+
+                      {/* Avantages en nature */}
+                      <details style={{ ...accStyle, marginTop: 4 }}>
+                        <summary style={{ listStyle: "none" }}>
+                          {secHdr("fa-house-user", "Avantages en nature", avTotal)}
+                        </summary>
+                        <div style={{ padding: "10px 12px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+                          <Input label="Charges locatives par un tiers (€/mois)" type="number"
+                            value={(r.avantages || {}).chargesLocativesTiers || 0}
+                            onChange={(e) => updateAvantages(i, { chargesLocativesTiers: safeNumber(e.target.value, 0) })} />
+                          <Input label="Loyer fictif (simulateur) (€/mois)" type="number"
+                            value={(r.avantages || {}).loyerFictifSimulateur || 0}
+                            onChange={(e) => updateAvantages(i, { loyerFictifSimulateur: safeNumber(e.target.value, 0) })} />
+                          <Input label="Prêt hypothécaire par un tiers (€/mois)" type="number"
+                            value={(r.avantages || {}).pretHypothecaireTiers || 0}
+                            onChange={(e) => updateAvantages(i, { pretHypothecaireTiers: safeNumber(e.target.value, 0) })} />
+                          <Input label="Autres avantages (€/mois)" type="number"
+                            value={(r.avantages || {}).autresAvantages || 0}
+                            onChange={(e) => updateAvantages(i, { autresAvantages: safeNumber(e.target.value, 0) })} />
+                        </div>
+                      </details>
+
+                      {/* Ressources diverses */}
+                      <details style={{ ...accStyle, marginTop: 4 }}>
+                        <summary style={{ listStyle: "none" }}>
+                          {secHdr("fa-chart-bar", "Ressources diverses", divTotal)}
+                        </summary>
+                        <div style={{ padding: "10px 12px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+                          <Input label="Allocations familiales (€/mois)" type="number"
+                            value={(r.ressourcesDiverses || {}).allocationsFamiliales || 0}
+                            onChange={(e) => updateDiverses(i, { allocationsFamiliales: safeNumber(e.target.value, 0) })} />
+                          <Input label="Pension alimentaire perçue (€/mois)" type="number"
+                            value={(r.ressourcesDiverses || {}).pensionAlimentairePercue || 0}
+                            onChange={(e) => updateDiverses(i, { pensionAlimentairePercue: safeNumber(e.target.value, 0) })} />
+                          <Input label="Autres ressources diverses (€/mois)" type="number"
+                            value={(r.ressourcesDiverses || {}).autresRessources || 0}
+                            onChange={(e) => updateDiverses(i, { autresRessources: safeNumber(e.target.value, 0) })} />
+                        </div>
+                      </details>
+
+                    </div>
+                  );
+                })()}
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginTop: 12 }}>
 
@@ -891,6 +1067,18 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                 </details>
 
                 <div className="summary-box" style={{ marginTop: 10, fontSize: 14 }}>
+                  {calc.breakdown && Object.keys(calc.breakdown).length > 0 && calc.ressourcesTotale > 0 && (
+                    <div style={{ marginBottom: 8, fontSize: 13, color: colors.textLight, display: "flex", flexWrap: "wrap", gap: "4px 16px" }}>
+                      {calc.breakdown.proAnnuel > 0 && <span>Pro: <strong><Money value={calc.breakdown.proAnnuel} /></strong></span>}
+                      {calc.breakdown.cmrAnnuel > 0 && <span>CMR: <strong><Money value={calc.breakdown.cmrAnnuel} /></strong></span>}
+                      {calc.breakdown.cessionsAnnuel > 0 && <span>Cessions: <strong><Money value={calc.breakdown.cessionsAnnuel} /></strong></span>}
+                      {calc.breakdown.immoAnnuel > 0 && <span>Immo: <strong><Money value={calc.breakdown.immoAnnuel} /></strong></span>}
+                      {calc.breakdown.mobAnnuel > 0 && <span>Mobiliers: <strong><Money value={calc.breakdown.mobAnnuel} /></strong></span>}
+                      {calc.breakdown.avantagesAnnuel > 0 && <span>Avantages: <strong><Money value={calc.breakdown.avantagesAnnuel} /></strong></span>}
+                      {calc.breakdown.diversesAnnuel > 0 && <span>Diverses: <strong><Money value={calc.breakdown.diversesAnnuel} /></strong></span>}
+                      <span style={{ borderLeft: `1px solid ${colors.border}`, paddingLeft: 12, fontWeight: 700, color: colors.primary }}>Total/an: <Money value={calc.ressourcesTotale} /></span>
+                    </div>
+                  )}
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8 }}>
                     <div><strong>Seuil RI (catégorie {calc.categorie}):</strong> <Money value={calc.seuilRI} /></div>
                     <div><strong>Excédent:</strong> <Money value={calc.excedent} /></div>
@@ -1576,7 +1764,7 @@ function computeBiensMobiliersExcel({ montantCapital, partConcernee }) {
 
   // Total = SUM(E5:E7) avec E5 = 0 dans ton fichier
   const totalAnnuel = E6 + E7;
-  return { totalAnnuel, totalMensuel: totalAnnuel / 12 };
+  return { totalAnnuel, totalMensuel: totalAnnuel / 12, D5, D6, D7, E6, E7 };
 }
 function daysInMonth(dateISO) {
   const [y, m] = toISODateOnly(dateISO).split("-").map(Number);
@@ -3452,8 +3640,43 @@ export default function App() {
                 <div className="summary-box" style={{ marginTop: 12 }}>
                   {(() => {
                     const bm = computeBiensMobiliersExcel(data.biensMobiliers);
+                    const B = safeNumber(data.biensMobiliers.montantCapital, 0);
                     return (
                       <>
+                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, marginBottom: 8 }}>
+                          <thead>
+                            <tr style={{ background: "#EEF4FA" }}>
+                              <th style={{ textAlign: "left", padding: "4px 8px", fontWeight: 700, color: colors.primary }}>Tranche</th>
+                              <th style={{ textAlign: "right", padding: "4px 8px", fontWeight: 700, color: colors.primary }}>Capital concerné</th>
+                              <th style={{ textAlign: "right", padding: "4px 8px", fontWeight: 700, color: colors.primary }}>Taux</th>
+                              <th style={{ textAlign: "right", padding: "4px 8px", fontWeight: 700, color: colors.primary }}>Revenu annuel</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr style={{ borderBottom: "1px solid #dde", color: "#666" }}>
+                              <td style={{ padding: "4px 8px" }}>≤ {MOB_SEUIL_R.toLocaleString("fr-BE")} €</td>
+                              <td style={{ padding: "4px 8px", textAlign: "right" }}><Money value={bm.D5} /></td>
+                              <td style={{ padding: "4px 8px", textAlign: "right" }}>Exonéré</td>
+                              <td style={{ padding: "4px 8px", textAlign: "right" }}>0,00 €</td>
+                            </tr>
+                            {B > MOB_SEUIL_R && (
+                              <tr style={{ borderBottom: "1px solid #dde" }}>
+                                <td style={{ padding: "4px 8px" }}>{MOB_SEUIL_R.toLocaleString("fr-BE")} — {MOB_SEUIL_S.toLocaleString("fr-BE")} €</td>
+                                <td style={{ padding: "4px 8px", textAlign: "right" }}><Money value={bm.D6 - bm.D5} /></td>
+                                <td style={{ padding: "4px 8px", textAlign: "right" }}>6 %</td>
+                                <td style={{ padding: "4px 8px", textAlign: "right", fontWeight: 600 }}><Money value={bm.E6} /></td>
+                              </tr>
+                            )}
+                            {B > MOB_SEUIL_S && (
+                              <tr style={{ borderBottom: "1px solid #dde" }}>
+                                <td style={{ padding: "4px 8px" }}>&gt; {MOB_SEUIL_S.toLocaleString("fr-BE")} €</td>
+                                <td style={{ padding: "4px 8px", textAlign: "right" }}><Money value={bm.D7 - bm.D6} /></td>
+                                <td style={{ padding: "4px 8px", textAlign: "right" }}>10 %</td>
+                                <td style={{ padding: "4px 8px", textAlign: "right", fontWeight: 600 }}><Money value={bm.E7} /></td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
                         <div><b>Total annuel :</b> <Money value={bm.totalAnnuel} /></div>
                         <div><b>Total mensuel :</b> <Money value={bm.totalMensuel} /></div>
                       </>

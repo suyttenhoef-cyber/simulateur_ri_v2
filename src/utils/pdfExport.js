@@ -623,8 +623,19 @@ export async function generateTableauCPAS(data, result, apercu) {
     const bmAnnuel = safeN(apercu?.autres?.D20_mobiliers_Annuel);
     if (bmAnnuel > 0) {
       const bm = data.biensMobiliers || {};
+      const B = safeN(bm.montantCapital);
+      const C = safeN(bm.partConcernee) / 100;
+      const MOB_R = 6200, MOB_S = 12500;
+      const D5 = B === 0 ? 0 : Math.min(MOB_R, B) * C;
+      const D6 = B > MOB_R ? Math.min(MOB_S, B) * C : 0;
+      const D7 = B > MOB_S ? B * C : null;
+      const E6 = D6 > D5 ? r2((D6 - D5) * 0.06) : 0;
+      const E7 = D7 !== null ? r2((D7 - D6) * 0.10) : 0;
       tbody += SEC('Biens mobiliers');
-      tbody += ROW(demCell(), 'Capital mobilier', `${fmt(safeN(bm.montantCapital))} × ${safeN(bm.partConcernee)}%`, bmAnnuel);
+      tbody += ROW(demCell(), `Capital : ${fmt(B)} × ${safeN(bm.partConcernee)}%`, `Tranche ≤ ${MOB_R.toLocaleString('fr-BE')} € → exonéré`, 0);
+      if (B > MOB_R) tbody += ROW('', `Tranche ${MOB_R.toLocaleString('fr-BE')}–${MOB_S.toLocaleString('fr-BE')} €`, `${fmt(D6 - D5)} × 6 %`, E6);
+      if (B > MOB_S)  tbody += ROW('', `Tranche > ${MOB_S.toLocaleString('fr-BE')} €`, `${fmt(D7 - D6)} × 10 %`, E7);
+      tbody += SUBTOT('Total biens mobiliers', bmAnnuel);
       tbody += SEP();
     }
 
@@ -689,24 +700,46 @@ export async function generateTableauCPAS(data, result, apercu) {
       </tr>`;
 
       // ── Revenus détaillés ─────────────────────────────────────────────
-      const details = (coh.revenusDetailes || []).filter(d => safeN(d.montant) > 0);
-      if (details.length > 0) {
-        for (const d of details) {
-          const annualise = d.periode === 'annuel' ? safeN(d.montant) : r2(safeN(d.montant) * 12);
+      const bk = coh.breakdown || {};
+      const hasBreakdown = Object.values(bk).some(v => v > 0);
+      if (hasBreakdown) {
+        const bkLines = [
+          { label: 'Revenus professionnels nets', val: bk.proAnnuel },
+          { label: 'Chômage / mutuelle / remplacement', val: bk.cmrAnnuel },
+          { label: 'Cessions de biens', val: bk.cessionsAnnuel },
+          { label: 'Biens immobiliers', val: bk.immoAnnuel },
+          { label: 'Biens mobiliers', val: bk.mobAnnuel },
+          { label: 'Avantages en nature', val: bk.avantagesAnnuel },
+          { label: 'Ressources diverses', val: bk.diversesAnnuel },
+        ].filter(l => l.val > 0);
+        for (const l of bkLines) {
           html += `<tr style="background:#f8fbff;">
             ${cell('')}
-            ${cell(`<span style="color:#555;font-style:italic;">${d.nature || 'Revenu'}</span>`)}
-            ${cell(`${fmt(safeN(d.montant))}/${d.periode === 'annuel' ? 'an' : 'mois'}`, 'color:#555;')}
-            ${cell(fmt(annualise), 'text-align:right;color:#555;')}
+            ${cell(`<span style="color:#555;font-style:italic;">${l.label}</span>`)}
+            ${cell(fmt(r2(l.val / 12)) + '/mois', 'color:#555;')}
+            ${cell(fmt(l.val), 'text-align:right;color:#555;')}
           </tr>`;
         }
       } else {
-        html += `<tr style="background:#f8fbff;">
-          ${cell('')}
-          ${cell('<span style="color:#555;font-style:italic;">Ressources annuelles déclarées</span>')}
-          ${cell(fmt(safeN(coh.ressourcesTotale)) + '/an', 'color:#555;')}
-          ${cell(fmt(safeN(coh.ressourcesTotale)), 'text-align:right;color:#555;')}
-        </tr>`;
+        const details = (coh.revenusDetailes || []).filter(d => safeN(d.montant) > 0);
+        if (details.length > 0) {
+          for (const d of details) {
+            const annualise = d.periode === 'annuel' ? safeN(d.montant) : r2(safeN(d.montant) * 12);
+            html += `<tr style="background:#f8fbff;">
+              ${cell('')}
+              ${cell(`<span style="color:#555;font-style:italic;">${d.nature || 'Revenu'}</span>`)}
+              ${cell(`${fmt(safeN(d.montant))}/${d.periode === 'annuel' ? 'an' : 'mois'}`, 'color:#555;')}
+              ${cell(fmt(annualise), 'text-align:right;color:#555;')}
+            </tr>`;
+          }
+        } else {
+          html += `<tr style="background:#f8fbff;">
+            ${cell('')}
+            ${cell('<span style="color:#555;font-style:italic;">Ressources annuelles déclarées</span>')}
+            ${cell(fmt(safeN(coh.ressourcesTotale)) + '/an', 'color:#555;')}
+            ${cell(fmt(safeN(coh.ressourcesTotale)), 'text-align:right;color:#555;')}
+          </tr>`;
+        }
       }
 
       // ── Calcul explicite ──────────────────────────────────────────────
