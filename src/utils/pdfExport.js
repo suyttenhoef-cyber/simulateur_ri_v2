@@ -168,7 +168,7 @@ export async function generatePDF(data, result, apercu) {
       return html;
     })();
 
-    // Cohabitants débiteurs (filtrés par type)
+    // Cohabitants débiteurs uniquement dans le tableau revenus (autresCohabitants → section séparée après calcul)
     const cohRows = (() => {
       let html = '';
       const debs = (result.cohabitants?.debiteurs || []);
@@ -180,15 +180,35 @@ export async function generatePDF(data, result, apercu) {
         }
         if (coh32 > 0) html += rowS('<b>Excédent comptabilisé</b>', coh32 / 12, coh32, 'font-style:italic;');
       }
-      const autres = (result.cohabitants?.autresCohabitants || []);
-      if (autres.length > 0) {
-        html += `<tr><td colspan="3" style="padding:5px 8px;font-size:12px;color:#b8860b;font-style:italic;">Autres cohabitants (informatif uniquement)</td></tr>`;
-        for (const d of autres) {
-          const res = safeNS(d.ressourcesTotale);
-          html += `<tr style="color:#b8860b;"><td style="padding:4px 8px;font-size:13px;">${d.nom || 'Cohabitant'} (Autre — non comptabilisé)</td><td style="text-align:right;padding:4px 8px;font-size:13px;">${fmtS(res/12)}</td><td style="text-align:right;padding:4px 8px;font-size:13px;">${fmtS(res)}</td></tr>`;
-        }
-      }
       return html;
+    })();
+
+    // Section "Autres cohabitants" (informatif) — sera rendue après le calcul détaillé
+    const autresCohabSection = (() => {
+      const autres = (result.cohabitants?.autresCohabitants || []);
+      if (autres.length === 0) return '';
+      let rows = '';
+      for (const d of autres) {
+        const res = safeNS(d.ressourcesTotale);
+        rows += `<tr style="border-top:1px solid #f0d060;">
+          <td style="padding:6px 8px;color:#7a6000;">${d.nom || 'Cohabitant'} <span style="font-style:italic;">(Autre — seuil : ${fmtS(safeNS(d.seuilRI))}/an)</span></td>
+          <td style="text-align:right;padding:6px 8px;color:#7a6000;">${fmtS(res/12)}</td>
+          <td style="text-align:right;padding:6px 8px;color:#7a6000;">${fmtS(res)}</td>
+        </tr>`;
+      }
+      return `<div style="margin-top:20px;padding:14px;background:#fdf6e3;border-left:4px solid #f0d060;border-radius:4px;">
+        <div style="font-size:12px;font-weight:700;color:#b8860b;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;">
+          Autres cohabitants — à titre informatif (non comptabilisés dans le RIS)
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead><tr style="color:#b8860b;font-weight:600;">
+            <th style="text-align:left;padding:4px 8px;">Cohabitant</th>
+            <th style="text-align:right;padding:4px 8px;">Mensuel</th>
+            <th style="text-align:right;padding:4px 8px;">Annuel</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
     })();
 
     // Générer le contenu HTML pour le PDF
@@ -286,6 +306,9 @@ export async function generatePDF(data, result, apercu) {
         </div>
       ` : ''}
 
+      <!-- Autres cohabitants (informatif) — après le calcul détaillé -->
+      ${autresCohabSection}
+
       <!-- Pied de page -->
       <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #666; font-size: 14px;">
         <p>Document généré automatiquement par le Simulateur de Revenu d'Intégration - CPASConnect</p>
@@ -312,16 +335,45 @@ export async function generatePDF(data, result, apercu) {
     const imgWidth = 210; // A4 width in mm
     const pageHeight = 297; // A4 height in mm
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const pxPerMm = canvas.height / imgHeight;
+    const pageHpx = Math.floor(pageHeight * pxPerMm);
 
-    let heightLeft = imgHeight;
-    let position = 0;
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-    while (heightLeft > 0) {
-      position -= pageHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+    // Trouver une ligne de coupe propre : on remonte depuis le point idéal
+    // jusqu'à trouver la ligne la plus blanche (evite de couper en plein texte)
+    const findCleanBreak = (idealPx) => {
+      const windowPx = Math.min(Math.round(40 * pxPerMm), 200); // ≈40mm ou 200px max
+      const ctx = canvas.getContext('2d');
+      let bestLine = idealPx;
+      let bestScore = -1;
+      for (let y = idealPx; y > idealPx - windowPx && y > 0; y--) {
+        const data = ctx.getImageData(0, y, canvas.width, 1).data;
+        let whiteCount = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          if (data[i] > 240 && data[i + 1] > 240 && data[i + 2] > 240) whiteCount++;
+        }
+        const score = whiteCount / (canvas.width);
+        if (score > bestScore) { bestScore = score; bestLine = y; }
+        if (score > 0.97) break; // ligne quasi-blanche trouvée, on s'arrête
+      }
+      return bestLine;
+    };
+
+    let offsetY = 0;
+    let pageIndex = 0;
+    while (offsetY < canvas.height) {
+      const idealEnd = offsetY + pageHpx;
+      const cutPx = idealEnd >= canvas.height ? canvas.height : findCleanBreak(idealEnd);
+      const sliceH = cutPx - offsetY;
+      const sliceCanvas = document.createElement('canvas');
+      sliceCanvas.width = canvas.width;
+      sliceCanvas.height = sliceH;
+      sliceCanvas.getContext('2d').drawImage(canvas, 0, offsetY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+      const sliceData = sliceCanvas.toDataURL('image/png');
+      const sliceHmm = (sliceH / pxPerMm);
+      if (pageIndex > 0) pdf.addPage();
+      pdf.addImage(sliceData, 'PNG', 0, 0, imgWidth, sliceHmm);
+      offsetY = cutPx;
+      pageIndex++;
     }
     
     // Nettoyer l'élément temporaire
@@ -373,7 +425,9 @@ export async function generateTableauCPAS(data, result, apercu) {
     const hcell = (html, style = '') => `<th style="padding:9px;border:1px solid #1a3e60;text-align:left;${style}">${html}</th>`;
 
     // En-tête de section (4 colonnes, bordure gauche colorée)
-    const SEC = (title) => `<tr style="background:#eef2f7;">
+    // La ligne blanche avant le titre crée un espace propre pour les coupures de page
+    const SEC = (title) => `<tr><td colspan="4" style="padding:0;height:16px;border:none;background:white;"></td></tr>
+    <tr style="background:#eef2f7;">
       <td colspan="4" style="padding:8px 10px;border:1px solid #dee2e6;font-weight:bold;color:#163E67;border-left:4px solid #2BEBCE;">${title}</td>
     </tr>`;
 
@@ -401,10 +455,41 @@ export async function generateTableauCPAS(data, result, apercu) {
     const cohDetails = result.cohabitants?.details || [];
     const hasAutreCohabitants = cohDetails.some(c => c.type === 'Autre' && safeN(c.ressourcesTotale) > 0);
 
+    // Le nom du demandeur n'est affiché qu'une seule fois (première ligne du tableau)
+    let demShown = false;
+    const demCell = () => { const n = demShown ? '' : prenomNom; demShown = true; return n; };
+
     let tbody = '';
 
     // ════════════════════════════════════════════════════════════════════
     // SECTION 1 — Revenus professionnels nets
+    // ════════════════════════════════════════════════════════════════════
+    // Pré-calcul Art. 35 (utilisé dans Section 1 en sous-ligne)
+    const art35DemAn  = r2(safeN(apercu?.pro?.D4_netDem_Annuel)  - safeN(apercu?.pro?.D6_netAvantExoSP_Dem_Annuel));
+    const art35ConjAn = r2(safeN(apercu?.pro?.D5_netConj_Annuel) - safeN(apercu?.pro?.D7_netAvantExoSP_Conj_Annuel));
+
+    // Helper : libellé du type d'exo Art. 35 depuis les cases cochées
+    const art35Label = (person) => {
+      const e = data.exoneration?.[person] || {};
+      const types = [
+        e.general    && 'général',
+        e.etudiant   && 'étudiant',
+        e.penurie    && 'pénurie',
+        e.artisteSP  && 'artiste SP',
+      ].filter(Boolean);
+      return `(−) Exonération Art. 35${types.length ? ' (' + types.join(' + ') + ')' : ''}`;
+    };
+
+    // Sous-ligne Art. 35 insérée directement après les revenus de la personne
+    const art35SubRow = (label, annuel) => `<tr style="background:#fff5f5;">
+      ${cell('')}
+      ${cell(`<span style="color:#c0392b;font-style:italic;">${label}</span>`)}
+      ${cell(fmt(annuel / 12) + '/mois', 'color:#c0392b;font-style:italic;')}
+      ${cell('−&nbsp;' + fmt(annuel), 'text-align:right;color:#c0392b;font-style:italic;')}
+    </tr>`;
+
+    // ════════════════════════════════════════════════════════════════════
+    // SECTION 1 — Revenus professionnels nets + Art. 35 en sous-ligne
     // ════════════════════════════════════════════════════════════════════
     const comptAnnuel = r2(
       (data.revenusNets?.demandeur?.comptabiliseRows || []).reduce((s, r) => s + safeN(r.montant), 0) * 12 +
@@ -412,19 +497,24 @@ export async function generateTableauCPAS(data, result, apercu) {
         ? (data.revenusNets.conjoint.comptabiliseRows || []).reduce((s, r) => s + safeN(r.montant), 0) * 12
         : 0)
     );
-    if (comptAnnuel > 0) {
+    if (comptAnnuel > 0 || art35DemAn > 0 || art35ConjAn > 0) {
       tbody += SEC('Revenus professionnels nets');
       for (const row of (data.revenusNets?.demandeur?.comptabiliseRows || [])) {
         const m = safeN(row.montant);
         if (!m) continue;
-        tbody += ROW(prenomNom, row.customLabel || row.label || 'Revenus professionnels', `${fmt(m)}/mois`, r2(m * 12));
+        tbody += ROW(demCell(), row.customLabel || row.label || 'Revenus professionnels', `${fmt(m)}/mois`, r2(m * 12));
       }
+      // Sous-ligne Art. 35 demandeur
+      if (art35DemAn > 0) tbody += art35SubRow(art35Label('demandeur'), art35DemAn);
+
       if (data.revenusNets?.conjoint?.enabled) {
         for (const row of (data.revenusNets.conjoint.comptabiliseRows || [])) {
           const m = safeN(row.montant);
           if (!m) continue;
           tbody += ROW('Conjoint', row.customLabel || row.label || 'Revenus professionnels', `${fmt(m)}/mois`, r2(m * 12));
         }
+        // Sous-ligne Art. 35 conjoint
+        if (art35ConjAn > 0) tbody += art35SubRow(art35Label('conjoint'), art35ConjAn);
       }
       tbody += SEP();
     }
@@ -439,11 +529,11 @@ export async function generateTableauCPAS(data, result, apercu) {
         : 0)
     );
     if (exonLigneAnnuel > 0) {
-      tbody += SEC('Revenus professionnels exonérés');
+      tbody += SEC('Revenus professionnels exonérés (Art. 34)');
       for (const row of (data.revenusNets?.demandeur?.exonereRows || [])) {
         const m = safeN(row.montant);
         if (!m) continue;
-        tbody += ROW(prenomNom, row.type || 'Revenu exonéré', `${fmt(m)}/mois`, r2(m * 12), true);
+        tbody += ROW(demCell(), row.type || 'Revenu exonéré', `${fmt(m)}/mois`, r2(m * 12), true);
       }
       if (data.revenusNets?.conjoint?.enabled) {
         for (const row of (data.revenusNets.conjoint.exonereRows || [])) {
@@ -452,20 +542,6 @@ export async function generateTableauCPAS(data, result, apercu) {
           tbody += ROW('Conjoint', row.type || 'Revenu exonéré', `${fmt(m)}/mois`, r2(m * 12), true);
         }
       }
-      tbody += SEP();
-    }
-
-    // ════════════════════════════════════════════════════════════════════
-    // SECTION 3 — Exonérations légales Art. 35 (général / étudiant / pénurie)
-    // ════════════════════════════════════════════════════════════════════
-    const art35DemAn = r2(safeN(apercu?.pro?.D4_netDem_Annuel) - safeN(apercu?.pro?.D6_netAvantExoSP_Dem_Annuel));
-    const art35ConjAn = r2(safeN(apercu?.pro?.D5_netConj_Annuel) - safeN(apercu?.pro?.D7_netAvantExoSP_Conj_Annuel));
-    if (art35DemAn > 0 || art35ConjAn > 0) {
-      tbody += SEC('Montants exonérés — Insertion socioprofessionnelle (Art. 35 AR)');
-      if (art35DemAn > 0)
-        tbody += ROW(prenomNom, 'Exonération Art. 35 (général / étudiant / pénurie)', `${fmt(art35DemAn / 12)}/mois`, art35DemAn, true);
-      if (art35ConjAn > 0)
-        tbody += ROW('Conjoint', 'Exonération Art. 35 (général / étudiant / pénurie)', `${fmt(art35ConjAn / 12)}/mois`, art35ConjAn, true);
       tbody += SEP();
     }
 
@@ -481,13 +557,13 @@ export async function generateTableauCPAS(data, result, apercu) {
         const cj = safeN(data.cmr?.chomage?.montantJourAnnuel);
         const cj26 = safeN(data.cmr?.chomage?.montantJour26);
         const h = cj > 0 ? `${fmt(cj)}/jour × ${nbJours} jours` : cj26 > 0 ? `${fmt(cj26)}/jour × 26` : `${fmt(chomAnnuel / 12)}/mois`;
-        tbody += ROW(prenomNom, 'Allocation de chômage', h, chomAnnuel);
+        tbody += ROW(demCell(), 'Allocation de chômage', h, chomAnnuel);
       }
       if (mutAnnuel > 0) {
         const mj = safeN(data.cmr?.mutuelle?.montantJourAnnuel);
         const mj26 = safeN(data.cmr?.mutuelle?.montantJour26);
         const h = mj > 0 ? `${fmt(mj)}/jour × ${nbJours} jours` : mj26 > 0 ? `${fmt(mj26)}/jour × 26` : `${fmt(mutAnnuel / 12)}/mois`;
-        tbody += ROW(prenomNom, 'Indemnité de mutuelle', h, mutAnnuel);
+        tbody += ROW(demCell(), 'Indemnité de mutuelle', h, mutAnnuel);
       }
       if (remAnnuel > 0) {
         const cmrR = data.cmr?.remplacement || {};
@@ -498,18 +574,31 @@ export async function generateTableauCPAS(data, result, apercu) {
           { label: 'Indemnisation perte revenus',  val: safeN(cmrR.indemnisation_perte_revenus) },
           { label: 'Autre revenu remplacement',    val: safeN(cmrR.autres_revenus) },
         ].filter(s => s.val > 0);
-        subs.forEach(s => tbody += ROW(prenomNom, s.label, `${fmt(s.val)}/mois`, r2(s.val * 12)));
+        subs.forEach(s => tbody += ROW(demCell(), s.label, `${fmt(s.val)}/mois`, r2(s.val * 12)));
       }
       tbody += SEP();
     }
 
     // ════════════════════════════════════════════════════════════════════
-    // SECTION 5 — Ressources diverses
+    // SECTION 5 — Ressources diverses (toutes, y compris celles exonérées = 0 €)
     // ════════════════════════════════════════════════════════════════════
-    const divItems = [...(data.ressourcesDiverses?.generales || []), ...(data.ressourcesDiverses?.benevoles || [])].filter(r => safeN(r.montant) > 0);
-    if (divItems.length > 0) {
+    const divItemsAll = [...(data.ressourcesDiverses?.generales || []), ...(data.ressourcesDiverses?.benevoles || [])];
+    if (divItemsAll.length > 0) {
       tbody += SEC('Ressources diverses');
-      divItems.forEach(r => tbody += ROW(prenomNom, r.label, `${fmt(safeN(r.montant))}/mois`, r2(safeN(r.montant) * 12)));
+      for (const r of divItemsAll) {
+        const m = safeN(r.montant);
+        if (m > 0) {
+          tbody += ROW(demCell(), r.label, `${fmt(m)}/mois`, r2(m * 12));
+        } else {
+          // Ressource déclarée mais exonérée ou non comptabilisée
+          tbody += `<tr style="background:#f9f9f9;">
+            ${cell('')}
+            ${cell(`<span style="color:#888;font-style:italic;">${r.label}</span>`)}
+            ${cell('<span style="color:#888;font-style:italic;">exonéré / non comptabilisé</span>')}
+            ${cell(fmt(0), 'text-align:right;color:#aaa;font-style:italic;')}
+          </tr>`;
+        }
+      }
       tbody += SEP();
     }
 
@@ -524,7 +613,7 @@ export async function generateTableauCPAS(data, result, apercu) {
     ].filter(a => a.val > 0);
     if (avantItems.length > 0) {
       tbody += SEC('Avantages en nature');
-      avantItems.forEach(a => tbody += ROW(prenomNom, a.label, `${fmt(a.val)}/mois`, r2(a.val * 12)));
+      avantItems.forEach(a => tbody += ROW(demCell(), a.label, `${fmt(a.val)}/mois`, r2(a.val * 12)));
       tbody += SEP();
     }
 
@@ -535,7 +624,7 @@ export async function generateTableauCPAS(data, result, apercu) {
     if (bmAnnuel > 0) {
       const bm = data.biensMobiliers || {};
       tbody += SEC('Biens mobiliers');
-      tbody += ROW(prenomNom, 'Capital mobilier', `${fmt(safeN(bm.montantCapital))} × ${safeN(bm.partConcernee)}%`, bmAnnuel);
+      tbody += ROW(demCell(), 'Capital mobilier', `${fmt(safeN(bm.montantCapital))} × ${safeN(bm.partConcernee)}%`, bmAnnuel);
       tbody += SEP();
     }
 
@@ -551,7 +640,7 @@ export async function generateTableauCPAS(data, result, apercu) {
         const type = bien.typeBien || 'Bien immobilier';
         const loc = bien.localisation ? ` (${bien.localisation})` : '';
         const hauteur = rc > 0 ? `RC non indexé : ${fmt(rc)} × ${safeN(bien.quotePart)}%` : loyer > 0 ? `Loyer : ${fmt(loyer)}/an` : '—';
-        tbody += ROW(prenomNom, type + loc, hauteur, 0);
+        tbody += ROW(demCell(), type + loc, hauteur, 0);
       }
       tbody += SUBTOT('Total biens immobiliers (calculé)', immoAnnuel);
       tbody += SEP();
@@ -569,7 +658,7 @@ export async function generateTableauCPAS(data, result, apercu) {
         const type = c.typeBien || 'Bien cédé';
         const nat = c.natureCession || 'Cession';
         const hauteur = `${nat} — Valeur vénale : ${fmt(vv)} × ${safeN(c.partConcernee)}% (${c.titrePropriete || 'P.P.'})`;
-        tbody += ROW(prenomNom, type, hauteur, 0);
+        tbody += ROW(demCell(), type, hauteur, 0);
       }
       tbody += SUBTOT('Total cessions (calculé)', cessionsAnnuel);
       tbody += SEP();
@@ -582,20 +671,24 @@ export async function generateTableauCPAS(data, result, apercu) {
     const autresCoh    = cohDetails.filter(c => c.type === 'Autre');
 
     function renderCohDetail(coh) {
-      const catLabelCoh = coh.categorie === 1 ? 'Cat. 1 - Cohabitant' : coh.categorie === 2 ? 'Cat. 2 - Isolé' : 'Cat. 3 - Famille';
-      const cohName    = coh.nom  || 'Cohabitant';
-      const cohType    = coh.type || 'Ascendant/Descendant';
-      const hasExced   = coh.excedent > 0;
-      const reportAn   = r2(coh.montantReporte * 12);
+      const cohName      = coh.nom  || 'Cohabitant';
+      const cohType      = coh.type || 'Ascendant/Descendant';
+      const excedentBrut = safeN(coh.excedent);
+      const reportAn     = r2(safeN(coh.montantReporte) * 12);
+      const priseEnCharge = coh.priseEnCharge || 'Report max';
+      const isPasReport  = priseEnCharge === 'Pas de report';
+      const isPartiel    = priseEnCharge === 'Report partiel';
+      const pct          = safeN(coh.pctReport) || 100;
 
-      let html = ROW(
-        `${cohName}<br/><span style="font-size:13px;font-weight:normal;color:#666;">${cohType}</span>`,
-        'Ressources annuelles totales',
-        `${fmt(coh.ressourcesTotale)}/an`,
-        coh.ressourcesTotale
-      );
+      let html = '';
 
-      // Détail des revenus encodés (filtré : montant > 0)
+      // ── En-tête : nom + type ──────────────────────────────────────────
+      html += `<tr style="background:#eef2f7;">
+        <td style="padding:7px 9px;border:1px solid #dee2e6;font-weight:700;color:#163E67;">${cohName}</td>
+        <td colspan="3" style="padding:7px 9px;border:1px solid #dee2e6;color:#666;font-style:italic;">${cohType}</td>
+      </tr>`;
+
+      // ── Revenus détaillés ─────────────────────────────────────────────
       const details = (coh.revenusDetailes || []).filter(d => safeN(d.montant) > 0);
       if (details.length > 0) {
         for (const d of details) {
@@ -607,19 +700,77 @@ export async function generateTableauCPAS(data, result, apercu) {
             ${cell(fmt(annualise), 'text-align:right;color:#555;')}
           </tr>`;
         }
+      } else {
+        html += `<tr style="background:#f8fbff;">
+          ${cell('')}
+          ${cell('<span style="color:#555;font-style:italic;">Ressources annuelles déclarées</span>')}
+          ${cell(fmt(safeN(coh.ressourcesTotale)) + '/an', 'color:#555;')}
+          ${cell(fmt(safeN(coh.ressourcesTotale)), 'text-align:right;color:#555;')}
+        </tr>`;
       }
 
-      html += ROW('', `Seuil RI (${catLabelCoh})`, `Seuil : ${fmt(coh.seuilRI)}`, coh.seuilRI, true);
-      if (hasExced) {
-        html += `<tr style="background:#fff8dc;">
+      // ── Calcul explicite ──────────────────────────────────────────────
+      // Total revenus
+      html += `<tr style="background:#e8f0f8;border-top:2px solid #b8cfe8;">
+        ${cell('')}
+        ${cell('<b>Total revenus</b>', 'color:#163E67;')}
+        ${cell('')}
+        ${cell('<b>' + fmt(safeN(coh.ressourcesTotale)) + '</b>', 'text-align:right;font-weight:bold;color:#163E67;')}
+      </tr>`;
+
+      // (−) Seuil RI
+      html += `<tr style="background:#fef6f6;">
+        ${cell('')}
+        ${cell('(−) Seuil RI', 'color:#c0392b;')}
+        ${cell('')}
+        ${cell('−&nbsp;' + fmt(safeN(coh.seuilRI)), 'text-align:right;color:#c0392b;')}
+      </tr>`;
+
+      if (excedentBrut > 0) {
+        // = Excédent brut
+        html += `<tr style="background:#fff8dc;border-top:2px solid #f0c040;">
           ${cell('')}
-          ${cell('<b>Excédent reporté</b>')}
-          ${cell(fmt(coh.montantMensuel) + '/mois', 'color:#444;')}
-          ${cell('<b>' + fmt(reportAn) + '</b>', 'text-align:right;font-weight:bold;color:#163E67;')}
+          ${cell('<b>= Excédent</b>', 'color:#163E67;')}
+          ${cell('')}
+          ${cell('<b>' + fmt(excedentBrut) + '</b>', 'text-align:right;font-weight:bold;color:#163E67;')}
         </tr>`;
+
+        // × % si report partiel
+        if (isPartiel) {
+          html += `<tr style="background:#fff8dc;">
+            ${cell('')}
+            ${cell(`× ${pct}&nbsp;% <span style="font-style:italic;color:#b8860b;">(report partiel)</span>`, 'color:#b8860b;')}
+            ${cell('')}
+            ${cell(fmt(reportAn), 'text-align:right;color:#b8860b;')}
+          </tr>`;
+        }
+
+        // → Montant reporté (résultat final)
+        if (!isPasReport) {
+          html += `<tr style="background:#e8f5e9;border-top:2px solid #81c784;">
+            ${cell('')}
+            ${cell('<b>→ Montant reporté</b>', 'color:#155724;font-weight:bold;')}
+            ${cell(fmt(safeN(coh.montantReporte)) + '/mois', 'color:#155724;')}
+            ${cell('<b>' + fmt(reportAn) + '</b>', 'text-align:right;font-weight:bold;color:#155724;')}
+          </tr>`;
+        } else {
+          html += `<tr style="background:#f9f9f9;">
+            ${cell('')}
+            ${cell('<i style="color:#888;">Pas de report (décision)</i>')}
+            ${cell('')}
+            ${cell(fmt(0), 'text-align:right;color:#aaa;')}
+          </tr>`;
+        }
       } else {
-        html += `<tr><td></td>${cell(`<i style="color:#888;">${coh.message || "Pas d'excédent"}</i>`)}${cell('')}${cell(fmt(0), 'text-align:right;color:#aaa;')}</tr>`;
+        // Pas d'excédent
+        html += `<tr style="background:#f9f9f9;border-top:2px solid #ddd;">
+          ${cell('')}
+          ${cell(`<i style="color:#888;">${coh.message || 'Pas d\'excédent (revenus ≤ seuil RI)'}</i>`)}
+          ${cell('')}
+          ${cell(fmt(0), 'text-align:right;color:#aaa;')}
+        </tr>`;
       }
+
       return html;
     }
 
@@ -627,29 +778,6 @@ export async function generateTableauCPAS(data, result, apercu) {
       tbody += SEC('Revenus des cohabitants — débiteurs d\'aliments');
       for (const coh of debiteursCoh) {
         tbody += renderCohDetail(coh);
-        tbody += SEP();
-      }
-    }
-
-    if (autresCoh.length > 0) {
-      tbody += `<tr style="background:#fdf6e3;">
-        <td colspan="4" style="padding:8px 12px;font-size:13px;font-weight:700;color:#b8860b;border:1px solid #dee2e6;letter-spacing:0.4px;">
-          Autres cohabitants — à titre indicatif (non pris en compte dans le calcul du RI)
-        </td>
-      </tr>`;
-      for (const coh of autresCoh) {
-        const cohName = coh.nom || 'Cohabitant';
-        tbody += `<tr style="background:#fdf6e3;">
-          ${cell(`${cohName} <span style="font-style:italic;color:#b8860b;">(Autre)</span>`)}
-          ${cell('Ressources annuelles')}
-          ${cell(fmt(coh.ressourcesTotale) + '/an', 'color:#7a6000;')}
-          ${cell(fmt(coh.ressourcesTotale), 'text-align:right;color:#b8860b;')}
-        </tr>
-        <tr style="background:#fdf6e3;"><td></td>
-          <td colspan="3" style="padding:5px 9px;border:1px solid #dee2e6;font-style:italic;color:#b8860b;font-size:12px;">
-            Non reporté dans le calcul du RI
-          </td>
-        </tr>`;
         tbody += SEP();
       }
     }
@@ -688,6 +816,33 @@ export async function generateTableauCPAS(data, result, apercu) {
       </tr>`;
     }
 
+    // ════════════════════════════════════════════════════════════════════
+    // SECTION FINALE — Autres cohabitants (informatif, tout en bas)
+    // ════════════════════════════════════════════════════════════════════
+    if (autresCoh.length > 0) {
+      tbody += `<tr><td colspan="4" style="padding:0;height:8px;border:none;background:white;"></td></tr>`;
+      tbody += `<tr style="background:#fdf6e3;">
+        <td colspan="4" style="padding:8px 12px;font-size:13px;font-weight:700;color:#b8860b;border-top:2px solid #f0d060;border-bottom:1px solid #f0d060;letter-spacing:0.3px;">
+          Autres cohabitants — à titre indicatif (non pris en compte dans le calcul du RI)
+        </td>
+      </tr>`;
+      for (const coh of autresCoh) {
+        const cohName = coh.nom || 'Cohabitant';
+        tbody += `<tr style="background:#fdf6e3;">
+          ${cell(`${cohName} <span style="font-style:italic;color:#b8860b;font-size:12px;">(Autre)</span>`)}
+          ${cell('Ressources annuelles')}
+          ${cell(fmt(safeN(coh.ressourcesTotale)) + '/an', 'color:#7a6000;')}
+          ${cell(fmt(safeN(coh.ressourcesTotale)), 'text-align:right;color:#b8860b;')}
+        </tr>
+        <tr style="background:#fdf6e3;border-bottom:1px solid #f0d060;">
+          <td style="border:1px solid #dee2e6;"></td>
+          ${cell('Seuil RI', 'font-style:italic;color:#b8860b;')}
+          ${cell(fmt(safeN(coh.seuilRI)) + '/an', 'color:#7a6000;font-style:italic;')}
+          ${cell(fmt(safeN(coh.seuilRI)), 'text-align:right;color:#b8860b;font-style:italic;')}
+        </tr>`;
+      }
+    }
+
     // ─── HTML COMPLET ────────────────────────────────────────────────────────
     const logoBase64 = await imageToBase64('https://www.cpasconnect.be/img/cpasconnect/logo.svg');
 
@@ -704,7 +859,6 @@ export async function generateTableauCPAS(data, result, apercu) {
           <b>${prenomNom}</b> — ${catLabel} — ${data.menage.nbEnfants} enfant(s) à charge
           &nbsp;|&nbsp; <b>Seuil RI : ${fmt(safeN(apercu?.ri?.riAnnuelBrut))}/an</b> (${fmt(r2(safeN(apercu?.ri?.riAnnuelBrut) / 12))}/mois)
           ${safeN(data.reference.joursPrisEnCompte) > 0 ? ` &nbsp;|&nbsp; Prorata : ${data.reference.joursPrisEnCompte} jours sur ${apercu?.ri?.joursMois || '?'}` : ''}
-          ${hasAutreCohabitants ? ` &nbsp;|&nbsp; <span style="color:#b8860b;">⚠ Cohabitant(s) de type « Autre » repris à titre indicatif uniquement — non pris en compte dans le calcul du RI</span>` : ''}
         </div>
         <table style="width:100%;border-collapse:collapse;font-size:14px;">
           <thead>
@@ -737,22 +891,45 @@ export async function generateTableauCPAS(data, result, apercu) {
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     const pageH     = 297;
 
+    // Coupe intelligente : remonte depuis le point idéal pour trouver une ligne blanche
+    const findCleanBreakCPAS = (canvas, idealPx, pxPerMm) => {
+      const windowPx = Math.min(Math.round(40 * pxPerMm), 200);
+      const ctx = canvas.getContext('2d');
+      let bestLine = idealPx;
+      let bestScore = -1;
+      for (let y = idealPx; y > idealPx - windowPx && y > 0; y--) {
+        const row = ctx.getImageData(0, y, canvas.width, 1).data;
+        let whiteCount = 0;
+        for (let i = 0; i < row.length; i += 4) {
+          if (row[i] > 240 && row[i + 1] > 240 && row[i + 2] > 240) whiteCount++;
+        }
+        const score = whiteCount / canvas.width;
+        if (score > bestScore) { bestScore = score; bestLine = y; }
+        if (score > 0.97) break;
+      }
+      return bestLine;
+    };
+
     if (imgHeight <= pageH) {
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
     } else {
-      const pxPerMm    = canvas.width / imgWidth;
-      const pageHpx    = pageH * pxPerMm;
-      let   offsetY    = 0;
+      const pxPerMm = canvas.width / imgWidth;
+      const pageHpx = Math.floor(pageH * pxPerMm);
+      let offsetY   = 0;
+      let pageIdx   = 0;
       while (offsetY < canvas.height) {
-        if (offsetY > 0) pdf.addPage();
-        const sliceH  = Math.min(pageHpx, canvas.height - offsetY);
+        if (pageIdx > 0) pdf.addPage();
+        const idealEnd = offsetY + pageHpx;
+        const cutPx = idealEnd >= canvas.height ? canvas.height : findCleanBreakCPAS(canvas, idealEnd, pxPerMm);
+        const sliceH  = cutPx - offsetY;
         const sliceCv = document.createElement('canvas');
         sliceCv.width  = canvas.width;
         sliceCv.height = sliceH;
         sliceCv.getContext('2d').drawImage(canvas, 0, offsetY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
         const sliceImg = sliceCv.toDataURL('image/png');
-        pdf.addImage(sliceImg, 'PNG', 0, 0, imgWidth, (sliceH * imgWidth) / canvas.width);
-        offsetY += pageHpx;
+        pdf.addImage(sliceImg, 'PNG', 0, 0, imgWidth, (sliceH / pxPerMm));
+        offsetY = cutPx;
+        pageIdx++;
       }
     }
 

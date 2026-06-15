@@ -670,6 +670,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                   <button
                     onClick={() => removeRow(i)}
                     className="btn-remove"
+                    style={{ marginLeft: 24 }}
                     aria-label={`Supprimer cohabitant ${i + 1}`}
                   >
                     <i className="fas fa-trash" aria-hidden="true" /> Supprimer
@@ -1764,7 +1765,7 @@ function Input({ label, type = "text", value, onChange, placeholder, hint }) {
     </Field>
   );
 }
-function Sidebar({ active, onSelect }) {
+function Sidebar({ active, onSelect, onNewCalcul }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
@@ -1850,6 +1851,34 @@ function Sidebar({ active, onSelect }) {
           {!isCollapsed && <span>{s.label}</span>}
         </button>
       ))}
+
+      {/* Bouton Nouveau calcul */}
+      <div style={{ marginTop: 16, borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: 16 }}>
+        <button
+          onClick={onNewCalcul}
+          title="Effacer toutes les données et repartir de zéro"
+          style={{
+            width: "100%",
+            padding: isCollapsed ? "10px" : "10px 12px",
+            borderRadius: "8px",
+            border: "2px solid rgba(255,255,255,0.4)",
+            background: "rgba(255,255,255,0.08)",
+            color: colors.white,
+            cursor: "pointer",
+            fontFamily: "'Source Sans Pro', sans-serif",
+            fontSize: "14px",
+            fontWeight: "600",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: isCollapsed ? "center" : "flex-start",
+            gap: "10px",
+            transition: "all 0.2s",
+          }}
+        >
+          <i className="fas fa-rotate-left" aria-hidden="true" style={{ width: 20, textAlign: "center", fontSize: 15, flexShrink: 0 }} />
+          {!isCollapsed && <span>Nouveau calcul</span>}
+        </button>
+      </div>
     </nav>
   );
 }
@@ -2657,7 +2686,7 @@ export default function App() {
   return (
     <div className="app-layout-wrapper">
       <div className="app-layout">
-        <Sidebar active={active} onSelect={setActive} />
+        <Sidebar active={active} onSelect={setActive} onNewCalcul={handleReset} />
 
         <main className="app-main">
           {active === "informations" && (
