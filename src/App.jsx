@@ -722,7 +722,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
   };
 
   return (
-    <Card title="Revenus des cohabitants" action={
+    <Card title={<span style={{ display: "flex", alignItems: "center", gap: 6 }}>Revenus des cohabitants<FicheBtn ficheKey="cohabitants" onOpen={onOpenFiche} /></span>} action={
       <button onClick={addRow} className="btn-add">+ Ajouter un cohabitant</button>
     }>
 
@@ -2864,7 +2864,7 @@ const FICHES_PRATIQUES = {
   biens_immobiliers:     { titre: "Biens immobiliers",                                 url: null },
   biens_mobiliers:       { titre: "Biens mobiliers",                                   url: null },
   ressources_diverses:   { titre: "Allocations & ressources diverses",                 url: null },
-  cohabitants:           { titre: "Revenus des cohabitants",                           url: null },
+  cohabitants:           { titre: "Revenus des cohabitants",                           url: null }, // TODO: remplacer null par l'URL CPASConnect
   // ── Sous-catégories ───────────────────────────────────────────────────────
   date_reference:        { titre: "Date d'octroi / révision",                        url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684678" },
   insertion_sociopro:    { titre: "Montants exonérés — Insertion socioprofessionnelle", url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907" },
