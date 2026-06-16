@@ -2857,14 +2857,14 @@ function computeFromForm(data) {
 // ─── Fiches pratiques CPASConnect ────────────────────────────────────────────
 const FICHES_PRATIQUES = {
   // ── En-têtes de sections ──────────────────────────────────────────────────
-  revenus_nets:          { titre: "Revenus nets professionnels",                        url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684897" },
+  revenus_nets:          { titre: "Revenus nets professionnels",                        url: "https://myportal.vandenbroeleconnect.be/contenu/highlights/detail/720858519162603253" },
   cmr:                   { titre: "Chômage / Mutuelle / Remplacement",                 url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684905" },
   avantages:             { titre: "Avantages en nature",                               url: null },
   cessions_biens:        { titre: "Cession de biens",                                  url: "https://myportal.vandenbroeleconnect.be/contenu/highlights/detail/720858519162603189"},
-  biens_immobiliers:     { titre: "Biens immobiliers",                                 url: null },
-  biens_mobiliers:       { titre: "Biens mobiliers",                                   url: null },
+  biens_immobiliers:     { titre: "Biens immobiliers",                                 url: "https://myportal.vandenbroeleconnect.be/contenu/highlights/detail/720858519162603252" },
+  biens_mobiliers:       { titre: "Biens mobiliers",                                   url: "https://myportal.vandenbroeleconnect.be/contenu/highlights/detail/720858519162603251"},
   ressources_diverses:   { titre: "Allocations & ressources diverses",                 url: null },
-  cohabitants:           { titre: "Revenus des cohabitants",                           url: null }, // TODO: remplacer null par l'URL CPASConnect
+  cohabitants:           { titre: "Revenus des cohabitants",                           url: "https://myportal.vandenbroeleconnect.be/contenu/highlights/detail/720858519162603250" }, // TODO: remplacer null par l'URL CPASConnect
   // ── Sous-catégories ───────────────────────────────────────────────────────
   date_reference:        { titre: "Date d'octroi / révision",                        url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684678" },
   insertion_sociopro:    { titre: "Montants exonérés — Insertion socioprofessionnelle", url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907" },
