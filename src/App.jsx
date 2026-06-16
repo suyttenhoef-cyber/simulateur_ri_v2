@@ -2888,11 +2888,11 @@ function FicheBtn({ ficheKey, onOpen }) {
       title={`Fiche pratique : ${fiche.titre}`}
       style={{
         background: "transparent", border: "none", cursor: "pointer",
-        fontSize: "16px", color: "#7F8C8D", padding: "0 2px", lineHeight: 1,
+        fontSize: "13px", color: "#7F8C8D", padding: "0 2px", lineHeight: 1,
         display: "inline-flex", alignItems: "center",
       }}
     >
-      📋
+      <i className="fas fa-arrow-up-right-from-square" aria-hidden="true" />
     </button>
   );
 }
