@@ -166,7 +166,8 @@ const defaultCohabitantRow = () => ({
   chargesAdmissibles: 0,
   chargesInadmissibles: 0,
   // Sections structurées (revenus détaillés par catégorie)
-  proRows: [],           // Revenus professionnels nets
+  proRows: [],           // Revenus professionnels nets comptabilisés { label, customLabel, montant }
+  proExoRows: [],        // Revenus professionnels exonérés { type, montant }
   cmrRows: [],           // Chômage / mutuelle / remplacement
   cessionsBiens: { rows: [] },
   biensImmobiliers: { rows: [] },
@@ -462,6 +463,7 @@ function sumSimpleRows(rows) {
 
 function hasStructuredRevenues(row) {
   return (row.proRows?.length > 0) ||
+    (row.proExoRows?.length > 0) ||
     (row.cmrRows?.length > 0) ||
     (row.cessionsBiens?.rows?.length > 0) ||
     (row.biensImmobiliers?.rows?.length > 0) ||
@@ -476,7 +478,12 @@ function computeCohabitantRow(row, referenceDate) {
   let breakdown = {};
 
   if (hasStructuredRevenues(row)) {
-    const proAnnuel      = sumSimpleRows(row.proRows);
+    // proRows can be new format { label, customLabel, montant } (monthly) or old { label, montant, periode }
+    const proCompt = (row.proRows || []).reduce((s, r) => s + safeNumber(r.montant, 0), 0);
+    const proExo   = (row.proExoRows || []).reduce((s, r) => s + safeNumber(r.montant, 0), 0);
+    const proAnnuel = (row.proRows || []).some(r => r.periode)
+      ? sumSimpleRows(row.proRows)  // old format with periode
+      : round2((proCompt - proExo) * 12);
     const cmrAnnuel      = sumSimpleRows(row.cmrRows);
     const cessionsAnnuel = computeCessionsTotalAnnuel(row.cessionsBiens?.rows || [], row.categorie || 1).totalAnnuel;
     const immoAnnuel     = computeImmoExcel(row.biensImmobiliers?.rows || [], 0).totalAnnuel;
@@ -633,9 +640,13 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
   function addRow() { update({ rows: [...rows, defaultCohabitantRow()] }); }
   function removeRow(i) { update({ rows: rows.filter((_, idx) => idx !== i) }); }
 
-  function addProRow(i)            { updateRow(i, { proRows: [...(rows[i].proRows || []), defaultSimpleRow()] }); }
+  function addProRow(i)            { updateRow(i, { proRows: [...(rows[i].proRows || []), { label: "", customLabel: null, montant: 0 }] }); }
   function removeProRow(i, j)      { updateRow(i, { proRows: (rows[i].proRows || []).filter((_, k) => k !== j) }); }
   function updateProRow(i, j, p)   { updateRow(i, { proRows: (rows[i].proRows || []).map((d, k) => k === j ? { ...d, ...p } : d) }); }
+
+  function addProExoRow(i)         { updateRow(i, { proExoRows: [...(rows[i].proExoRows || []), { type: "", montant: 0 }] }); }
+  function removeProExoRow(i, j)   { updateRow(i, { proExoRows: (rows[i].proExoRows || []).filter((_, k) => k !== j) }); }
+  function updateProExoRow(i, j, p){ updateRow(i, { proExoRows: (rows[i].proExoRows || []).map((d, k) => k === j ? { ...d, ...p } : d) }); }
 
   function addCmrRow(i)            { updateRow(i, { cmrRows: [...(rows[i].cmrRows || []), defaultSimpleRow()] }); }
   function removeCmrRow(i, j)      { updateRow(i, { cmrRows: (rows[i].cmrRows || []).filter((_, k) => k !== j) }); }
@@ -843,13 +854,104 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                         <summary style={{ listStyle: "none" }}>
                           {secHdr("fa-briefcase", "Revenus professionnels nets", proTotal)}
                         </summary>
-                        {simpleTable(
-                          r.proRows || [],
-                          () => addProRow(i),
-                          (j) => removeProRow(i, j),
-                          (j, p) => updateProRow(i, j, p),
-                          null
-                        )}
+                        <div style={{ padding: "10px 12px" }}>
+                          {/* Comptabilises */}
+                          <div style={{ fontWeight: 600, fontSize: 13, color: colors.primary, marginBottom: 6 }}>Revenus comptabilises</div>
+                          {(r.proRows || []).length > 0 && (
+                            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, marginBottom: 6 }}>
+                              <thead>
+                                <tr style={{ background: "#EEF4FA" }}>
+                                  <th style={{ padding: "4px 6px", textAlign: "left", fontWeight: 600, color: colors.primary, width: "50%" }}>Type de revenu</th>
+                                  <th style={{ padding: "4px 6px", textAlign: "right", fontWeight: 600, color: colors.primary, width: "30%" }}>Montant (euro/mois)</th>
+                                  <th style={{ width: "20%" }}></th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {(r.proRows || []).map((d, j) => (
+                                  <tr key={j} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                                    <td style={{ padding: "4px 5px" }}>
+                                      <select className="formControl" style={{ padding: "3px 5px", fontSize: 13, width: "100%" }}
+                                        value={d.label === "Autre" ? "Autre" : (d.label || "")}
+                                        onChange={(e) => updateProRow(i, j, { label: e.target.value, customLabel: e.target.value === "Autre" ? "" : null })}>
+                                        {REVENUS_COMPTABILISES_SUGGESTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                                      </select>
+                                      {d.label === "Autre" && (
+                                        <input className="formControl" style={{ marginTop: 4, fontSize: 13, width: "100%", border: "2px solid #2BEBCE", background: "#F0FFFE" }}
+                                          value={d.customLabel || ""} placeholder="Precisez..."
+                                          onChange={(e) => updateProRow(i, j, { customLabel: e.target.value })} />
+                                      )}
+                                    </td>
+                                    <td style={{ padding: "4px 5px" }}>
+                                      <NumInput value={d.montant} onChange={(e) => updateProRow(i, j, { montant: safeNumber(e.target.value, 0) })}
+                                        style={{ textAlign: "right", padding: "3px 5px", fontSize: 13, width: "100%" }} />
+                                    </td>
+                                    <td style={{ textAlign: "center" }}>
+                                      <button onClick={() => removeProRow(i, j)}
+                                        style={{ background: "none", border: "none", cursor: "pointer", color: "#c0392b", fontSize: 13, padding: "2px 4px" }}>
+                                        <i className="fas fa-times" aria-hidden="true" />
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          )}
+                          <button onClick={() => addProRow(i)}
+                            style={{ background: colors.primary, color: "#fff", border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+                            <i className="fas fa-plus" aria-hidden="true" /> Ajouter
+                          </button>
+
+                          {/* Exoneres */}
+                          <div style={{ fontWeight: 600, fontSize: 13, color: colors.primary, margin: "12px 0 6px" }}>Revenus exoneres</div>
+                          {(r.proExoRows || []).length > 0 && (
+                            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, marginBottom: 6 }}>
+                              <thead>
+                                <tr style={{ background: "#EEF4FA" }}>
+                                  <th style={{ padding: "4px 6px", textAlign: "left", fontWeight: 600, color: colors.primary, width: "50%" }}>Type d'exoneration</th>
+                                  <th style={{ padding: "4px 6px", textAlign: "right", fontWeight: 600, color: colors.primary, width: "30%" }}>Montant (euro/mois)</th>
+                                  <th style={{ width: "20%" }}></th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {(r.proExoRows || []).map((d, j) => (
+                                  <tr key={j} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                                    <td style={{ padding: "4px 5px" }}>
+                                      <select className="formControl" style={{ padding: "3px 5px", fontSize: 13, width: "100%" }}
+                                        value={d.type || ""}
+                                        onChange={(e) => updateProExoRow(i, j, { type: e.target.value })}>
+                                        {REVENUS_EXONERES_SUGGESTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                                      </select>
+                                    </td>
+                                    <td style={{ padding: "4px 5px" }}>
+                                      <NumInput value={d.montant} onChange={(e) => updateProExoRow(i, j, { montant: safeNumber(e.target.value, 0) })}
+                                        style={{ textAlign: "right", padding: "3px 5px", fontSize: 13, width: "100%" }} />
+                                    </td>
+                                    <td style={{ textAlign: "center" }}>
+                                      <button onClick={() => removeProExoRow(i, j)}
+                                        style={{ background: "none", border: "none", cursor: "pointer", color: "#c0392b", fontSize: 13, padding: "2px 4px" }}>
+                                        <i className="fas fa-times" aria-hidden="true" />
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          )}
+                          <button onClick={() => addProExoRow(i)}
+                            style={{ background: "#6c757d", color: "#fff", border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+                            <i className="fas fa-plus" aria-hidden="true" /> Ajouter exoneration
+                          </button>
+
+                          {/* Net */}
+                          {(r.proRows || []).length > 0 && (
+                            <div style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: colors.primary }}>
+                              Net mensuel : <Money value={round2(
+                                (r.proRows || []).reduce((s, d) => s + safeNumber(d.montant, 0), 0) -
+                                (r.proExoRows || []).reduce((s, d) => s + safeNumber(d.montant, 0), 0)
+                              )} />
+                            </div>
+                          )}
+                        </div>
                       </details>
 
                       {/* Chômage, mutuelle & remplacement */}
