@@ -168,7 +168,12 @@ const defaultCohabitantRow = () => ({
   // Sections structurées (revenus détaillés par catégorie)
   proRows: [],           // Revenus professionnels nets comptabilisés { label, customLabel, montant }
   proExoRows: [],        // Revenus professionnels exonérés { type, montant }
-  cmrRows: [],           // Chômage / mutuelle / remplacement
+  cmrRows: [],           // legacy (compatibilité ancienne saisie)
+  cmrData: {             // Chômage / mutuelle / remplacement structuré
+    chomage:     { mensuelReel: 0, montantJour26: 0, montantJourAnnuel: 0 },
+    mutuelle:    { mensuelReel: 0, montantJour26: 0, montantJourAnnuel: 0 },
+    remplacement:{ pensionMensuel: 0, droitPasserelleMensuel: 0, allocationHandicapeMensuel: 0, indemnisation_perte_revenus: 0, autres_revenus: 0 },
+  },
   cessionsBiens: { rows: [] },
   biensImmobiliers: { rows: [] },
   biensMobiliers: { montantCapital: 0, partConcernee: 100 },
@@ -462,9 +467,15 @@ function sumSimpleRows(rows) {
 }
 
 function hasStructuredRevenues(row) {
+  const cmrDataHasValues = (d) => d && (
+    safeNumber(d.chomage?.mensuelReel,0) > 0 || safeNumber(d.chomage?.montantJour26,0) > 0 || safeNumber(d.chomage?.montantJourAnnuel,0) > 0 ||
+    safeNumber(d.mutuelle?.mensuelReel,0) > 0 || safeNumber(d.mutuelle?.montantJour26,0) > 0 || safeNumber(d.mutuelle?.montantJourAnnuel,0) > 0 ||
+    Object.values(d.remplacement||{}).some(v => safeNumber(v,0) > 0)
+  );
   return (row.proRows?.length > 0) ||
     (row.proExoRows?.length > 0) ||
     (row.cmrRows?.length > 0) ||
+    cmrDataHasValues(row.cmrData) ||
     (row.cessionsBiens?.rows?.length > 0) ||
     (row.biensImmobiliers?.rows?.length > 0) ||
     safeNumber(row.biensMobiliers?.montantCapital, 0) > 0 ||
@@ -484,7 +495,19 @@ function computeCohabitantRow(row, referenceDate) {
     const proAnnuel = (row.proRows || []).some(r => r.periode)
       ? sumSimpleRows(row.proRows)  // old format with periode
       : round2((proCompt - proExo) * 12);
-    const cmrAnnuel      = sumSimpleRows(row.cmrRows);
+    // CMR : priorité à cmrData (structuré), fallback sur cmrRows (legacy simple rows)
+    let cmrAnnuel;
+    if (row.cmrData) {
+      const refYear = referenceDate ? parseInt(referenceDate.split("-")[0]) || 2025 : 2025;
+      const chomM = computeChomageOrMutuelleMonthly({ ...row.cmrData.chomage, year: refYear }).mensuelTotal;
+      const mutM  = computeChomageOrMutuelleMonthly({ ...row.cmrData.mutuelle, year: refYear }).mensuelTotal;
+      const remM  = Object.values(row.cmrData.remplacement || {}).reduce((s, v) => s + safeNumber(v, 0), 0);
+      cmrAnnuel = round2((chomM + mutM + remM) * 12);
+      // Add legacy cmrRows on top if present (backward compat)
+      if ((row.cmrRows || []).length > 0) cmrAnnuel = round2(cmrAnnuel + sumSimpleRows(row.cmrRows));
+    } else {
+      cmrAnnuel = sumSimpleRows(row.cmrRows);
+    }
     const cessionsAnnuel = computeCessionsTotalAnnuel(row.cessionsBiens?.rows || [], row.categorie || 1).totalAnnuel;
     const immoAnnuel     = computeImmoExcel(row.biensImmobiliers?.rows || [], 0).totalAnnuel;
     const mobAnnuel      = computeBiensMobiliersExcel(row.biensMobiliers || { montantCapital: 0, partConcernee: 100 }).totalAnnuel;
@@ -651,6 +674,10 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
   function addCmrRow(i)            { updateRow(i, { cmrRows: [...(rows[i].cmrRows || []), defaultSimpleRow()] }); }
   function removeCmrRow(i, j)      { updateRow(i, { cmrRows: (rows[i].cmrRows || []).filter((_, k) => k !== j) }); }
   function updateCmrRow(i, j, p)   { updateRow(i, { cmrRows: (rows[i].cmrRows || []).map((d, k) => k === j ? { ...d, ...p } : d) }); }
+  function updateCmrData(i, section, patch) {
+    const cur = rows[i].cmrData || {};
+    updateRow(i, { cmrData: { ...cur, [section]: { ...(cur[section] || {}), ...patch } } });
+  }
 
   function updateCessions(i, rows2) { updateRow(i, { cessionsBiens: { rows: rows2 } }); }
   function updateImmo(i, rows2)     { updateRow(i, { biensImmobiliers: { rows: rows2 } }); }
@@ -837,8 +864,16 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                     </div>
                   );
 
-                  const proTotal    = sumSimpleRows(r.proRows);
-                  const cmrTotal    = sumSimpleRows(r.cmrRows);
+                  const proTotal    = round2(
+                    (r.proRows || []).reduce((s, d) => s + safeNumber(d.montant, 0), 0) -
+                    (r.proExoRows || []).reduce((s, d) => s + safeNumber(d.montant, 0), 0)
+                  );
+                  const refYear     = parseInt((referenceDate || "2025-01-01").split("-")[0]) || 2025;
+                  const cd          = r.cmrData || {};
+                  const cmrChomM    = computeChomageOrMutuelleMonthly({ ...(cd.chomage || {}), year: refYear }).mensuelTotal;
+                  const cmrMutM     = computeChomageOrMutuelleMonthly({ ...(cd.mutuelle || {}), year: refYear }).mensuelTotal;
+                  const cmrRemM     = Object.values(cd.remplacement || {}).reduce((s, v) => s + safeNumber(v, 0), 0);
+                  const cmrTotal    = round2(cmrChomM + cmrMutM + cmrRemM + sumSimpleRows(r.cmrRows) / 12);
                   const cesTotal    = computeCessionsTotalAnnuel(r.cessionsBiens?.rows || [], r.categorie || 1).totalAnnuel;
                   const immoTotal   = computeImmoExcel(r.biensImmobiliers?.rows || [], 0).totalAnnuel;
                   const bmData      = r.biensMobiliers || { montantCapital: 0, partConcernee: 100 };
@@ -954,18 +989,58 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                         </div>
                       </details>
 
-                      {/* Chômage, mutuelle & remplacement */}
+                      {/* Chomage, mutuelle & remplacement */}
                       <details style={{ ...accStyle, marginTop: 4 }}>
                         <summary style={{ listStyle: "none" }}>
-                          {secHdr("fa-file-medical", "Chômage, mutuelle & remplacement", cmrTotal)}
+                          {secHdr("fa-file-medical", "Chomage / Mutuelle / Remplacement", cmrTotal)}
                         </summary>
-                        {simpleTable(
-                          r.cmrRows || [],
-                          () => addCmrRow(i),
-                          (j) => removeCmrRow(i, j),
-                          (j, p) => updateCmrRow(i, j, p),
-                          ["Allocations de chômage", "Indemnités de mutuelle", "Pension de retraite", "Revenu de remplacement", "Allocation d'handicapé", "Droit passerelle", "Autre"]
-                        )}
+                        {(() => {
+                          const cData = r.cmrData || {};
+                          const setChom = (p) => updateCmrData(i, "chomage", p);
+                          const setMut  = (p) => updateCmrData(i, "mutuelle", p);
+                          const setRem  = (p) => updateCmrData(i, "remplacement", p);
+                          const fldStyle = { padding: "3px 6px", fontSize: 13 };
+                          const fieldRow = (label, value, onChange) => (
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+                              <label style={{ fontSize: 13, color: colors.textLight, flex: "0 0 220px" }}>{label}</label>
+                              <NumInput value={value} onChange={onChange} style={{ ...fldStyle, width: 110, textAlign: "right" }} />
+                            </div>
+                          );
+                          return (
+                            <div style={{ padding: "10px 12px", display: "grid", gap: 12 }}>
+                              {/* Chomage */}
+                              <div>
+                                <div style={{ fontWeight: 700, fontSize: 13, color: colors.primary, marginBottom: 6 }}>Allocation de chomage</div>
+                                {fieldRow("Montant mensuel reel (euro/mois)", cData.chomage?.mensuelReel || 0, (e) => setChom({ mensuelReel: safeNumber(e.target.value, 0) }))}
+                                {fieldRow("Montant/jour x 26 jours (euro)", cData.chomage?.montantJour26 || 0, (e) => setChom({ montantJour26: safeNumber(e.target.value, 0) }))}
+                                {fieldRow("Montant/jour (base annuelle) (euro)", cData.chomage?.montantJourAnnuel || 0, (e) => setChom({ montantJourAnnuel: safeNumber(e.target.value, 0) }))}
+                                {cmrChomM > 0 && <div style={{ fontSize: 12, color: colors.primary, fontWeight: 600 }}>= <Money value={cmrChomM} />/mois</div>}
+                              </div>
+                              {/* Mutuelle */}
+                              <div>
+                                <div style={{ fontWeight: 700, fontSize: 13, color: colors.primary, marginBottom: 6 }}>Indemnite de mutuelle</div>
+                                {fieldRow("Montant mensuel reel (euro/mois)", cData.mutuelle?.mensuelReel || 0, (e) => setMut({ mensuelReel: safeNumber(e.target.value, 0) }))}
+                                {fieldRow("Montant/jour x 26 jours (euro)", cData.mutuelle?.montantJour26 || 0, (e) => setMut({ montantJour26: safeNumber(e.target.value, 0) }))}
+                                {fieldRow("Montant/jour (base annuelle) (euro)", cData.mutuelle?.montantJourAnnuel || 0, (e) => setMut({ montantJourAnnuel: safeNumber(e.target.value, 0) }))}
+                                {cmrMutM > 0 && <div style={{ fontSize: 12, color: colors.primary, fontWeight: 600 }}>= <Money value={cmrMutM} />/mois</div>}
+                              </div>
+                              {/* Remplacement */}
+                              <div>
+                                <div style={{ fontWeight: 700, fontSize: 13, color: colors.primary, marginBottom: 6 }}>Revenus de remplacement</div>
+                                {fieldRow("Pension (euro/mois)", cData.remplacement?.pensionMensuel || 0, (e) => setRem({ pensionMensuel: safeNumber(e.target.value, 0) }))}
+                                {fieldRow("Droit passerelle (euro/mois)", cData.remplacement?.droitPasserelleMensuel || 0, (e) => setRem({ droitPasserelleMensuel: safeNumber(e.target.value, 0) }))}
+                                {fieldRow("Allocation handicap ARR (euro/mois)", cData.remplacement?.allocationHandicapeMensuel || 0, (e) => setRem({ allocationHandicapeMensuel: safeNumber(e.target.value, 0) }))}
+                                {fieldRow("Indemn. perte de revenus (euro/mois)", cData.remplacement?.indemnisation_perte_revenus || 0, (e) => setRem({ indemnisation_perte_revenus: safeNumber(e.target.value, 0) }))}
+                                {fieldRow("Autre revenu de remplacement (euro/mois)", cData.remplacement?.autres_revenus || 0, (e) => setRem({ autres_revenus: safeNumber(e.target.value, 0) }))}
+                              </div>
+                              {cmrTotal > 0 && (
+                                <div style={{ fontWeight: 700, fontSize: 13, color: colors.primary, background: "#EEF4FA", padding: "6px 10px", borderRadius: 6 }}>
+                                  Total CMR mensuel : <Money value={cmrTotal} />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </details>
 
                       {/* Cessions de biens */}
