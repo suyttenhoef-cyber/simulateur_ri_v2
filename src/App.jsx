@@ -2997,6 +2997,7 @@ function CMRSection({ cmr, dateISO, setCmr, openFiche, embedded = false }) {
 // ─────────────────────────────────────────────────────────────
 // RevenusDemandeurPage
 // ─────────────────────────────────────────────────────────────
+
 function RevenusDemandeurPage({ data, setData, openFiche }) {
   const dateISO   = data.reference.dateISO || firstOfCurrentMonth();
   const categorie = data.menage.situation === "isole" ? 2 : data.menage.situation === "cohabitant" ? 1 : 3;
@@ -3480,6 +3481,300 @@ export default function App() {
           {active === "revenus_demandeur" && (
             <RevenusDemandeurPage data={data} setData={setData} openFiche={openFiche} />
           )}
+
+          {active === "cohabitants" && (
+            <section style={{ display: "grid", gap: 12 }}>
+              <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                Revenus des cohabitants
+                <FicheBtn ficheKey="cohabitants" onOpen={openFiche} />
+              </h2>
+              <CohabitantsTable
+                cohabitants={data.cohabitants}
+                referenceDate={data.reference.dateISO}
+                onChangeCohabitants={(cohabitants) => setData(d => ({ ...d, cohabitants }))}
+                categorieDemandeur={data.menage.situation === "isolé" ? 2 : data.menage.situation === "cohabitant" ? 1 : data.menage.situation === "famille" ? 3 : null}
+                onOpenFiche={openFiche}
+              />
+            </section>
+          )}
+
+         {active === "apercu" && (
+          <section style={{ display: "grid", gap: 12 }}>
+            {!result && (
+              <div className="alert alert--warning" style={{ fontSize: 15 }}>
+                <i className="fas fa-circle-exclamation" aria-hidden="true" />
+                <span>
+                  Veuillez d'abord sélectionner une <strong>situation familiale</strong> dans l'onglet <strong>Référence & ménage</strong> pour calculer le droit au RI.
+                </span>
+              </div>
+            )}
+            {/* Titre et bouton d'export */}
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "10px"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                <h2 style={{ marginTop: 0, marginBottom: 0 }}>Aperçu</h2>
+                {result && (
+                  <span style={{
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    padding: "4px 14px", borderRadius: 20, fontWeight: 700, fontSize: 14,
+                    background: result.apercu?.ri?.eligible ? "#d4edda" : "#fde8e8",
+                    color: result.apercu?.ri?.eligible ? "#1a7a3c" : "#c0392b",
+                    border: `1.5px solid ${result.apercu?.ri?.eligible ? "#a3d9b1" : "#f5a0a0"}`,
+                  }}>
+                    <i className={`fas fa-${result.apercu?.ri?.eligible ? "circle-check" : "circle-xmark"}`} aria-hidden="true" />
+                    {result.apercu?.ri?.eligible ? "Éligible au RI" : "Non éligible au RI"}
+                  </span>
+                )}
+              </div>
+              
+              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                <button
+                  onClick={handleExportPDF}
+                  disabled={isGeneratingPDF}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "8px",
+                    padding: "10px 20px",
+                    background: isGeneratingPDF ? "#ccc" : colors.primary,
+                    color: "white", border: "none", borderRadius: "8px",
+                    cursor: isGeneratingPDF ? "not-allowed" : "pointer",
+                    fontWeight: "600", fontSize: "14px",
+                    fontFamily: "'Source Sans Pro', sans-serif", transition: "all 0.2s"
+                  }}
+                  onMouseOver={(e) => { if (!isGeneratingPDF) e.currentTarget.style.transform = "translateY(-1px)"; }}
+                  onMouseOut={(e)  => { if (!isGeneratingPDF) e.currentTarget.style.transform = "translateY(0)"; }}
+                >
+                  {isGeneratingPDF ? "⏳ Génération..." : "📄 Exporter en PDF"}
+                </button>
+
+                <button
+                  onClick={handleExportTableau}
+                  disabled={isGeneratingTableau}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "8px",
+                    padding: "10px 20px",
+                    background: isGeneratingTableau ? "#ccc" : colors.secondary,
+                    color: colors.primary, border: "none", borderRadius: "8px",
+                    cursor: isGeneratingTableau ? "not-allowed" : "pointer",
+                    fontWeight: "600", fontSize: "14px",
+                    fontFamily: "'Source Sans Pro', sans-serif", transition: "all 0.2s"
+                  }}
+                  onMouseOver={(e) => { if (!isGeneratingTableau) e.currentTarget.style.transform = "translateY(-1px)"; }}
+                  onMouseOut={(e)  => { if (!isGeneratingTableau) e.currentTarget.style.transform = "translateY(0)"; }}
+                >
+                  {isGeneratingTableau ? "⏳ Génération..." : "📊 Tableau CPAS"}
+                </button>
+              </div>
+            </div>
+
+            {result && <div className="card" style={{ padding: 16 }}>
+              <hr style={{ margin: "0 0 12px 0" }} />
+
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                <thead>
+                  <tr style={{ background: "#F0F4F8" }}>
+                    {["Rubrique", "Mensuel", "Annuel"].map((h, i) => (
+                      <th key={h} style={{ textAlign: i === 0 ? "left" : "right", padding: "8px 12px", fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.5px", color: "#163E67", borderBottom: "2px solid #163E67" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {/* ── Ressources professionnelles ── */}
+                  <Sec>Ressources professionnelles</Sec>
+                  <Row label="Revenu net — Demandeur" mensuel={apercu.pro.D4_netDem_Annuel / 12} annuel={apercu.pro.D4_netDem_Annuel} total={apercu.pro.D4_netDem_Annuel} />
+                  <Row label="Revenu net — Conjoint" mensuel={apercu.pro.D5_netConj_Annuel / 12} annuel={apercu.pro.D5_netConj_Annuel} total={apercu.pro.D5_netConj_Annuel} />
+                  {apercu.pro.D4_netDem_Annuel > apercu.pro.D6_netAvantExoSP_Dem_Annuel && (
+                    <Row neg label="(−) Exonération Art. 35 — Demandeur"
+                      mensuel={(apercu.pro.D4_netDem_Annuel - apercu.pro.D6_netAvantExoSP_Dem_Annuel) / 12}
+                      annuel={apercu.pro.D4_netDem_Annuel - apercu.pro.D6_netAvantExoSP_Dem_Annuel}
+                      total={apercu.pro.D4_netDem_Annuel - apercu.pro.D6_netAvantExoSP_Dem_Annuel}
+                    />
+                  )}
+                  {apercu.pro.D5_netConj_Annuel > apercu.pro.D7_netAvantExoSP_Conj_Annuel && (
+                    <Row neg label="(−) Exonération Art. 35 — Conjoint"
+                      mensuel={(apercu.pro.D5_netConj_Annuel - apercu.pro.D7_netAvantExoSP_Conj_Annuel) / 12}
+                      annuel={apercu.pro.D5_netConj_Annuel - apercu.pro.D7_netAvantExoSP_Conj_Annuel}
+                      total={apercu.pro.D5_netConj_Annuel - apercu.pro.D7_netAvantExoSP_Conj_Annuel}
+                    />
+                  )}
+                  <Row label="Net après exo. Art. 35 — Demandeur" mensuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel / 12} annuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel} total={apercu.pro.D6_netAvantExoSP_Dem_Annuel} />
+                  <Row label="Net après exo. Art. 35 — Conjoint"  mensuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel / 12} annuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel} total={apercu.pro.D7_netAvantExoSP_Conj_Annuel} />
+                  {apercu.pro.D8_netAvecArt_Annuel > 0 && (
+                    <Row label="Net avec exo. artistique (dem. + conj.)" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
+                  )}
+                  <Row highlight label="Sous-total revenus professionnels nets" mensuel={apercu.pro.F8_totalProratises_M} annuel={apercu.pro.F8_totalProratises_M * 12} total={apercu.pro.F8_totalProratises_M * 12} />
+
+                  <Gap />
+
+                  {/* ── Allocations & ressources diverses ── */}
+                  <Sec>Allocations &amp; ressources diverses</Sec>
+                  <Row label="Allocation de chômage"   mensuel={apercu.pro.D9_chom_Annuel / 12}  annuel={apercu.pro.D9_chom_Annuel}  total={apercu.pro.D9_chom_Annuel} />
+                  <Row label="Mutuelle"                mensuel={apercu.pro.D10_mut_Annuel / 12}  annuel={apercu.pro.D10_mut_Annuel}  total={apercu.pro.D10_mut_Annuel} />
+                  <Row label="Revenus de remplacement" mensuel={apercu.pro.D11_rem_Annuel / 12}  annuel={apercu.pro.D11_rem_Annuel}  total={apercu.pro.D11_rem_Annuel} />
+                  <Row label="Allocations & ressources diverses" mensuel={apercu.autres.D17_diverses_Annuel / 12} annuel={apercu.autres.D17_diverses_Annuel} total={apercu.autres.D17_diverses_Annuel} />
+
+                  <Gap />
+
+                  {/* ── Biens mobiliers ── */}
+                  <Sec>Biens mobiliers</Sec>
+                  <Row label="Montant des biens mobiliers" mensuel={apercu.autres.D20_mobiliers_Annuel / 12} annuel={apercu.autres.D20_mobiliers_Annuel} total={apercu.autres.D20_mobiliers_Annuel} />
+
+                  <Gap />
+
+                  {/* ── Biens immobiliers ── */}
+                  <Sec>Biens immobiliers</Sec>
+                  <Row label="Montant des biens immobiliers" mensuel={apercu.autres.D23_immobiliers_Annuel / 12} annuel={apercu.autres.D23_immobiliers_Annuel} total={apercu.autres.D23_immobiliers_Annuel} />
+
+                  <Gap />
+
+                  {/* ── Cessions de biens ── */}
+                  <Sec>Cessions de biens</Sec>
+                  <Row label="Montant total des cessions" mensuel={apercu.autres.D26_cessions_Annuel / 12} annuel={apercu.autres.D26_cessions_Annuel} total={apercu.autres.D26_cessions_Annuel} />
+
+                  <Gap />
+
+                  {/* ── Avantages en nature ── */}
+                  <Sec>Avantages en nature</Sec>
+                  <Row label="Montant total des avantages en nature" mensuel={apercu.autres.D29_avantages_Annuel / 12} annuel={apercu.autres.D29_avantages_Annuel} total={apercu.autres.D29_avantages_Annuel} />
+
+                  <Gap />
+
+                  {/* ── Cohabitants débiteurs d'aliments ── */}
+                  <Sec>Cohabitants — débiteurs d'aliments</Sec>
+                  <Row label="Revenus totaux débiteurs (brut annuel)"
+                    mensuel={null}
+                    annuel={(result.cohabitants?.debiteurs || []).reduce((s, d) => s + safeNumber(d.ressourcesTotale, 0), 0)}
+                    total={(result.cohabitants?.debiteurs || []).reduce((s, d) => s + safeNumber(d.ressourcesTotale, 0), 0)}
+                  />
+                  <Row highlight label="Excédent comptabilisé (au-delà du seuil RI)"
+                    mensuel={result.apercu.autres.D32_cohabitants_Annuel > 0 ? result.apercu.autres.D32_cohabitants_Annuel / 12 : null}
+                    annuel={result.apercu.autres.D32_cohabitants_Annuel}
+                    total={result.apercu.autres.D32_cohabitants_Annuel}
+                  />
+
+                  <Gap />
+
+                  {/* ── TOTAL C37 ── */}
+                  <Row grand label="TOTAL TOUTES RESSOURCES"
+                    mensuel={result.apercu.C37_totalRessourcesAnnuelles / 12}
+                    annuel={result.apercu.C37_totalRessourcesAnnuelles}
+                    total={result.apercu.C37_totalRessourcesAnnuelles}
+                  />
+
+                  <Gap />
+
+                  {/* ── Calcul du droit au RI ── */}
+                  <Sec>Calcul du droit au RI</Sec>
+                  <Row label={`Seuil RI — Cat. ${data.menage.situation === "isolé" ? "2 (Isolé)" : data.menage.situation === "cohabitant" ? "1 (Cohabitant)" : "3 (Famille)"}`}
+                    mensuel={null}
+                    annuel={result.apercu.ri.riAnnuelBrut}
+                    total={result.apercu.ri.riAnnuelBrut}
+                  />
+                  <Row highlight label="Total ressources après exonération"
+                    mensuel={null}
+                    annuel={result.apercu.ri.C41_ressourcesApresExo}
+                    total={result.apercu.ri.C41_ressourcesApresExo}
+                  />
+                  <Row grand label="Revenu d’intégration annuel"
+                    mensuel={null}
+                    annuel={result.apercu.ri.C43_riAnnuelNet}
+                    total={result.apercu.ri.C43_riAnnuelNet}
+                  />
+                  <Row grand label="Revenu d’intégration mensuel"
+                    mensuel={result.apercu.ri.E45_montantMensuel}
+                    annuel={result.apercu.ri.C43_riAnnuelNet}
+                  />
+
+                  {/* ===== Calcul du RI pour un mois incomplet (Excel) ===== */}
+                  <tr>
+                    <td colSpan={3} style={{ paddingTop: 16 }}>
+                      <div style={{ border: `2px solid ${colors.primary}`, borderRadius: 10, padding: 14 }}>
+                        <div style={{ fontWeight: 800, marginBottom: 10 }}>
+                          Calcul du revenu d'intégration pour un mois incomplet
+                        </div>
+                        <div style={{ display: "grid", gap: 10, fontSize: 14 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                            <div>Nbre de jours pris en compte dans la période concernée :</div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <NumInput
+                                style={{ width: 70, padding: "6px 8px" }}
+                                value={data.reference.joursPrisEnCompte}
+                                onChange={(e) =>
+                                  setData((prev) => ({
+                                    ...prev,
+                                    reference: {
+                                      ...prev.reference,
+                                      joursPrisEnCompte: safeNumber(e.target.value, 0),
+                                    },
+                                  }))
+                                }
+                              />
+                              <span>sur</span>
+                              <input
+                                style={{ width: 70, padding: "6px 8px", background: "#f5f5f5" }}
+                                type="number"
+                                value={result.apercu.ri.joursMois}
+                                readOnly
+                              />
+                              <span>jours</span>
+                            </div>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                            <div style={{ fontWeight: 700 }}>
+                              Revenu d'intégration mensuel en tenant compte du nombre de jours
+                            </div>
+                            <div style={{ fontSize: 16, fontWeight: 900 }}>
+                              <Money value={result.apercu.ri.montantMensuelProrata} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>}
+
+          {/* ── Autres cohabitants — informatif uniquement, après le tableau ── */}
+          {result && (result.cohabitants?.autresCohabitants || []).length > 0 && (
+            <div className="card" style={{ padding: 16, borderLeft: "4px solid #f0d060", background: "#fdf6e3" }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#b8860b", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 10 }}>
+                Autres cohabitants — à titre informatif (non comptabilisés dans le RIS)
+              </div>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left", padding: "4px 8px", color: "#7a6000", fontWeight: 600 }}>Cohabitant</th>
+                    <th style={{ textAlign: "right", padding: "4px 8px", color: "#7a6000", fontWeight: 600 }}>Mensuel</th>
+                    <th style={{ textAlign: "right", padding: "4px 8px", color: "#7a6000", fontWeight: 600 }}>Annuel</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.cohabitants.autresCohabitants.map((d, i) => (
+                    <tr key={i} style={{ borderTop: "1px solid #f0d060" }}>
+                      <td style={{ padding: "5px 8px", color: "#7a6000" }}>
+                        {d.nom || "Cohabitant"} <span style={{ fontStyle: "italic" }}>(Autre — seuil : <Money value={safeNumber(d.seuilRI, 0)} />/an)</span>
+                      </td>
+                      <td style={{ padding: "5px 8px", textAlign: "right", color: "#7a6000" }}>
+                        <Money value={round2(safeNumber(d.ressourcesTotale, 0) / 12)} />
+                      </td>
+                      <td style={{ padding: "5px 8px", textAlign: "right", color: "#7a6000" }}>
+                        <Money value={safeNumber(d.ressourcesTotale, 0)} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          </section>
+        )}
         </main>
       </div>
       <FicheModal fiche={ficheOuverte} onClose={() => setFicheOuverte(null)} />
