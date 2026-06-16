@@ -2801,6 +2801,172 @@ function FicheModal({ fiche, onClose }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// CMRSection — Chômage / Mutuelle / Remplacement (accordéons)
+// ─────────────────────────────────────────────────────────────
+function CMRSection({ cmr, dateISO, setCmr, openFiche }) {
+  const year = parseInt((dateISO || "2025-01-01").split("-")[0]) || 2025;
+
+  const chomCalc = computeChomageOrMutuelleMonthly({ ...cmr.chomage, year });
+  const mutCalc  = computeChomageOrMutuelleMonthly({ ...cmr.mutuelle, year });
+  const chomTotal = round2(chomCalc.mensuelTotal);
+  const mutTotal  = round2(mutCalc.mensuelTotal);
+  const remTotal  = round2(
+    safeNumber(cmr.remplacement.pensionMensuel, 0) +
+    safeNumber(cmr.remplacement.droitPasserelleMensuel, 0) +
+    safeNumber(cmr.remplacement.allocationHandicapeMensuel, 0) +
+    safeNumber(cmr.remplacement.indemnisation_perte_revenus, 0) +
+    safeNumber(cmr.remplacement.autres_revenus, 0)
+  );
+  const totalMois = round2(chomTotal + mutTotal + remTotal);
+
+  const [openChom, setOpenChom] = useState(() => chomTotal > 0);
+  const [openMut,  setOpenMut]  = useState(() => mutTotal > 0);
+  const [openRem,  setOpenRem]  = useState(() => remTotal > 0);
+
+  function setChom(patch) { setCmr({ ...cmr, chomage:      { ...cmr.chomage,      ...patch } }); }
+  function setMut(patch)  { setCmr({ ...cmr, mutuelle:     { ...cmr.mutuelle,     ...patch } }); }
+  function setRem(patch)  { setCmr({ ...cmr, remplacement: { ...cmr.remplacement, ...patch } }); }
+
+  const blockStyle = { border: `1px solid ${colors.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 0 };
+  const hdrStyle   = (isOpen) => ({
+    width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
+    padding: "12px 16px", background: isOpen ? "#EEF4FA" : colors.white,
+    border: "none", cursor: "pointer", fontFamily: "'Source Sans Pro', sans-serif",
+    borderBottom: isOpen ? `1px solid ${colors.border}` : "none",
+    transition: "background 0.15s",
+  });
+  const badge = (total) => total > 0
+    ? <span style={{ fontSize: 13, fontWeight: 700, color: colors.primary, background: "#dbeafe", borderRadius: 20, padding: "2px 10px" }}><Money value={total} />/mois</span>
+    : <span style={{ fontSize: 13, color: colors.textLight, fontStyle: "italic" }}>non saisi</span>;
+
+  return (
+    <section style={{ display: "grid", gap: 10 }}>
+      <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
+        Chômage / Mutuelle / Remplacement
+        <FicheBtn ficheKey="cmr" onOpen={openFiche} />
+      </h2>
+
+      {totalMois > 0 && (
+        <div className="summary-box">
+          <b>Total CMR mensuel : <Money value={totalMois} /></b>
+          <span style={{ marginLeft: 16, opacity: 0.7, fontSize: 14 }}>
+            {chomTotal > 0 && `Chômage ${round2(chomTotal)} €`}
+            {chomTotal > 0 && (mutTotal > 0 || remTotal > 0) && " · "}
+            {mutTotal  > 0 && `Mutuelle ${round2(mutTotal)} €`}
+            {mutTotal  > 0 && remTotal > 0 && " · "}
+            {remTotal  > 0 && `Remplacement ${round2(remTotal)} €`}
+          </span>
+        </div>
+      )}
+
+      {/* ── Chômage ── */}
+      <div style={blockStyle}>
+        <button type="button" style={hdrStyle(openChom)} onClick={() => setOpenChom(v => !v)}>
+          <span style={{ fontWeight: 700, color: colors.primary, display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="fas fa-circle-minus" style={{ fontSize: 13, opacity: 0.6 }} aria-hidden="true" />
+            Chômage
+            <FicheBtn ficheKey="chomage" onOpen={openFiche} />
+          </span>
+          <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {badge(chomTotal)}
+            <i className={`fas fa-chevron-${openChom ? "up" : "down"}`} style={{ fontSize: 12, color: colors.textLight }} aria-hidden="true" />
+          </span>
+        </button>
+        {openChom && (
+          <div style={{ padding: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
+              <Input label="Montant mensuel réel" type="number" value={cmr.chomage.mensuelReel}
+                onChange={(e) => setChom({ mensuelReel: safeNumber(e.target.value, 0) })} />
+              <Input label="Montant/jour (sur 26 jours)" type="number" value={cmr.chomage.montantJour26}
+                onChange={(e) => setChom({ montantJour26: safeNumber(e.target.value, 0) })} />
+              <Input label="Montant/jour (annuel)" type="number" value={cmr.chomage.montantJourAnnuel}
+                onChange={(e) => setChom({ montantJourAnnuel: safeNumber(e.target.value, 0) })} />
+            </div>
+            {chomTotal > 0 && (
+              <div style={{ marginTop: 10, fontSize: 13, color: colors.primary, fontWeight: 600 }}>
+                → <Money value={chomTotal} />/mois
+                {chomCalc.daysPaid > 0 && <span style={{ fontWeight: 400, color: colors.textLight, marginLeft: 6 }}>({chomCalc.daysPaid} jours payés en {year})</span>}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Mutuelle ── */}
+      <div style={blockStyle}>
+        <button type="button" style={hdrStyle(openMut)} onClick={() => setOpenMut(v => !v)}>
+          <span style={{ fontWeight: 700, color: colors.primary, display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="fas fa-circle-plus" style={{ fontSize: 13, opacity: 0.6 }} aria-hidden="true" />
+            Mutuelle
+            <FicheBtn ficheKey="mutuelle" onOpen={openFiche} />
+          </span>
+          <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {badge(mutTotal)}
+            <i className={`fas fa-chevron-${openMut ? "up" : "down"}`} style={{ fontSize: 12, color: colors.textLight }} aria-hidden="true" />
+          </span>
+        </button>
+        {openMut && (
+          <div style={{ padding: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
+              <Input label="Montant mensuel réel" type="number" value={cmr.mutuelle.mensuelReel}
+                onChange={(e) => setMut({ mensuelReel: safeNumber(e.target.value, 0) })} />
+              <Input label="Montant/jour (sur 26 jours)" type="number" value={cmr.mutuelle.montantJour26}
+                onChange={(e) => setMut({ montantJour26: safeNumber(e.target.value, 0) })} />
+              <Input label="Montant/jour (annuel)" type="number" value={cmr.mutuelle.montantJourAnnuel}
+                onChange={(e) => setMut({ montantJourAnnuel: safeNumber(e.target.value, 0) })} />
+            </div>
+            {mutTotal > 0 && (
+              <div style={{ marginTop: 10, fontSize: 13, color: colors.primary, fontWeight: 600 }}>
+                → <Money value={mutTotal} />/mois
+                {mutCalc.daysPaid > 0 && <span style={{ fontWeight: 400, color: colors.textLight, marginLeft: 6 }}>({mutCalc.daysPaid} jours payés en {year})</span>}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Remplacement ── */}
+      <div style={blockStyle}>
+        <button type="button" style={hdrStyle(openRem)} onClick={() => setOpenRem(v => !v)}>
+          <span style={{ fontWeight: 700, color: colors.primary, display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="fas fa-circle-dot" style={{ fontSize: 13, opacity: 0.6 }} aria-hidden="true" />
+            Remplacement
+            <FicheBtn ficheKey="remplacement" onOpen={openFiche} />
+          </span>
+          <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {badge(remTotal)}
+            <i className={`fas fa-chevron-${openRem ? "up" : "down"}`} style={{ fontSize: 12, color: colors.textLight }} aria-hidden="true" />
+          </span>
+        </button>
+        {openRem && (
+          <div style={{ padding: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
+              <Input label="Pension (€/mois)" type="number" value={cmr.remplacement.pensionMensuel}
+                onChange={(e) => setRem({ pensionMensuel: safeNumber(e.target.value, 0) })} />
+              <Input label="Droit passerelle (€/mois)" type="number" value={cmr.remplacement.droitPasserelleMensuel}
+                onChange={(e) => setRem({ droitPasserelleMensuel: safeNumber(e.target.value, 0) })} />
+              <Input label={<span style={{ display: "flex", alignItems: "center", gap: 6 }}>Allocation handicap ARR (€/mois)<FicheBtn ficheKey="handicape_arr" onOpen={openFiche} /></span>}
+                type="number" value={cmr.remplacement.allocationHandicapeMensuel}
+                onChange={(e) => setRem({ allocationHandicapeMensuel: safeNumber(e.target.value, 0) })} />
+              <Input label="Indemnisation perte de revenus (€/mois)" type="number" value={cmr.remplacement.indemnisation_perte_revenus}
+                onChange={(e) => setRem({ indemnisation_perte_revenus: safeNumber(e.target.value, 0) })} />
+              <Input label={<span style={{ display: "flex", alignItems: "center", gap: 6 }}>Autre revenu de remplacement (€/mois)<FicheBtn ficheKey="autre_remplacement" onOpen={openFiche} /></span>}
+                type="number" value={cmr.remplacement.autres_revenus}
+                onChange={(e) => setRem({ autres_revenus: safeNumber(e.target.value, 0) })} />
+            </div>
+            {remTotal > 0 && (
+              <div style={{ marginTop: 10, fontSize: 13, color: colors.primary, fontWeight: 600 }}>
+                → <Money value={remTotal} />/mois
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export default function App() {
   const [active, setActive] = useState("informations");
   const [data, setData] = useState(defaultData); // Une seule déclaration ici
@@ -3172,78 +3338,12 @@ export default function App() {
           )}
 
           {active === "cmr" && (
-            <section style={{ display: "grid", gap: 12 }}>
-              <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                Chômage / Mutuelle / Remplacement
-                <FicheBtn ficheKey="cmr" onOpen={openFiche} />
-              </h2>
-          
-              <Card title={
-                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  Chômage
-                  <FicheBtn ficheKey="chomage" onOpen={openFiche} />
-                </span>
-              }>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  <Input label="Montant mensuel réel" type="number" value={data.cmr.chomage.mensuelReel}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, mensuelReel: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Montant/jour (sur 26 jours)" type="number" value={data.cmr.chomage.montantJour26}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, montantJour26: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Montant/jour (annuel)" type="number" value={data.cmr.chomage.montantJourAnnuel}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, chomage: { ...d.cmr.chomage, montantJourAnnuel: safeNumber(e.target.value, 0) } } }))} />
-                </div>
-              </Card>
-          
-              <Card title={
-                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  Mutuelle
-                  <FicheBtn ficheKey="mutuelle" onOpen={openFiche} />
-                </span>
-              }>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  <Input label="Montant mensuel réel" type="number" value={data.cmr.mutuelle.mensuelReel}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, mensuelReel: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Montant/jour (sur 26 jours)" type="number" value={data.cmr.mutuelle.montantJour26}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, montantJour26: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Montant/jour (annuel)" type="number" value={data.cmr.mutuelle.montantJourAnnuel}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, mutuelle: { ...d.cmr.mutuelle, montantJourAnnuel: safeNumber(e.target.value, 0) } } }))} />
-                </div>
-              </Card>
-          
-              <Card title={
-                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  Remplacement
-                  <FicheBtn ficheKey="remplacement" onOpen={openFiche} />
-                </span>
-              }>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-                  <Input label="Pension (mensuel)" type="number" value={data.cmr.remplacement.pensionMensuel}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, pensionMensuel: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Droit passerelle (mensuel)" type="number" value={data.cmr.remplacement.droitPasserelleMensuel}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, droitPasserelleMensuel: safeNumber(e.target.value, 0) } } }))} />
-                  <Input
-                    label={
-                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        Allocation d'Handicapé ARR (mensuel)
-                        <FicheBtn ficheKey="handicape_arr" onOpen={openFiche} />
-                      </span>
-                    }
-                    type="number" value={data.cmr.remplacement.allocationHandicapeMensuel}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, allocationHandicapeMensuel: safeNumber(e.target.value, 0) } } }))} />
-                  <Input label="Indemnisation 'accident' pour perte de revenus (mensuel)" type="number" value={data.cmr.remplacement.indemnisation_perte_revenus}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, indemnisation_perte_revenus: safeNumber(e.target.value, 0) } } }))} />
-                  <Input
-                    label={
-                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        Autre revenu de remplacement (mensuel)
-                        <FicheBtn ficheKey="autre_remplacement" onOpen={openFiche} />
-                      </span>
-                    }
-                    type="number" value={data.cmr.remplacement.autres_revenus}
-                    onChange={(e) => setData(d => ({ ...d, cmr: { ...d.cmr, remplacement: { ...d.cmr.remplacement, autres_revenus: safeNumber(e.target.value, 0) } } }))} />
-                </div>
-              </Card>
-            </section>
+            <CMRSection
+              cmr={data.cmr}
+              dateISO={data.reference.dateISO}
+              setCmr={(cmr) => setData(d => ({ ...d, cmr }))}
+              openFiche={openFiche}
+            />
           )}
           {active === "avantages" && (
             <section style={{ display: "grid", gap: 12 }}>
