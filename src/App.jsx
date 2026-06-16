@@ -1,4 +1,4 @@
-﻿import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { generatePDF, generateTableauCPAS } from './utils/pdfExport.js';
 import './App.css';
 
@@ -13,7 +13,7 @@ const globalStyles = `
   }
 `;
 
-// Injecter Font Awesome si pas dÃ©jÃ  prÃ©sent
+// Injecter Font Awesome si pas déjà présent
 if (!document.getElementById('fa-cdn')) {
   const link = document.createElement('link');
   link.id = 'fa-cdn';
@@ -22,14 +22,14 @@ if (!document.getElementById('fa-cdn')) {
   document.head.appendChild(link);
 }
 
-// SÃ©lectionner tout le contenu au focus sur les champs numÃ©riques (Ã©vite "0250")
+// Sélectionner tout le contenu au focus sur les champs numériques (évite "0250")
 document.addEventListener('focusin', (e) => {
   if (e.target.type === 'number') e.target.select();
 });
 
 // Palette de couleurs
 const colors = {
-  primary: "#163E67",      // Bleu foncÃ©
+  primary: "#163E67",      // Bleu foncé
   secondary: "#2BEBCE",    // Turquoise
   tertiary: "#234268",     // Bleu moyen
   background: "#F5F8FA",
@@ -46,7 +46,7 @@ function computeCohabitantsMonthly(rows) {
 function Row({ label, mensuel, annuel, highlight = false, neg = false, grand = false }) {
   const renderMoney = (v) => {
     if (v === null || v === undefined) return "";
-    if (neg) return <>âˆ’&nbsp;<Money value={Math.abs(v)} /></>;
+    if (neg) return <>−&nbsp;<Money value={Math.abs(v)} /></>;
     return <Money value={v} />;
   };
 
@@ -89,28 +89,28 @@ function Gap() {
 }
 
 // Valeurs issues de l'image (fixes en euros)
-const REVENUS_RC_BATI = 750;        // RC BÃ¢ti
-const REVENUS_RC_NON_BATI = 125;    // RC Non bÃ¢ti
+const REVENUS_RC_BATI = 750;        // RC Bâti
+const REVENUS_RC_NON_BATI = 125;    // RC Non bâti
 const REVENUS_ENFANT = 30;          // Revenus Enfant (part de l'immobilier)
 
 const TRANCHE_1 = 1250;             // Tranche 1 pour cession
 const TRANCHE_2 = 2000;             // Tranche 2 pour cession
 const TRANCHE_3 = 2500;             // Tranche 3 pour cession
 
-const EXO_BATI = 750;            // ExonÃ©ration pour BÃ¢ti (Ã  adapter selon ton Excel)
-const EXO_NON_BATI = 30;        // ExonÃ©ration pour Non-BÃ¢ti (Ã  adapter selon ton Excel)
+const EXO_BATI = 750;            // Exonération pour Bâti (à adapter selon ton Excel)
+const EXO_NON_BATI = 30;        // Exonération pour Non-Bâti (à adapter selon ton Excel)
 
-const MONTANT_FORFAITAIRE_CESSION_AN = 37200; // Tranche immunisÃ©e
+const MONTANT_FORFAITAIRE_CESSION_AN = 37200; // Tranche immunisée
 
-const TITRE_PLEINE_PROPRIETE = 1.0;  // Coefficient Pleine PropriÃ©tÃ© (100%)
+const TITRE_PLEINE_PROPRIETE = 1.0;  // Coefficient Pleine Propriété (100%)
 const TITRE_USUFRUIT = 0.4;         // Coefficient Usufruit (40%)
-const TITRE_NU_PROPRIETE = 0.6;     // Coefficient Nu-PropriÃ©tÃ© (60%)
+const TITRE_NU_PROPRIETE = 0.6;     // Coefficient Nu-Propriété (60%)
 
 const SECTIONS = [
-  { id: "informations",       label: "Informations",              icon: "fa-address-card" },
-  { id: "revenus_demandeur",  label: "Revenus du demandeur",      icon: "fa-sack-dollar"  },
-  { id: "cohabitants",        label: "Revenus des cohabitants",   icon: "fa-people-group" },
-  { id: "apercu",             label: "AperÃ§u du calcul",          icon: "fa-table-list"   },
+  { id: "informations",      label: "Informations",            icon: "fa-address-card" },
+  { id: "revenus_demandeur", label: "Revenus du demandeur",   icon: "fa-sack-dollar"  },
+  { id: "cohabitants",       label: "Revenus des cohabitants", icon: "fa-people-group" },
+  { id: "apercu",            label: "Aperçu du calcul",        icon: "fa-table-list"   },
 ];
 
 const defaultRow = () => ({
@@ -120,15 +120,15 @@ const defaultRow = () => ({
   priseEnCharge: "Non",           // C5 - "Oui" / "Non" / "MAX"
   typeReport: "Report max",       // E5 - "Report max" / "Partenaire"
   pctReport: 30,                  // F5 - % du report
-  categorie: 1                    // G5 - CatÃ©gorie 1, 2 ou 3
+  categorie: 1                    // G5 - Catégorie 1, 2 ou 3
 });
 
 const defaultCessionRow = () => ({
   typeBien: "", 
   valeurVenale: 0, 
-  natureCession: "Cession Ã  titre onÃ©reux", // ðŸ‘ˆ AJOUT
+  natureCession: "Cession à titre onéreux", // 👈 AJOUT
   dateCession: "",
-  titrePropriete: "Pleine PropriÃ©tÃ© (P.P.)", 
+  titrePropriete: "Pleine Propriété (P.P.)", 
   partConcernee: 100, 
   dettesPersonnelles: 0,
   dispenseEquite: 0, 
@@ -142,11 +142,11 @@ const defaultBienImmobilierRow = () => ({
 
 const NATURES_REVENU_COHABITANT = [
   "Revenus professionnels nets",
-  "Allocation de chÃ´mage",
-  "IndemnitÃ© de mutuelle",
+  "Allocation de chômage",
+  "Indemnité de mutuelle",
   "Pension",
   "Revenu de remplacement",
-  "Allocation d'handicapÃ©",
+  "Allocation d'handicapé",
   "Ressources diverses",
   "Biens immobiliers",
   "Biens mobiliers",
@@ -165,15 +165,15 @@ const defaultCohabitantRow = () => ({
   pctReport: 30,
   chargesAdmissibles: 0,
   chargesInadmissibles: 0,
-  // Sections structurÃ©es (revenus dÃ©taillÃ©s par catÃ©gorie)
+  // Sections structurées (revenus détaillés par catégorie)
   proRows: [],           // Revenus professionnels nets
-  cmrRows: [],           // ChÃ´mage / mutuelle / remplacement
+  cmrRows: [],           // Chômage / mutuelle / remplacement
   cessionsBiens: { rows: [] },
   biensImmobiliers: { rows: [] },
   biensMobiliers: { montantCapital: 0, partConcernee: 100 },
   avantages: { chargesLocativesTiers: 0, loyerFictifSimulateur: 0, pretHypothecaireTiers: 0, autresAvantages: 0 },
   ressourcesDiverses: { allocationsFamiliales: 0, pensionAlimentairePercue: 0, autresRessources: 0 },
-  // HÃ©ritage (compatibilitÃ© ancienne saisie)
+  // Héritage (compatibilité ancienne saisie)
   revenusDetailes: [],
   ressourcesTotale: 0,
 });
@@ -210,15 +210,15 @@ const defaultData = {
   cessionsBiens: { rows: [] },
   biensImmobiliers: { rows: [] },
   biensMobiliers: {
-    montantCapital: 0,      // correspond Ã  B5
-    partConcernee: 100      // correspond Ã  C5 (en %)
+    montantCapital: 0,      // correspond à B5
+    partConcernee: 100      // correspond à C5 (en %)
   },
   exoneration: {
     demandeur: {
       general: false,      // Excel C5
       etudiant: false,    // Excel C6
       penurie: false,     // Excel C7
-      joursCompteur: 0,   // Excel C8 (si compteur dÃ©passÃ©)
+      joursCompteur: 0,   // Excel C8 (si compteur dépassé)
       artisteSP: false,   // Excel C11
     },
     conjoint: {
@@ -232,31 +232,31 @@ const defaultData = {
   cohabitants: {
     modeCalcul: "groupe",          // "groupe" (circulaire 16/01/2026) | "individuel"
     priseEnCompte: "legale",       // "legale" | "equite" | "aucune"
-    montantRetenuAnnuel: 0,        // utilisÃ© si priseEnCompte === "equite"
-    risOctroyeCible: "",           // RIS mensuel cible â†’ recalcule montantRetenuAnnuel
+    montantRetenuAnnuel: 0,        // utilisé si priseEnCompte === "equite"
+    risOctroyeCible: "",           // RIS mensuel cible → recalcule montantRetenuAnnuel
     chargesAdmissiblesDemandeur: 0,
     rows: [defaultCohabitantRow()]
   },
   ressourcesDiverses: {
     generales: [
-      { label: "Allocations familiales (forfait max. 240 â‚¬/mois)", montant: 0 },
-      { label: "Pension alimentaire perÃ§ue (â‚¬/mois)", montant: 0 },
-      { label: "Allocation rÃ©currente prov. soc. H.E. ou UniversitÃ©", montant: 0 },
-      { label: "Partie d'une Bourse couvrant les frais de sÃ©jour", montant: 0 },
+      { label: "Allocations familiales (forfait max. 240 €/mois)", montant: 0 },
+      { label: "Pension alimentaire perçue (€/mois)", montant: 0 },
+      { label: "Allocation récurrente prov. soc. H.E. ou Université", montant: 0 },
+      { label: "Partie d'une Bourse couvrant les frais de séjour", montant: 0 },
       { label: "Autre ressource diverses", montant: 0 }
     ],
     benevoles: [
       { label: "montant journalier", montant: 0 },
       { label: "montant annuel acquis", montant: 0 },
-      { label: "indemnitÃ©s perÃ§ues", montant: 0 }
+      { label: "indemnités perçues", montant: 0 }
     ]
   }
 };
 // =====================
-// ParamÃ¨tres Excel (onglet DonnÃ©es)
+// Paramètres Excel (onglet Données)
 // =====================
 
-// VLOOKUP DonnÃ©es!A2:D (montant du RI annuel) : date -> [cat1, cat2, cat3]
+// VLOOKUP Données!A2:D (montant du RI annuel) : date -> [cat1, cat2, cat3]
 
 const RI_ANNUEL_TABLE = [
   { date: "2023-01-01", cat1: 9713.04, cat2: 14569.58, cat3: 19690.01 },
@@ -267,7 +267,7 @@ const RI_ANNUEL_TABLE = [
   { date: firstOfCurrentMonth(), cat1: 10723.75, cat2: 16085.64, cat3: 21738.88 },
 ];
 
-// VLOOKUP DonnÃ©es!K3:O (exonÃ©rations) : date -> montants (mensuel/annuel)
+// VLOOKUP Données!K3:O (exonérations) : date -> montants (mensuel/annuel)
 const EXO_TABLE = [
   { date: "2022-12-01", generalMensuel: 291.63, artistiqueAnnuel: 3499.60, etudiantMensuel: 291.63, penurieMensuel: null },
   { date: "2023-11-01", generalMensuel: 297.46, artistiqueAnnuel: 3569.56, etudiantMensuel: 297.46, penurieMensuel: null },
@@ -277,14 +277,14 @@ const EXO_TABLE = [
   { date: firstOfCurrentMonth(), generalMensuel: 315.67, artistiqueAnnuel: 3787.99, etudiantMensuel: 315.67, penurieMensuel: 452.39 },
 ];
 
-// DonnÃ©es!Q3:S3 (ExonÃ©ration supplÃ©mentaire annuelle Â©)
+// Données!Q3:S3 (Exonération supplémentaire annuelle ©)
 const EXO_SUPPL_ANNUEL = { 1: 155, 2: 250, 3: 310 };
 
-// DonnÃ©es!R13 / S13 (seuils mobiliers)
+// Données!R13 / S13 (seuils mobiliers)
 const MOB_SEUIL_R = 6200;
 const MOB_SEUIL_S = 12500;
 
-// DonnÃ©es!S22 (tranche immunisÃ©e cessions)
+// Données!S22 (tranche immunisée cessions)
 const CESSION_TRANCHE_IMMUNISEE = 37200;
 
 function Field({ label, hint, children }) {
@@ -311,7 +311,7 @@ function toISODateOnly(d) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-// Reproduit le VLOOKUP(date, table, col, TRUE) d'Excel (approx match, triÃ© par date)
+// Reproduit le VLOOKUP(date, table, col, TRUE) d'Excel (approx match, trié par date)
 function vlookupByDateISO(dateISO, table) {
   const target = toISODateOnly(dateISO);
   let best = table[0];
@@ -346,22 +346,22 @@ const SEUIL_CESSION_T1 = 6200;
 const SEUIL_CESSION_T2 = 12500;
 
 const TITRE_PROPRIETE_COEFF = {
-  "Pleine PropriÃ©tÃ© (P.P.)": 1.0,
-  "Nu-propriÃ©tÃ© (N.P.)": 0.6,
+  "Pleine Propriété (P.P.)": 1.0,
+  "Nu-propriété (N.P.)": 0.6,
   "Usufruit": 0.4
 };
 
 const ABATTEMENT_PAR_CATEGORIE = {
   1: 1250,  // Cohabitant
-  2: 2000,  // IsolÃ©
+  2: 2000,  // Isolé
   3: 2500   // Famille
 };
 
 const TYPE_CESSION_MAP = {
-  "Bien bÃ¢ti (unique)": { unique: true },
-  "Bien non bÃ¢ti (unique)": { unique: true },
-  "Autre bien bÃ¢ti": { unique: false },
-  "Autre bien non bÃ¢ti": { unique: false },
+  "Bien bâti (unique)": { unique: true },
+  "Bien non bâti (unique)": { unique: true },
+  "Autre bien bâti": { unique: false },
+  "Autre bien non bâti": { unique: false },
   "Bien meuble": { unique: false }
 };
 
@@ -382,8 +382,8 @@ function calculateCessionDetailed(cession, categorie) {
   
   const montant = safeNumber(cession.valeurVenale, 0);
   const part = safeNumber(cession.partConcernee, 100) / 100;
-  const titrePropriete = cession.titrePropriete || "Pleine PropriÃ©tÃ© (P.P.)";
-  const natureCession = cession.natureCession || "Cession Ã  titre onÃ©reux"; // ðŸ‘ˆ AJOUT
+  const titrePropriete = cession.titrePropriete || "Pleine Propriété (P.P.)";
+  const natureCession = cession.natureCession || "Cession à titre onéreux"; // 👈 AJOUT
   const dettesPersonnelles = safeNumber(cession.dettesPersonnelles, 0);
   const dispenseEquite = safeNumber(cession.dispenseEquite, 0);
   
@@ -401,8 +401,8 @@ function calculateCessionDetailed(cession, categorie) {
     abattement = round2((montantAnnuel * nbMois) / 12);
   }
   
-  // ðŸ‘‡ AJOUT : Dettes uniquement si cession onÃ©reuse
-  const dettesApplicables = natureCession === "Cession Ã  titre onÃ©reux" ? dettesPersonnelles : 0;
+  // 👇 AJOUT : Dettes uniquement si cession onéreuse
+  const dettesApplicables = natureCession === "Cession à titre onéreux" ? dettesPersonnelles : 0;
   
   let montantConsideration = montantVenal - dettesApplicables - trancheImmunisee - abattement - dispenseEquite;
   montantConsideration = Math.max(montantConsideration, 0);
@@ -422,9 +422,9 @@ function calculateCessionDetailed(cession, categorie) {
     trancheImmunisee,
     nbMois,
     abattement,
-    natureCession,        // ðŸ‘ˆ AJOUT
+    natureCession,        // 👈 AJOUT
     dettesPersonnelles,
-    dettesApplicables,    // ðŸ‘ˆ AJOUT
+    dettesApplicables,    // 👈 AJOUT
     dispenseEquite,
     montantConsideration,
     tranches: { tranche1, tranche2, tranche3 },
@@ -497,10 +497,10 @@ function computeCohabitantRow(row, referenceDate) {
 
   const categorie = row.categorie || 1;
   
-  // I5: VLOOKUP pour obtenir le seuil RI selon la catÃ©gorie
+  // I5: VLOOKUP pour obtenir le seuil RI selon la catégorie
   const seuilRI = getRIAnnuel(referenceDate, categorie);
   
-  // J5: Calcul de l'excÃ©dent
+  // J5: Calcul de l'excédent
   let excedent = 0;
   let message = "";
   
@@ -510,7 +510,7 @@ function computeCohabitantRow(row, referenceDate) {
     message = "Le cohabitant a possiblement droit au RI";
   }
   
-  // K5: Montant mensuel (si excÃ©dent)
+  // K5: Montant mensuel (si excédent)
   const montantMensuel = excedent > 0 ? round2(excedent / 12) : 0;
   
   let ressourcesProrata = 0;
@@ -526,9 +526,9 @@ function computeCohabitantRow(row, referenceDate) {
       montantReporte = round2(montantMensuel * (safeNumber(row.pctReport, 0) / 100));
       ressourcesProrata = montantReporte;
     }
-    // "Pas de report" â†’ reste Ã  0
+    // "Pas de report" → reste à 0
   }
-  // type "Autre" â†’ montantReporte = 0 (indicatif uniquement)
+  // type "Autre" → montantReporte = 0 (indicatif uniquement)
 
   return {
     ...row,
@@ -544,7 +544,7 @@ function computeCohabitantRow(row, referenceDate) {
   };
 }
 
-// 2. Calcul groupÃ© â€” Circulaire 16/01/2026
+// 2. Calcul groupé — Circulaire 16/01/2026
 function computeCohabitantsGrouped(cohabitantsData, referenceDate) {
   const rows = cohabitantsData.rows || [];
   const modeCalcul = cohabitantsData.modeCalcul || "groupe";
@@ -556,7 +556,7 @@ function computeCohabitantsGrouped(cohabitantsData, referenceDate) {
   }
 
   const details = rows.map(row => computeCohabitantRow(row, referenceDate));
-  // SÃ©parer dÃ©biteurs d'aliments (Ascendant/Descendant) des cohabitants "Autre" (indicatif)
+  // Séparer débiteurs d'aliments (Ascendant/Descendant) des cohabitants "Autre" (indicatif)
   const debiteurs = details.filter(d => !d.isIndicatifOnly);
   const autresCohabitants = details.filter(d => d.isIndicatifOnly);
 
@@ -568,8 +568,8 @@ function computeCohabitantsGrouped(cohabitantsData, referenceDate) {
     };
   }
 
-  // Mode groupÃ© : excÃ©dent = somme(ressources dÃ©biteurs) âˆ’ somme(seuils dÃ©biteurs + seuils "Autre")
-  // Les cohabitants "Autre" contribuent leur seuil au dÃ©nominateur mais pas leurs revenus.
+  // Mode groupé : excédent = somme(ressources débiteurs) − somme(seuils débiteurs + seuils "Autre")
+  // Les cohabitants "Autre" contribuent leur seuil au dénominateur mais pas leurs revenus.
   const activeDebiteurs = debiteurs.filter(d => d.priseEnCharge !== "Pas de report");
   const ressourcesTotal = round2(activeDebiteurs.reduce((s, d) => s + d.ressourcesTotale, 0));
   const seuilTotal      = round2(
@@ -578,7 +578,7 @@ function computeCohabitantsGrouped(cohabitantsData, referenceDate) {
   );
   const rawExcedent     = Math.max(0, round2(ressourcesTotal - seuilTotal));
 
-  // Appliquer pctReport si des dÃ©biteurs sont en "Report partiel"
+  // Appliquer pctReport si des débiteurs sont en "Report partiel"
   let excedentGroupe = rawExcedent;
   if (rawExcedent > 0 && ressourcesTotal > 0 && activeDebiteurs.some(d => d.priseEnCharge === "Report partiel")) {
     excedentGroupe = round2(activeDebiteurs.reduce((s, d) => {
@@ -601,7 +601,7 @@ function computeCohabitantsGrouped(cohabitantsData, referenceDate) {
   };
 }
 
-// CompatibilitÃ© â€” conservÃ© pour les exports qui appellent encore cette fonction
+// Compatibilité — conservé pour les exports qui appellent encore cette fonction
 function computeCohabitantsTotal(rows, referenceDate) {
   return computeCohabitantsGrouped({ rows, modeCalcul: "individuel" }, referenceDate);
 }
@@ -688,20 +688,20 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
       <button onClick={addRow} className="btn-add">+ Ajouter un cohabitant</button>
     }>
 
-      {/* â”€â”€ Mode de calcul â”€â”€ */}
+      {/* ── Mode de calcul ── */}
       <div style={{ marginBottom: 16 }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: colors.primary, display: "block", marginBottom: 8 }}>
           Mode de calcul
         </span>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          {btnMode("groupe",     "GroupÃ© â€” Circulaire 16/01/2026",  "Seuil calculÃ© sur l'ensemble des cohabitants combinÃ©s (recommandÃ©)")}
-          {btnMode("individuel", "Individuel (ancienne mÃ©thode)",    "ExcÃ©dent calculÃ© sÃ©parÃ©ment pour chaque cohabitant")}
+          {btnMode("groupe",     "Groupé — Circulaire 16/01/2026",  "Seuil calculé sur l'ensemble des cohabitants combinés (recommandé)")}
+          {btnMode("individuel", "Individuel (ancienne méthode)",    "Excédent calculé séparément pour chaque cohabitant")}
         </div>
       </div>
 
-      {/* â”€â”€ Liste des cohabitants â”€â”€ */}
+      {/* ── Liste des cohabitants ── */}
       {rows.length === 0 ? (
-        <p style={{ opacity: 0.6 }}>Aucun cohabitant enregistrÃ©</p>
+        <p style={{ opacity: 0.6 }}>Aucun cohabitant enregistré</p>
       ) : (
         <>
           {rows.map((r, i) => {
@@ -737,7 +737,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                   </Field>
                 </div>
 
-                {/* â”€â”€ Sections revenus accordÃ©on â”€â”€ */}
+                {/* ── Sections revenus accordéon ── */}
                 {(() => {
                   const accStyle = { marginTop: 8, border: `1px solid ${colors.border}`, borderRadius: 8, overflow: "hidden" };
                   const sumStyle = { fontSize: 12, color: colors.textLight, marginLeft: 8 };
@@ -758,7 +758,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                             <tr style={{ background: "#EEF4FA" }}>
                               <th style={{ padding: "4px 6px", textAlign: "left", fontWeight: 600, color: colors.primary, width: "42%" }}>Nature</th>
                               <th style={{ padding: "4px 6px", textAlign: "right", fontWeight: 600, color: colors.primary, width: "22%" }}>Montant</th>
-                              <th style={{ padding: "4px 6px", textAlign: "center", fontWeight: 600, color: colors.primary, width: "18%" }}>PÃ©riode</th>
+                              <th style={{ padding: "4px 6px", textAlign: "center", fontWeight: 600, color: colors.primary, width: "18%" }}>Période</th>
                               <th style={{ padding: "4px 6px", textAlign: "right", fontWeight: 600, color: colors.primary, width: "13%" }}>/an</th>
                               <th style={{ width: "5%" }}></th>
                             </tr>
@@ -852,17 +852,17 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                         )}
                       </details>
 
-                      {/* ChÃ´mage, mutuelle & remplacement */}
+                      {/* Chômage, mutuelle & remplacement */}
                       <details style={{ ...accStyle, marginTop: 4 }}>
                         <summary style={{ listStyle: "none" }}>
-                          {secHdr("fa-file-medical", "ChÃ´mage, mutuelle & remplacement", cmrTotal)}
+                          {secHdr("fa-file-medical", "Chômage, mutuelle & remplacement", cmrTotal)}
                         </summary>
                         {simpleTable(
                           r.cmrRows || [],
                           () => addCmrRow(i),
                           (j) => removeCmrRow(i, j),
                           (j, p) => updateCmrRow(i, j, p),
-                          ["Allocations de chÃ´mage", "IndemnitÃ©s de mutuelle", "Pension de retraite", "Revenu de remplacement", "Allocation d'handicapÃ©", "Droit passerelle", "Autre"]
+                          ["Allocations de chômage", "Indemnités de mutuelle", "Pension de retraite", "Revenu de remplacement", "Allocation d'handicapé", "Droit passerelle", "Autre"]
                         )}
                       </details>
 
@@ -898,18 +898,18 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                         </summary>
                         <div style={{ padding: "10px 12px" }}>
                           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                            <Input label="Capital (â‚¬)" type="number" value={bmData.montantCapital}
+                            <Input label="Capital (€)" type="number" value={bmData.montantCapital}
                               onChange={(e) => updateMob(i, { montantCapital: safeNumber(e.target.value, 0) })} />
-                            <Input label="Part concernÃ©e (%)" type="number" value={bmData.partConcernee}
+                            <Input label="Part concernée (%)" type="number" value={bmData.partConcernee}
                               onChange={(e) => updateMob(i, { partConcernee: safeNumber(e.target.value, 100) })} />
                           </div>
                           {bmCalc.totalAnnuel > 0 && (
                             <div style={{ marginTop: 8, fontSize: 13, color: colors.textLight }}>
                               {safeNumber(bmData.montantCapital, 0) > MOB_SEUIL_R && (
-                                <div>Tranche 2 ({MOB_SEUIL_R.toLocaleString("fr-BE")}â€“{MOB_SEUIL_S.toLocaleString("fr-BE")} â‚¬) Ã— 6% = <strong><Money value={bmCalc.E6} /></strong>/an</div>
+                                <div>Tranche 2 ({MOB_SEUIL_R.toLocaleString("fr-BE")}–{MOB_SEUIL_S.toLocaleString("fr-BE")} €) × 6% = <strong><Money value={bmCalc.E6} /></strong>/an</div>
                               )}
                               {safeNumber(bmData.montantCapital, 0) > MOB_SEUIL_S && (
-                                <div>Tranche 3 (&gt;{MOB_SEUIL_S.toLocaleString("fr-BE")} â‚¬) Ã— 10% = <strong><Money value={bmCalc.E7} /></strong>/an</div>
+                                <div>Tranche 3 (&gt;{MOB_SEUIL_S.toLocaleString("fr-BE")} €) × 10% = <strong><Money value={bmCalc.E7} /></strong>/an</div>
                               )}
                               <div style={{ fontWeight: 700, color: colors.primary }}>Total : <Money value={bmCalc.totalAnnuel} />/an</div>
                             </div>
@@ -923,16 +923,16 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                           {secHdr("fa-house-user", "Avantages en nature", avTotal)}
                         </summary>
                         <div style={{ padding: "10px 12px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
-                          <Input label="Charges locatives par un tiers (â‚¬/mois)" type="number"
+                          <Input label="Charges locatives par un tiers (€/mois)" type="number"
                             value={(r.avantages || {}).chargesLocativesTiers || 0}
                             onChange={(e) => updateAvantages(i, { chargesLocativesTiers: safeNumber(e.target.value, 0) })} />
-                          <Input label="Loyer fictif (simulateur) (â‚¬/mois)" type="number"
+                          <Input label="Loyer fictif (simulateur) (€/mois)" type="number"
                             value={(r.avantages || {}).loyerFictifSimulateur || 0}
                             onChange={(e) => updateAvantages(i, { loyerFictifSimulateur: safeNumber(e.target.value, 0) })} />
-                          <Input label="PrÃªt hypothÃ©caire par un tiers (â‚¬/mois)" type="number"
+                          <Input label="Prêt hypothécaire par un tiers (€/mois)" type="number"
                             value={(r.avantages || {}).pretHypothecaireTiers || 0}
                             onChange={(e) => updateAvantages(i, { pretHypothecaireTiers: safeNumber(e.target.value, 0) })} />
-                          <Input label="Autres avantages (â‚¬/mois)" type="number"
+                          <Input label="Autres avantages (€/mois)" type="number"
                             value={(r.avantages || {}).autresAvantages || 0}
                             onChange={(e) => updateAvantages(i, { autresAvantages: safeNumber(e.target.value, 0) })} />
                         </div>
@@ -944,13 +944,13 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                           {secHdr("fa-chart-bar", "Ressources diverses", divTotal)}
                         </summary>
                         <div style={{ padding: "10px 12px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
-                          <Input label="Allocations familiales (â‚¬/mois)" type="number"
+                          <Input label="Allocations familiales (€/mois)" type="number"
                             value={(r.ressourcesDiverses || {}).allocationsFamiliales || 0}
                             onChange={(e) => updateDiverses(i, { allocationsFamiliales: safeNumber(e.target.value, 0) })} />
-                          <Input label="Pension alimentaire perÃ§ue (â‚¬/mois)" type="number"
+                          <Input label="Pension alimentaire perçue (€/mois)" type="number"
                             value={(r.ressourcesDiverses || {}).pensionAlimentairePercue || 0}
                             onChange={(e) => updateDiverses(i, { pensionAlimentairePercue: safeNumber(e.target.value, 0) })} />
-                          <Input label="Autres ressources diverses (â‚¬/mois)" type="number"
+                          <Input label="Autres ressources diverses (€/mois)" type="number"
                             value={(r.ressourcesDiverses || {}).autresRessources || 0}
                             onChange={(e) => updateDiverses(i, { autresRessources: safeNumber(e.target.value, 0) })} />
                         </div>
@@ -996,9 +996,9 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                   </Field>
                 </div>
 
-                {/* CatÃ©gorie â€” cartes Cat. 1 / Cat. 3 */}
+                {/* Catégorie — cartes Cat. 1 / Cat. 3 */}
                 <div style={{ marginTop: 14 }}>
-                  <span style={{ fontSize: 14, opacity: 0.85, display: "block", marginBottom: 8 }}>CatÃ©gorie (seuil RI applicable)</span>
+                  <span style={{ fontSize: 14, opacity: 0.85, display: "block", marginBottom: 8 }}>Catégorie (seuil RI applicable)</span>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                     {[
                       { value: 1, cat: "Cat. 1", label: "Cohabitant" },
@@ -1029,30 +1029,30 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                   <div className="alert alert--warning" style={{ marginTop: 12 }}>
                     <i className="fas fa-circle-info" aria-hidden="true" />
                     <span>
-                      Ce cohabitant est de type <strong>Â« Autre Â»</strong> : ses ressources sont conservÃ©es
-                      Ã  titre indicatif uniquement et <strong>ne sont pas prises en compte</strong> dans
+                      Ce cohabitant est de type <strong>« Autre »</strong> : ses ressources sont conservées
+                      à titre indicatif uniquement et <strong>ne sont pas prises en compte</strong> dans
                       le calcul du droit au RI du demandeur.
                     </span>
                   </div>
                 )}
 
-                {/* â”€â”€ Budget mensuel accordion â”€â”€ */}
+                {/* ── Budget mensuel accordion ── */}
                 <details style={{ marginTop: 14 }}>
                   <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, color: colors.primary, padding: "6px 0", userSelect: "none", listStyle: "none", display: "flex", alignItems: "center", gap: 6 }}>
                     <i className="fas fa-chevron-right" style={{ fontSize: 11, transition: "transform 0.2s" }} aria-hidden="true" />
-                    Budget mensuel <span style={{ fontWeight: 400, color: colors.textLight }}>(facultatif â€” pour analyse d'Ã©quitÃ©)</span>
+                    Budget mensuel <span style={{ fontWeight: 400, color: colors.textLight }}>(facultatif — pour analyse d'équité)</span>
                   </summary>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 10, paddingLeft: 4 }}>
-                    <Input label="Charges admissibles (â‚¬/mois)" type="number"
+                    <Input label="Charges admissibles (€/mois)" type="number"
                       value={r.chargesAdmissibles}
                       onChange={(e) => updateRow(i, { chargesAdmissibles: safeNumber(e.target.value, 0) })} />
-                    <Input label="Charges inadmissibles (â‚¬/mois)" type="number"
+                    <Input label="Charges inadmissibles (€/mois)" type="number"
                       value={r.chargesInadmissibles}
                       onChange={(e) => updateRow(i, { chargesInadmissibles: safeNumber(e.target.value, 0) })} />
                   </div>
                   {safeNumber(r.chargesAdmissibles, 0) > 0 && (
                     <div style={{ marginTop: 6, paddingLeft: 4, fontSize: 13, color: colors.textLight }}>
-                      Disponible (aprÃ¨s charges admissibles) :&nbsp;
+                      Disponible (après charges admissibles) :&nbsp;
                       <strong style={{ color: round2(safeNumber(calc.ressourcesTotale, 0) / 12 - safeNumber(r.chargesAdmissibles, 0)) >= 0 ? "#1a7a3c" : "#c0392b" }}>
                         <Money value={round2(safeNumber(calc.ressourcesTotale, 0) / 12 - safeNumber(r.chargesAdmissibles, 0))} /> /mois
                       </strong>
@@ -1074,10 +1074,10 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                     </div>
                   )}
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8 }}>
-                    <div><strong>Seuil RI (catÃ©gorie {calc.categorie}):</strong> <Money value={calc.seuilRI} /></div>
-                    <div><strong>ExcÃ©dent:</strong> <Money value={calc.excedent} /></div>
+                    <div><strong>Seuil RI (catégorie {calc.categorie}):</strong> <Money value={calc.seuilRI} /></div>
+                    <div><strong>Excédent:</strong> <Money value={calc.excedent} /></div>
                     <div><strong>Montant mensuel:</strong> <Money value={calc.montantMensuel} /></div>
-                    <div><strong>Montant reportÃ© :</strong> {calc.isIndicatifOnly ? <em style={{ color: colors.textLight }}>non reportÃ© (indicatif)</em> : <Money value={calc.montantReporte} />}</div>
+                    <div><strong>Montant reporté :</strong> {calc.isIndicatifOnly ? <em style={{ color: colors.textLight }}>non reporté (indicatif)</em> : <Money value={calc.montantReporte} />}</div>
                   </div>
                   {calc.message && (
                     <div className="alert alert--warning" style={{ marginTop: 8 }}>
@@ -1092,14 +1092,14 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
         </>
       )}
 
-      {/* â”€â”€ SynthÃ¨se groupÃ©e + prise en compte â”€â”€ */}
+      {/* ── Synthèse groupée + prise en compte ── */}
       {modeCalcul === "groupe" && rows.length > 0 && (
         <div style={{ marginTop: 16, border: `2px solid ${colors.primary}`, borderRadius: 12, padding: 16 }}>
           <div style={{ fontSize: 14, fontWeight: 800, color: colors.primary, textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: 12 }}>
-            SynthÃ¨se groupÃ©e â€” Circulaire 16/01/2026
+            Synthèse groupée — Circulaire 16/01/2026
           </div>
 
-          {/* Tableau excÃ©dent */}
+          {/* Tableau excédent */}
           {(() => {
             const debCount = (grouped.debiteurs || []).filter(d => d.priseEnCharge !== "Pas de report").length;
             const autreCount = (grouped.autresCohabitants || []).length;
@@ -1109,19 +1109,19 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, marginBottom: 16 }}>
                 <tbody>
                   <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
-                    <td style={{ padding: "6px 8px", color: colors.text }}>Ressources combinÃ©es (dÃ©biteurs d'aliments)</td>
+                    <td style={{ padding: "6px 8px", color: colors.text }}>Ressources combinées (débiteurs d'aliments)</td>
                     <td style={{ padding: "6px 8px", textAlign: "right", fontWeight: 600 }}><Money value={grouped.ressourcesTotal} /> /an</td>
                   </tr>
                   <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
                     <td style={{ padding: "6px 8px", color: colors.text }}>
                       Seuil garanti ({totalSeuilCount} cohabitant{totalSeuilCount !== 1 ? "s" : ""})
-                      {autreCount > 0 && <span style={{ color: colors.textLight, fontSize: 12, marginLeft: 6 }}>dont {autreCount} Â« Autre Â» (seuil uniquement)</span>}
+                      {autreCount > 0 && <span style={{ color: colors.textLight, fontSize: 12, marginLeft: 6 }}>dont {autreCount} « Autre » (seuil uniquement)</span>}
                     </td>
-                    <td style={{ padding: "6px 8px", textAlign: "right", color: "#c0392b", fontWeight: 600 }}>âˆ’&nbsp;<Money value={grouped.seuilTotal} /> /an</td>
+                    <td style={{ padding: "6px 8px", textAlign: "right", color: "#c0392b", fontWeight: 600 }}>−&nbsp;<Money value={grouped.seuilTotal} /> /an</td>
                   </tr>
                   <tr style={{ borderBottom: `1px solid ${colors.border}`, background: hasPartiel ? undefined : "#EEF4FA" }}>
                     <td style={{ padding: "7px 8px", fontWeight: hasPartiel ? 500 : 700, color: colors.primary }}>
-                      ExcÃ©dent lÃ©gal brut
+                      Excédent légal brut
                     </td>
                     <td style={{ padding: "7px 8px", textAlign: "right", fontWeight: 700, color: colors.primary }}>
                       <Money value={grouped.rawExcedent} /> /an
@@ -1130,7 +1130,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                   {hasPartiel && (
                     <tr style={{ background: "#EEF4FA" }}>
                       <td style={{ padding: "7px 8px", fontWeight: 700, color: colors.primary }}>
-                        ExcÃ©dent ajustÃ© (report partiel appliquÃ©)
+                        Excédent ajusté (report partiel appliqué)
                       </td>
                       <td style={{ padding: "7px 8px", textAlign: "right", fontWeight: 700, color: colors.primary }}>
                         <Money value={grouped.excedentGroupe} /> /an
@@ -1156,35 +1156,35 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
           <div style={{ marginBottom: 14 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: colors.primary, display: "block", marginBottom: 8 }}>Prise en compte des ressources</span>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-              {btnPrise("legale",  "LÃ©gale complÃ¨te",  grouped.excedentGroupe > 0 ? `${round2(grouped.excedentGroupe / 12).toLocaleString("fr-BE", { minimumFractionDigits: 2 })} â‚¬/mois` : "0 â‚¬")}
-              {btnPrise("equite",  "Par Ã©quitÃ©",        "Montant rÃ©duit â€” raisons d'Ã©quitÃ©")}
-              {btnPrise("aucune",  "Pas de report",     "0 â‚¬ comptabilisÃ©")}
+              {btnPrise("legale",  "Légale complète",  grouped.excedentGroupe > 0 ? `${round2(grouped.excedentGroupe / 12).toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €/mois` : "0 €")}
+              {btnPrise("equite",  "Par équité",        "Montant réduit — raisons d'équité")}
+              {btnPrise("aucune",  "Pas de report",     "0 € comptabilisé")}
             </div>
           </div>
 
-          {/* Saisie Ã©quitÃ© */}
+          {/* Saisie équité */}
           {priseEnCompte === "equite" && (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, background: "#FFF8E1", border: "1px solid #f0d060", borderRadius: 8, padding: 12, marginBottom: 14 }}>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, color: colors.primary }}>Ressources retenues (â‚¬/an)</div>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, color: colors.primary }}>Ressources retenues (€/an)</div>
                 <NumInput value={montantRetenuAnnuel}
                   onChange={(e) => update({ montantRetenuAnnuel: safeNumber(e.target.value, 0), risOctroyeCible: "" })} />
-                <div style={{ fontSize: 12, color: colors.textLight, marginTop: 3 }}>Maximum lÃ©gal : <Money value={grouped.excedentGroupe} /> â‚¬/an</div>
+                <div style={{ fontSize: 12, color: colors.textLight, marginTop: 3 }}>Maximum légal : <Money value={grouped.excedentGroupe} /> €/an</div>
               </div>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, color: colors.primary }}>â€” ou â€” RIS visÃ© (â‚¬/mois)</div>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, color: colors.primary }}>— ou — RIS visé (€/mois)</div>
                 <NumInput value={risOctroyeCible}
                   onChange={(e) => handleRisOctroyeCible(e.target.value)} />
-                <div style={{ fontSize: 12, color: colors.textLight, marginTop: 3 }}>â†’ Recalcule automatiquement les ressources retenues</div>
+                <div style={{ fontSize: 12, color: colors.textLight, marginTop: 3 }}>→ Recalcule automatiquement les ressources retenues</div>
               </div>
             </div>
           )}
 
-          {/* Balance budgÃ©taire mÃ©nage */}
+          {/* Balance budgétaire ménage */}
           {(hasAnyBudget || chargesAdmDem > 0) && (
             <details style={{ marginBottom: 14 }}>
               <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, color: colors.primary, padding: "4px 0", userSelect: "none" }}>
-                Balance budgÃ©taire du mÃ©nage
+                Balance budgétaire du ménage
               </summary>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, marginTop: 8 }}>
                 <tbody>
@@ -1194,7 +1194,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                   </tr>
                   <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
                     <td style={{ padding: "5px 8px" }}>Charges admissibles (cohabitants)</td>
-                    <td style={{ padding: "5px 8px", textAlign: "right", color: "#c0392b" }}>âˆ’&nbsp;<Money value={totalChargesAdmCohab} /> /mois</td>
+                    <td style={{ padding: "5px 8px", textAlign: "right", color: "#c0392b" }}>−&nbsp;<Money value={totalChargesAdmCohab} /> /mois</td>
                   </tr>
                   <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
                     <td style={{ padding: "5px 8px" }}>
@@ -1204,22 +1204,22 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                       <NumInput value={chargesAdmDem}
                         onChange={(e) => update({ chargesAdmissiblesDemandeur: safeNumber(e.target.value, 0) })}
                         style={{ width: 90, textAlign: "right", padding: "3px 6px", fontSize: 13 }} />
-                      <span style={{ color: colors.textLight, marginLeft: 4 }}>â‚¬/mois</span>
+                      <span style={{ color: colors.textLight, marginLeft: 4 }}>€/mois</span>
                     </td>
                   </tr>
                   {totalChargesInadmCohab > 0 && (
                     <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
                       <td style={{ padding: "5px 8px", fontStyle: "italic", color: colors.textLight }}>Charges inadmissibles (cohabitants)</td>
-                      <td style={{ padding: "5px 8px", textAlign: "right", color: colors.textLight }}>âˆ’&nbsp;<Money value={totalChargesInadmCohab} /> /mois</td>
+                      <td style={{ padding: "5px 8px", textAlign: "right", color: colors.textLight }}>−&nbsp;<Money value={totalChargesInadmCohab} /> /mois</td>
                     </tr>
                   )}
                   <tr style={{ background: disponibleAdm >= 0 ? "#d4edda" : "#fde8e8", fontWeight: 700 }}>
-                    <td style={{ padding: "6px 8px", color: disponibleAdm >= 0 ? "#1a7a3c" : "#c0392b" }}>Disponible mÃ©nage (charges admissibles)</td>
+                    <td style={{ padding: "6px 8px", color: disponibleAdm >= 0 ? "#1a7a3c" : "#c0392b" }}>Disponible ménage (charges admissibles)</td>
                     <td style={{ padding: "6px 8px", textAlign: "right", color: disponibleAdm >= 0 ? "#1a7a3c" : "#c0392b" }}><Money value={disponibleAdm} /> /mois</td>
                   </tr>
                   {totalChargesInadmCohab > 0 && (
                     <tr style={{ background: disponibleTotal >= 0 ? "#d4edda" : "#fde8e8" }}>
-                      <td style={{ padding: "6px 8px", color: disponibleTotal >= 0 ? "#1a7a3c" : "#c0392b", fontStyle: "italic", fontSize: 12 }}>Disponible mÃ©nage (toutes charges)</td>
+                      <td style={{ padding: "6px 8px", color: disponibleTotal >= 0 ? "#1a7a3c" : "#c0392b", fontStyle: "italic", fontSize: 12 }}>Disponible ménage (toutes charges)</td>
                       <td style={{ padding: "6px 8px", textAlign: "right", color: disponibleTotal >= 0 ? "#1a7a3c" : "#c0392b", fontSize: 12 }}><Money value={disponibleTotal} /> /mois</td>
                     </tr>
                   )}
@@ -1234,15 +1234,15 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
               <span style={{ fontSize: 13, fontWeight: 700, color: colors.primary, display: "block", marginBottom: 8 }}>Fourchette RIS</span>
               <div style={{ display: "grid", gridTemplateColumns: priseEnCompte === "equite" ? "1fr 1fr 1fr" : "1fr 1fr", gap: 8 }}>
                 <div style={{ background: "#fde8e8", borderRadius: 8, padding: "8px 12px" }}>
-                  <div style={{ fontSize: 12, color: "#c0392b", fontWeight: 600, marginBottom: 2 }}>Minimum lÃ©gal</div>
+                  <div style={{ fontSize: 12, color: "#c0392b", fontWeight: 600, marginBottom: 2 }}>Minimum légal</div>
                   <div style={{ fontSize: 16, fontWeight: 800, color: "#c0392b" }}><Money value={risMinLegalMensuel} /> /mois</div>
                   <div style={{ fontSize: 11, color: colors.textLight }}>Application stricte</div>
                 </div>
                 {priseEnCompte === "equite" && (
                   <div style={{ background: "#fff8e1", border: "1px solid #f0d060", borderRadius: 8, padding: "8px 12px" }}>
-                    <div style={{ fontSize: 12, color: "#b8860b", fontWeight: 600, marginBottom: 2 }}>Montant octroyÃ©</div>
+                    <div style={{ fontSize: 12, color: "#b8860b", fontWeight: 600, marginBottom: 2 }}>Montant octroyé</div>
                     <div style={{ fontSize: 16, fontWeight: 800, color: "#b8860b" }}><Money value={risOctroyeMensuel} /> /mois</div>
-                    <div style={{ fontSize: 11, color: colors.textLight }}>Par Ã©quitÃ©</div>
+                    <div style={{ fontSize: 11, color: colors.textLight }}>Par équité</div>
                   </div>
                 )}
                 <div style={{ background: "#d4edda", borderRadius: 8, padding: "8px 12px" }}>
@@ -1259,8 +1259,8 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
       {/* Totaux (mode individuel) */}
       {modeCalcul === "individuel" && rows.length > 0 && (
         <div className="summary-box" style={{ marginTop: 12 }}>
-          <div><b>Total annuel reportÃ© : <Money value={grouped.totalAnnuel} /></b></div>
-          <div><b>Total mensuel reportÃ© : <Money value={grouped.totalMensuel} /></b></div>
+          <div><b>Total annuel reporté : <Money value={grouped.totalAnnuel} /></b></div>
+          <div><b>Total mensuel reporté : <Money value={grouped.totalMensuel} /></b></div>
         </div>
       )}
 
@@ -1270,40 +1270,40 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
 // Listes officielles des revenus
 const REVENUS_COMPTABILISES_SUGGESTIONS = [
   { value: "Revenu net professionnel", label: "Revenu net professionnel" },
-  { value: "", label: "SÃ©lectionner un type de revenu..." },
+  { value: "", label: "Sélectionner un type de revenu..." },
   { value: "Accueillante enfants - revenu brut", label: "Accueillante enfants - revenu brut" },
   { value: "Allocation de formation Forem, VDAB ou Actiris", label: "Allocation de formation Forem, VDAB ou Actiris" },
   { value: "Allocation de stage d'insertion", label: "Allocation de stage d'insertion" },
   { value: "Allocation de stage Onem (ou Actiris)", label: "Allocation de stage Onem (ou Actiris)" },
-  { value: "Avance reÃ§ue", label: "Avance reÃ§ue" },
-  { value: "Bonus de dÃ©marrage de l'Onem", label: "Bonus de dÃ©marrage de l'Onem" },
-  { value: "ChÃ¨que-repas", label: "ChÃ¨que-repas" },
-  { value: "Don rÃ©gulier", label: "Don rÃ©gulier" },
-  { value: "Eco-ChÃ¨que", label: "Eco-ChÃ¨que" },
+  { value: "Avance reçue", label: "Avance reçue" },
+  { value: "Bonus de démarrage de l'Onem", label: "Bonus de démarrage de l'Onem" },
+  { value: "Chèque-repas", label: "Chèque-repas" },
+  { value: "Don régulier", label: "Don régulier" },
+  { value: "Eco-Chèque", label: "Eco-Chèque" },
   { value: "Flexijob", label: "Flexijob" },
   { value: "Formation en alternance", label: "Formation en alternance" },
   { value: "Impulsion Forem", label: "Impulsion Forem" },
-  { value: "IndÃ©pendant - Revenus nets", label: "IndÃ©pendant - Revenus nets" },
-  { value: "IndemnitÃ© de prÃ©avis (pour le mois concernÃ©)", label: "IndemnitÃ© de prÃ©avis (pour le mois concernÃ©)" },
+  { value: "Indépendant - Revenus nets", label: "Indépendant - Revenus nets" },
+  { value: "Indemnité de préavis (pour le mois concerné)", label: "Indemnité de préavis (pour le mois concerné)" },
   { value: "Montant imposable", label: "Montant imposable" },
-  { value: "Montant saisi ou cÃ©dÃ©", label: "Montant saisi ou cÃ©dÃ©" },
+  { value: "Montant saisi ou cédé", label: "Montant saisi ou cédé" },
   { value: "PFI - Prime du Forem ou VDAB,...", label: "PFI - Prime du Forem ou VDAB,..." },
-  { value: "Revenus d'une activitÃ© artistique irrÃ©guliÃ¨re", label: "Revenus d'une activitÃ© artistique irrÃ©guliÃ¨re" },
-  { value: "Revenus d'une activitÃ© artistique rÃ©guliÃ¨re", label: "Revenus d'une activitÃ© artistique rÃ©guliÃ¨re" },
-  { value: "Simple pÃ©cule de vacances - rÃ©gime ouvrier", label: "Simple pÃ©cule de vacances - rÃ©gime ouvrier" },
-  { value: "Autre", label: "ðŸ’¡ Autre (saisie libre)" },
+  { value: "Revenus d'une activité artistique irrégulière", label: "Revenus d'une activité artistique irrégulière" },
+  { value: "Revenus d'une activité artistique régulière", label: "Revenus d'une activité artistique régulière" },
+  { value: "Simple pécule de vacances - régime ouvrier", label: "Simple pécule de vacances - régime ouvrier" },
+  { value: "Autre", label: "💡 Autre (saisie libre)" },
 ];
 
 const REVENUS_EXONERES_SUGGESTIONS = [
-  { value: "", label: "SÃ©lectionner un type d'exonÃ©ration..." },
-  { value: "Accueillante enfants - frais exposÃ©s", label: "Accueillante enfants - frais exposÃ©s" },
-  { value: "ChÃ¨que-repas (part perso)", label: "ChÃ¨que-repas (part perso)" },
-  { value: "IndemnitÃ© Ã  charge employeur", label: "IndemnitÃ© Ã  charge employeur" },
-  { value: "IndÃ©pendant - Cotisations sociales", label: "IndÃ©pendant - Cotisations sociales" },
-  { value: "IndÃ©pendant - DÃ©penses professionnelles", label: "IndÃ©pendant - DÃ©penses professionnelles" },
-  { value: "Montant divers Ã  dÃ©duire", label: "Montant divers Ã  dÃ©duire" },
+  { value: "", label: "Sélectionner un type d'exonération..." },
+  { value: "Accueillante enfants - frais exposés", label: "Accueillante enfants - frais exposés" },
+  { value: "Chèque-repas (part perso)", label: "Chèque-repas (part perso)" },
+  { value: "Indemnité à charge employeur", label: "Indemnité à charge employeur" },
+  { value: "Indépendant - Cotisations sociales", label: "Indépendant - Cotisations sociales" },
+  { value: "Indépendant - Dépenses professionnelles", label: "Indépendant - Dépenses professionnelles" },
+  { value: "Montant divers à déduire", label: "Montant divers à déduire" },
   { value: "PFI - Forfait employeur (max 6 mois)", label: "PFI - Forfait employeur (max 6 mois)" },
-  { value: "PrÃ©compte professionnel", label: "PrÃ©compte professionnel" }
+  { value: "Précompte professionnel", label: "Précompte professionnel" }
 ];
 
 function RowsTable({ title, comptabiliseRows, exonereRows, onChangeComptabilise, onChangeExonere }) {
@@ -1311,7 +1311,7 @@ function RowsTable({ title, comptabiliseRows, exonereRows, onChangeComptabilise,
   const sumExon  = useMemo(() => (exonereRows     || []).reduce((s, r) => s + safeNumber(r.montant, 0), 0), [exonereRows]);
   const net = sumCompt - sumExon;
 
-  // â”€â”€ ComptabilisÃ© â”€â”€
+  // ── Comptabilisé ──
   function updateC(i, patch) { onChangeComptabilise(comptabiliseRows.map((r, idx) => idx === i ? { ...r, ...patch } : r)); }
   function addC()    { onChangeComptabilise([...comptabiliseRows, { label: "", customLabel: null, montant: 0 }]); }
   function removeC(i) {
@@ -1319,7 +1319,7 @@ function RowsTable({ title, comptabiliseRows, exonereRows, onChangeComptabilise,
     onChangeComptabilise(next.length ? next : [{ label: "", customLabel: null, montant: 0 }]);
   }
 
-  // â”€â”€ ExonÃ©rÃ© â”€â”€
+  // ── Exonéré ──
   function updateE(i, patch) { onChangeExonere(exonereRows.map((r, idx) => idx === i ? { ...r, ...patch } : r)); }
   function addE()    { onChangeExonere([...exonereRows, { type: "", montant: 0 }]); }
   function removeE(i) {
@@ -1340,13 +1340,13 @@ function RowsTable({ title, comptabiliseRows, exonereRows, onChangeComptabilise,
   return (
     <div style={{ display: "grid", gap: 12 }}>
 
-      {/* â”€â”€ BLOC 1 : Revenus professionnels nets â”€â”€ */}
+      {/* ── BLOC 1 : Revenus professionnels nets ── */}
       <div className="card" style={{ padding: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 12, borderBottom: "2px solid #F0F4F8" }}>
-          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>{title} â€” Revenus professionnels nets</h3>
+          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>{title} — Revenus professionnels nets</h3>
           <button onClick={addC} className="btn-add">+ Ajouter</button>
         </div>
-        <div style={colHdr}><div>Type de revenu</div><div>Montant (â‚¬/mois)</div><div /></div>
+        <div style={colHdr}><div>Type de revenu</div><div>Montant (€/mois)</div><div /></div>
         {(comptabiliseRows || []).map((r, i) => (
           <div key={i} style={colRow(i)}>
             <div style={{ display: "grid", gap: 6 }}>
@@ -1356,7 +1356,7 @@ function RowsTable({ title, comptabiliseRows, exonereRows, onChangeComptabilise,
               </select>
               {r.label === "Autre" && (
                 <input value={r.customLabel || ""} onChange={(e) => updateC(i, { customLabel: e.target.value })}
-                  placeholder="PrÃ©cisez le type de revenu..."
+                  placeholder="Précisez le type de revenu..."
                   style={{ border: "2px solid #2BEBCE", background: "#F0FFFE" }} />
               )}
             </div>
@@ -1365,17 +1365,17 @@ function RowsTable({ title, comptabiliseRows, exonereRows, onChangeComptabilise,
           </div>
         ))}
         <div style={{ marginTop: 12, padding: "10px 4px", background: "#F5F8FA", borderRadius: 6, fontWeight: 600, fontSize: 14 }}>
-          Total comptabilisÃ© : <Money value={sumCompt} />/mois
+          Total comptabilisé : <Money value={sumCompt} />/mois
         </div>
       </div>
 
-      {/* â”€â”€ BLOC 2 : Revenus professionnels exonÃ©rÃ©s â”€â”€ */}
+      {/* ── BLOC 2 : Revenus professionnels exonérés ── */}
       <div className="card" style={{ padding: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 12, borderBottom: "2px solid #F0F4F8" }}>
-          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>{title} â€” Revenus professionnels exonÃ©rÃ©s</h3>
+          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>{title} — Revenus professionnels exonérés</h3>
           <button onClick={addE} className="btn-add">+ Ajouter</button>
         </div>
-        <div style={colHdr}><div>Type d'exonÃ©ration</div><div>Montant exonÃ©rÃ© (â‚¬/mois)</div><div /></div>
+        <div style={colHdr}><div>Type d'exonération</div><div>Montant exonéré (€/mois)</div><div /></div>
         {(exonereRows || []).map((r, i) => (
           <div key={i} style={colRow(i)}>
             <select value={r.type || ""} onChange={(e) => updateE(i, { type: e.target.value })}>
@@ -1386,11 +1386,11 @@ function RowsTable({ title, comptabiliseRows, exonereRows, onChangeComptabilise,
           </div>
         ))}
         <div style={{ marginTop: 12, padding: "10px 4px", background: "#F5F8FA", borderRadius: 6, fontWeight: 600, fontSize: 14 }}>
-          Total exonÃ©rÃ© : <Money value={sumExon} />/mois
+          Total exonéré : <Money value={sumExon} />/mois
         </div>
       </div>
 
-      {/* â”€â”€ RÃ©sumÃ© net â”€â”€ */}
+      {/* ── Résumé net ── */}
       <div className="summary-box">
         <div><b>Net mensuel ({title}) :</b> <Money value={net} /></div>
         <div style={{ opacity: 0.75, fontSize: 14 }}>Net annuel : <b><Money value={net * 12} /></b></div>
@@ -1400,21 +1400,21 @@ function RowsTable({ title, comptabiliseRows, exonereRows, onChangeComptabilise,
 }
 
 const CESSION_TYPE_OPTIONS = [
-  "Bien bÃ¢ti (unique)",
-  "Bien non bÃ¢ti (unique)",
-  "Autre bien bÃ¢ti",
-  "Autre bien non bÃ¢ti",
+  "Bien bâti (unique)",
+  "Bien non bâti (unique)",
+  "Autre bien bâti",
+  "Autre bien non bâti",
   "Bien meuble",
 ];
 
 const CESSION_NATURE_OPTIONS = [
-  "Cession Ã  titre onÃ©reux",
-  "Cession Ã  titre gratuit",
+  "Cession à titre onéreux",
+  "Cession à titre gratuit",
 ];
 
 const CESSION_TITRE_OPTIONS = [
-  "Pleine PropriÃ©tÃ© (P.P.)",
-  "Nu-propriÃ©tÃ© (N.P.)",
+  "Pleine Propriété (P.P.)",
+  "Nu-propriété (N.P.)",
   "Usufruit",
 ];
 
@@ -1425,7 +1425,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
   function addRow() { onChangeRows([...rows, defaultCessionRow()]); }
   function removeRow(i) { onChangeRows(rows.filter((_, idx) => idx !== i)); }
 
-  // Calculs dÃ©taillÃ©s pour chaque cession
+  // Calculs détaillés pour chaque cession
   const calculations = useMemo(() => {
     return rows.map((r, i) => ({
       index: i,
@@ -1452,7 +1452,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
       </div>
 
       {rows.length === 0 ? (
-        <p style={{ opacity: 0.6 }}>Aucune cession enregistrÃ©e</p>
+        <p style={{ opacity: 0.6 }}>Aucune cession enregistrée</p>
       ) : (
         <>
           {calculations.map((cession, i) => (
@@ -1483,16 +1483,16 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
                     style={{ padding: "6px" }}
                   >
                     <option value="">Choisir...</option>
-                    <option value="Bien bÃ¢ti (unique)">Bien bÃ¢ti (unique)</option>
-                    <option value="Bien non bÃ¢ti (unique)">Bien non bÃ¢ti (unique)</option>
-                    <option value="Autre bien bÃ¢ti">Autre bien bÃ¢ti</option>
-                    <option value="Autre bien non bÃ¢ti">Autre bien non bÃ¢ti</option>
+                    <option value="Bien bâti (unique)">Bien bâti (unique)</option>
+                    <option value="Bien non bâti (unique)">Bien non bâti (unique)</option>
+                    <option value="Autre bien bâti">Autre bien bâti</option>
+                    <option value="Autre bien non bâti">Autre bien non bâti</option>
                     <option value="Bien meuble">Bien meuble</option>
                   </select>
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>Valeur vÃ©nale (â‚¬)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Valeur vénale (€)</span>
                   <NumInput value={cession.valeurVenale}
                     onChange={(e) => updateRow(i, { valeurVenale: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }} />
@@ -1506,44 +1506,44 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>Titre de propriÃ©tÃ©</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Titre de propriété</span>
                   <select
                     value={cession.titrePropriete}
                     onChange={(e) => updateRow(i, { titrePropriete: e.target.value })}
                     style={{ padding: "6px" }}
                   >
-                    <option value="Pleine PropriÃ©tÃ© (P.P.)">Pleine PropriÃ©tÃ© (100%)</option>
-                    <option value="Nu-propriÃ©tÃ© (N.P.)">Nu-propriÃ©tÃ© (60%)</option>
+                    <option value="Pleine Propriété (P.P.)">Pleine Propriété (100%)</option>
+                    <option value="Nu-propriété (N.P.)">Nu-propriété (60%)</option>
                     <option value="Usufruit">Usufruit (40%)</option>
                   </select>
                 </label>
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Nature de la cession</span>
                   <select
-                    value={cession.natureCession || "Cession Ã  titre onÃ©reux"}
+                    value={cession.natureCession || "Cession à titre onéreux"}
                     onChange={(e) => updateRow(i, { natureCession: e.target.value })}
                     style={{ padding: "6px" }}
                   >
-                    <option value="Cession Ã  titre onÃ©reux">Cession Ã  titre onÃ©reux</option>
-                    <option value="Cession Ã  titre gratuit">Cession Ã  titre gratuit</option>
+                    <option value="Cession à titre onéreux">Cession à titre onéreux</option>
+                    <option value="Cession à titre gratuit">Cession à titre gratuit</option>
                   </select>
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>Dettes (â‚¬)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Dettes (€)</span>
                   <NumInput
                     value={cession.dettesPersonnelles}
                     onChange={(e) => updateRow(i, { dettesPersonnelles: safeNumber(e.target.value, 0) })}
-                    style={{ padding: "6px", opacity: cession.natureCession === "Cession Ã  titre gratuit" ? 0.45 : 1 }}
-                    disabled={cession.natureCession === "Cession Ã  titre gratuit"}
+                    style={{ padding: "6px", opacity: cession.natureCession === "Cession à titre gratuit" ? 0.45 : 1 }}
+                    disabled={cession.natureCession === "Cession à titre gratuit"}
                   />
-                  <span style={{ fontSize: 14, color: "#666", visibility: cession.natureCession === "Cession Ã  titre gratuit" ? "visible" : "hidden" }}>
+                  <span style={{ fontSize: 14, color: "#666", visibility: cession.natureCession === "Cession à titre gratuit" ? "visible" : "hidden" }}>
                     Non applicable pour cession gratuite
                   </span>
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>Dispense d'Ã©quitÃ© (â‚¬)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Dispense d'équité (€)</span>
                   <NumInput value={cession.dispenseEquite}
                     onChange={(e) => updateRow(i, { dispenseEquite: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }} />
@@ -1564,14 +1564,14 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
                 </label>
               </div>
 
-              {/* DÃ©tail du calcul */}
+              {/* Détail du calcul */}
               {cession.calc && (
                 <div style={{ background: colors.white, padding: 10, borderRadius: 6, border: `1px solid ${colors.border}`, fontSize: 14 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8 }}>
-                    <div><strong>Montant vÃ©nal:</strong> <Money value={cession.calc.montantVenal} /></div>
-                    <div><strong>Tranche immunisÃ©e:</strong> <Money value={cession.calc.trancheImmunisee} /></div>
+                    <div><strong>Montant vénal:</strong> <Money value={cession.calc.montantVenal} /></div>
+                    <div><strong>Tranche immunisée:</strong> <Money value={cession.calc.trancheImmunisee} /></div>
                     <div><strong>Abattement ({cession.calc.nbMois} mois):</strong> <Money value={cession.calc.abattement} /></div>
-                    <div><strong>Ã€ considÃ©rer:</strong> <Money value={cession.calc.montantConsideration} /></div>
+                    <div><strong>À considérer:</strong> <Money value={cession.calc.montantConsideration} /></div>
                   </div>
                   <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #eee", fontWeight: 600 }}>
                     Revenu annuel: <Money value={cession.calc.totalRevenu} /> | Mensuel: <Money value={cession.calc.totalMensuel} />
@@ -1608,7 +1608,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
       </div>
 
       {rows.length === 0 ? (
-        <p style={{ opacity: 0.6 }}>Aucun bien immobilier enregistrÃ©</p>
+        <p style={{ opacity: 0.6 }}>Aucun bien immobilier enregistré</p>
       ) : (
         <>
           {rows.map((r, i) => (
@@ -1639,9 +1639,9 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                     style={{ padding: "6px" }}
                   >
                     <option value="">Choisir...</option>
-                    <option value="BÃ¢ti">Bien bÃ¢ti</option>
-                    <option value="Non bÃ¢ti">Bien non bÃ¢ti</option>
-                    <option value="Ã‰tranger">Bien Ã©tranger</option>
+                    <option value="Bâti">Bien bâti</option>
+                    <option value="Non bâti">Bien non bâti</option>
+                    <option value="Étranger">Bien étranger</option>
                   </select>
                 </label>
 
@@ -1656,7 +1656,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>RC non indexÃ© (â‚¬)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>RC non indexé (€)</span>
                   <NumInput value={r.rcNonIndexe}
                     onChange={(e) => updateRow(i, { rcNonIndexe: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }} />
@@ -1670,34 +1670,34 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>Loyer annuel (â‚¬)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Loyer annuel (€)</span>
                   <NumInput value={r.loyerAnnuel}
                     onChange={(e) => updateRow(i, { loyerAnnuel: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }} />
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>IntÃ©rÃªts payÃ©s (â‚¬)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Intérêts payés (€)</span>
                   <NumInput value={r.interetsPaye}
                     onChange={(e) => updateRow(i, { interetsPaye: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }} />
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>Rente annuelle (â‚¬)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Rente annuelle (€)</span>
                   <NumInput value={r.renteAnnuelle}
                     onChange={(e) => updateRow(i, { renteAnnuelle: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }} />
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>Revenu Ã©tranger (â‚¬)</span>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Revenu étranger (€)</span>
                   <NumInput value={r.revenuImmoEtranger}
                     onChange={(e) => updateRow(i, { revenuImmoEtranger: safeNumber(e.target.value, 0) })}
                     style={{ padding: "6px" }}
-                    disabled={r.typeBien !== "Ã‰tranger"} />
-                  {r.typeBien !== "Ã‰tranger" && (
-                    <span style={{ fontSize: 14, color: "#666" }}>Uniquement pour biens Ã©trangers</span>
+                    disabled={r.typeBien !== "Étranger"} />
+                  {r.typeBien !== "Étranger" && (
+                    <span style={{ fontSize: 14, color: "#666" }}>Uniquement pour biens étrangers</span>
                   )}
                 </label>
               </div>
@@ -1707,9 +1707,9 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
       )}
       
       <div style={{ marginTop: 10, padding: 10, background: "#e8f4f8", borderRadius: 5, border: "1px solid #0066cc" }}>
-        <div><b>Biens Immobiliers BÃ¢tis (IB)</b> â€” Total annuel : <Money value={immo.IB.total} /></div>
-        <div style={{ marginTop: 5 }}><b>Biens Immobiliers Non BÃ¢tis (INB)</b> â€” Total annuel : <Money value={immo.INB.total} /></div>
-        <div style={{ marginTop: 5 }}><b>Immeubles Ã©trangers</b> â€” Total annuel : <Money value={immo.etranger} /></div>
+        <div><b>Biens Immobiliers Bâtis (IB)</b> — Total annuel : <Money value={immo.IB.total} /></div>
+        <div style={{ marginTop: 5 }}><b>Biens Immobiliers Non Bâtis (INB)</b> — Total annuel : <Money value={immo.INB.total} /></div>
+        <div style={{ marginTop: 5 }}><b>Immeubles étrangers</b> — Total annuel : <Money value={immo.etranger} /></div>
         <div style={{ marginTop: 5, paddingTop: 5, borderTop: "1px solid #0088cc", fontWeight: 700 }}>
           <b>Total mensuel : <Money value={immo.totalMensuel} /></b>
         </div>
@@ -1765,14 +1765,14 @@ function daysInMonth(dateISO) {
   return new Date(y, m, 0).getDate();
 }
 function sumIrregularArtisticMonthly(rows) {
-  // Excel Exoneration!O1 / P1 : SUMPRODUCT(label == "Revenus d'une activitÃ© artistique irrÃ©guliÃ¨re") * montant
+  // Excel Exoneration!O1 / P1 : SUMPRODUCT(label == "Revenus d'une activité artistique irrégulière") * montant
   // On suppose que tes rows ont { label, montant } (comme ton UI).
-  const LABEL = "Revenus d'une activitÃ© artistique irrÃ©guliÃ¨re";
+  const LABEL = "Revenus d'une activité artistique irrégulière";
   return (rows || []).reduce((s, r) => s + (r.label === LABEL ? safeNumber(r.montant, 0) : 0), 0);
 }
 
 function round2n(x) {
-  // alias si tu as dÃ©jÃ  round2; sinon utilise round2 existant
+  // alias si tu as déjà round2; sinon utilise round2 existant
   return round2(x);
 }
 
@@ -1787,10 +1787,10 @@ function computeExonerationExcel({ dateISO, exo }) {
     const exoGeneralMens = p.general ? safeNumber(row.generalMensuel, 0) * prorata : 0;
     const exoEtudMens = p.etudiant ? safeNumber(row.etudiantMensuel, 0) * prorata : 0;
 
-    // Penurie = colonne 5 de DonnÃ©es K:O â†’ dans notre table: penurieMensuel
+    // Penurie = colonne 5 de Données K:O → dans notre table: penurieMensuel
     const exoPenurieMens = p.penurie ? safeNumber(row.penurieMensuel, 0) * prorata : 0;
 
-    // Artiste socio-prof = colonne 3 (annuel) â†’ Excel prend direct annuel si cochÃ©
+    // Artiste socio-prof = colonne 3 (annuel) → Excel prend direct annuel si coché
     const exoArtisteAnnuel = p.artisteSP ? safeNumber(row.artistiqueAnnuel, 0) : 0;
 
     const totalMensuel = -(exoGeneralMens + exoEtudMens + exoPenurieMens) - (exoArtisteAnnuel / 12);
@@ -1895,8 +1895,8 @@ function Card({ title, children, level = 3, action }) {
   );
 }
 
-// Champ numÃ©rique : garde le texte brut pendant la frappe (permet "152." ou "1445,"),
-// normalise Ã  l'affichage seulement au blur, vide quand valeur = 0.
+// Champ numérique : garde le texte brut pendant la frappe (permet "152." ou "1445,"),
+// normalise à l'affichage seulement au blur, vide quand valeur = 0.
 function NumInput({ value, onChange, style, disabled, placeholder, ...rest }) {
   const [draft, setDraft] = useState(() => (!value && value !== 0) || value === 0 ? "" : String(value));
   const focused = useRef(false);
@@ -1981,7 +1981,7 @@ function Sidebar({ active, onSelect, onNewCalcul }) {
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          aria-label={isCollapsed ? "DÃ©plier le menu" : "Replier le menu"}
+          aria-label={isCollapsed ? "Déplier le menu" : "Replier le menu"}
           style={{
             background: "rgba(255,255,255,0.1)",
             border: "none",
@@ -2038,7 +2038,7 @@ function Sidebar({ active, onSelect, onNewCalcul }) {
       <div style={{ marginTop: 16, borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: 16 }}>
         <button
           onClick={onNewCalcul}
-          title="Effacer toutes les donnÃ©es et repartir de zÃ©ro"
+          title="Effacer toutes les données et repartir de zéro"
           style={{
             width: "100%",
             padding: isCollapsed ? "10px" : "10px 12px",
@@ -2077,7 +2077,7 @@ function Sidebar({ active, onSelect, onNewCalcul }) {
 
     console.log("Eligible:", eligible);
 
-    // C39 = IF(eligible, -HLOOKUP(categorie, DonnÃ©es!Q2:S3, 2, FALSE), "Pas de droit")
+    // C39 = IF(eligible, -HLOOKUP(categorie, Données!Q2:S3, 2, FALSE), "Pas de droit")
     const C39_exoSupplAnnuelle = eligible ? -safeNumber(EXO_SUPPL_ANNUEL[categorie], 0) : 0;
 
     console.log("C39_exoSupplAnnuelle:", C39_exoSupplAnnuelle);
@@ -2118,7 +2118,7 @@ function computeApercuExcelLike({ data, pieces }) {
   const dateISO = data.reference.dateISO || firstOfCurrentMonth();
   const dim = daysInMonth(dateISO);
 
-  // Excel Informations!C18 : jours pÃ©riode (si 0 => mois complet)
+  // Excel Informations!C18 : jours période (si 0 => mois complet)
   const joursPeriode = safeNumber(data.reference.joursPrisEnCompte, 0);
 
   const {
@@ -2134,11 +2134,11 @@ function computeApercuExcelLike({ data, pieces }) {
   } = pieces;
 
   // ---------- Section Ressources professionnelles ----------
-  // AperÃ§u ligne 4/5: net â€œbrutâ€
+  // Aperçu ligne 4/5: net “brut”
   const D4_netDem_Annuel = round2n(dem.net * 12);
   const D5_netConj_Annuel = round2n(conj.net * 12);
 
-  // AperÃ§u ligne 6/7: net aprÃ¨s exonÃ©rations gÃ©nÃ©rales + Ã©tudiant + pÃ©nurie, plancher Ã  0
+  // Aperçu ligne 6/7: net après exonérations générales + étudiant + pénurie, plancher à 0
   const exoGenDem  = safeNumber(exo.demandeur?.exoGeneralMens, 0);
   const exoEtudDem = safeNumber(exo.demandeur?.exoEtudMens, 0);
   const exoPenDem  = safeNumber(exo.demandeur?.exoPenurieMens, 0);
@@ -2152,7 +2152,7 @@ function computeApercuExcelLike({ data, pieces }) {
   const D6_netAvantExoSP_Dem_Annuel = round2n(netAvantExoSP_Dem_M * 12);
   const D7_netAvantExoSP_Conj_Annuel = round2n(netAvantExoSP_Conj_M * 12);
 
-  // AperÃ§u ligne 8: "Montant net (avec exonÃ©rations artistique)"
+  // Aperçu ligne 8: "Montant net (avec exonérations artistique)"
   const artDem = sumIrregularArtisticMonthly(data.revenusNets.demandeur.comptabiliseRows);
   const artConj = data.revenusNets.conjoint.enabled ? sumIrregularArtisticMonthly(data.revenusNets.conjoint.comptabiliseRows) : 0;
 
@@ -2165,12 +2165,12 @@ function computeApercuExcelLike({ data, pieces }) {
   const netAvecArt_M = round2n(artNetDem_M + artNetConj_M);
   const D8_netAvecArt_Annuel = round2n(netAvecArt_M * 12);
 
-  // AperÃ§u ligne 9-11 (chÃ´mage/mutuelle/remplacement) : on est dÃ©jÃ  en mensuel -> annuel = *12
+  // Aperçu ligne 9-11 (chômage/mutuelle/remplacement) : on est déjà en mensuel -> annuel = *12
   const D9_chom_Annuel = round2n(chom.mensuelTotal * 12);
   const D10_mut_Annuel = round2n(mut.mensuelTotal * 12);
   const D11_rem_Annuel = round2n(rem * 12);
 
-  // AperÃ§u F4 = Total ressources proratisables = SUM(C6:C11)
+  // Aperçu F4 = Total ressources proratisables = SUM(C6:C11)
   const totalProratisables_M =
     netAvantExoSP_Dem_M +
     netAvantExoSP_Conj_M +
@@ -2186,7 +2186,7 @@ const F8_totalProratises_M =
     : round2n((joursPeriode * totalProratisables_M) / (dim || 1));
 
 
-  // AperÃ§u ligne 14 : TOTAL des ressources pro ou assimilÃ©es (mensuel) = F8 + (Ressources diverses mensuelles)
+  // Aperçu ligne 14 : TOTAL des ressources pro ou assimilées (mensuel) = F8 + (Ressources diverses mensuelles)
   const ressourcesDiverses_M = round2n(diversesGenerales + diversesBenevoles);
   const F14_totalRessourcesProAssim_M = round2n(F8_totalProratises_M + ressourcesDiverses_M);
 
@@ -2203,7 +2203,7 @@ const F8_totalProratises_M =
   const D29_avantages_Annuel = round2n(avantagesMensuel * 12);
   const D32_cohabitants_Annuel = round2n(cohabitantsMensuel * 12);
 
-  // F14 (mensuel) doit Ãªtre calculÃ© juste avant
+  // F14 (mensuel) doit être calculé juste avant
   // C37 = F32 + F29 + F26 + F23 + F20 + (F14*12)
   const C37_totalRessourcesAnnuelles = round2n(
     D32_cohabitants_Annuel +           // Total annuel des cohabitants
@@ -2242,7 +2242,7 @@ const F8_totalProratises_M =
 
     C37_totalRessourcesAnnuelles,
 
-    ri, // contient dÃ©jÃ  C39/C41/C43/E45/C52 (montantMensuelProrata etc.)
+    ri, // contient déjà C39/C41/C43/E45/C52 (montantMensuelProrata etc.)
   };
 }
 
@@ -2267,22 +2267,22 @@ function computeImmoAnnualExcelLike(rows) {
   let total = 0;
 
   for (const r of safeRows) {
-    // Cas "Etranger" : Excel somme directement le revenu Ã©tranger (col G) Ã  part
-    // (sans passer par RC / exonÃ©ration / loyer).
-    if (r.typeBien === "Ã‰tranger" || r.typeBien === "Etranger") {
+    // Cas "Etranger" : Excel somme directement le revenu étranger (col G) à part
+    // (sans passer par RC / exonération / loyer).
+    if (r.typeBien === "Étranger" || r.typeBien === "Etranger") {
       total += r.revenuImmoEtranger;
       continue;
     }
 
     if (r.rcNonIndexe <= 0) {
       // Si pas de RC => ressourcesZT vides, mais le loyer pourrait exister.
-      // En Excel, le loyer est comparÃ© Ã  M (qui vaut 0) donc si loyer>0, il est comptÃ©.
+      // En Excel, le loyer est comparé à M (qui vaut 0) donc si loyer>0, il est compté.
     }
 
     const K = round2(r.rcNonIndexe * r.quotePart); // RC x Part
 
-    // Exo/bat (L) : (exo*2) rÃ©parti entre les biens avec RC>0, puis * quotePart
-    const baseExo = (r.typeBien === "BÃ¢ti" ? EXO_BATI : EXO_NON_BATI) * 2;
+    // Exo/bat (L) : (exo*2) réparti entre les biens avec RC>0, puis * quotePart
+    const baseExo = (r.typeBien === "Bâti" ? EXO_BATI : EXO_NON_BATI) * 2;
     const L = (r.rcNonIndexe > 0 && countRCPos > 0)
       ? round2((baseExo * r.quotePart) / countRCPos)
       : 0;
@@ -2290,14 +2290,14 @@ function computeImmoAnnualExcelLike(rows) {
     // Ressources - ZT (M)
     const M = (r.rcNonIndexe > 0 && K >= L) ? round2((K - L) * 3) : 0;
 
-    // Loyer droit (U) + loyer comptÃ© (V)
+    // Loyer droit (U) + loyer compté (V)
     const U = (r.loyerAnnuel > 0) ? round2(r.loyerAnnuel * r.quotePart) : 0;
     const loyerCompte = (U > M) ? U : 0;
 
-    // Si loyer comptÃ© => ressources RC "voir loyer" => on ne prend pas M
+    // Si loyer compté => ressources RC "voir loyer" => on ne prend pas M
     const ressourcesRC = loyerCompte > 0 ? 0 : M;
 
-    // IntÃ©rÃªts et rente plafonnÃ©s Ã  50% des ressourcesRC (Excel: N/2)
+    // Intérêts et rente plafonnés à 50% des ressourcesRC (Excel: N/2)
     const maxDed = round2(ressourcesRC / 2);
 
     const interetsDroit = round2(r.interetsPaye * r.quotePart);
@@ -2324,11 +2324,11 @@ function coeffTitrePropriete(titre) {
   if (!titre) return 1;
   const t = String(titre).toLowerCase();
   if (t.includes("usufruit")) return 0.4;
-  if (t.includes("nu")) return 0.6; // nu-propriÃ©tÃ©
-  return 1; // pleine propriÃ©tÃ©
+  if (t.includes("nu")) return 0.6; // nu-propriété
+  return 1; // pleine propriété
 }
 
-// Excel: HLOOKUP(cat, DonnÃ©es!Q20:S21,2) => 1250/2000/2500
+// Excel: HLOOKUP(cat, Données!Q20:S21,2) => 1250/2000/2500
 function montantAnnuelCat(categorie) {
   if (categorie === 1) return 1250;
   if (categorie === 2) return 2000;
@@ -2366,8 +2366,8 @@ function computeCessionsAnnualExcelLike(rows, categorie) {
     const coeff = coeffTitrePropriete(r.titrePropriete);
 
     const isUnique =
-      type === "Bien bÃ¢ti (unique)" ||
-      type === "Bien non-bÃ¢ti (unique)" ||
+      type === "Bien bâti (unique)" ||
+      type === "Bien non-bâti (unique)" ||
       type === "Bien non-bati (unique)";
 
     // Q = E * F * coeffTitre
@@ -2376,7 +2376,7 @@ function computeCessionsAnnualExcelLike(rows, categorie) {
     // N = -ROUND(trancheImmunisee * part, 2) si unique
     const N = isUnique ? -round2(TRANCHE_IMMUNISEE_UNIQUE * part) : 0;
 
-    // P (nbr mois) + S (annualitÃ©) si unique
+    // P (nbr mois) + S (annualité) si unique
     const P = isUnique ? monthsDiffMinus1(r.dateCession, r.datePriseEnCompteRI) : 0;
     const S = isUnique ? -round2(O * P / 12) : 0;
 
@@ -2424,11 +2424,11 @@ function asNumOrZero(x) {
  */
 
 function coeffTitreExcel(titre) {
-  // Excel: HLOOKUP(G, DonnÃ©es!Q16:S17,2)
-  // Mapping dâ€™aprÃ¨s ta liste
+  // Excel: HLOOKUP(G, Données!Q16:S17,2)
+  // Mapping d’après ta liste
   if (titre === "Usufruit") return 0.4;
-  if (titre === "Nu-propriÃ©tÃ© (N.P.)") return 0.6;
-  return 1; // Pleine PropriÃ©tÃ© (P.P.) par dÃ©faut
+  if (titre === "Nu-propriété (N.P.)") return 0.6;
+  return 1; // Pleine Propriété (P.P.) par défaut
 }
 
 // Excel P:
@@ -2451,7 +2451,7 @@ function monthsPExcel(dateCession, dateRI) {
 
 function computeImmoExcel(rows, nbEnfants = 0) {
   const list = (rows || []).map((r) => ({
-    type: r.typeBien || "", // "BÃ¢ti" | "Non bÃ¢ti" | "Ã‰tranger"
+    type: r.typeBien || "", // "Bâti" | "Non bâti" | "Étranger"
     localisation: r.localisation || "",
     interets: asNumOrZero(r.interetsPaye),
     rente: asNumOrZero(r.renteAnnuelle),
@@ -2472,7 +2472,7 @@ function computeImmoExcel(rows, nbEnfants = 0) {
   };
 
   for (const r of list) {
-    if (r.type === "Ã‰tranger" || r.type === "Etranger") {
+    if (r.type === "Étranger" || r.type === "Etranger") {
       totals.etranger += round2(r.revEtranger);
       continue;
     }
@@ -2483,9 +2483,9 @@ function computeImmoExcel(rows, nbEnfants = 0) {
     const F = r.rente;
     const I = r.loyer;
 
-    // Calculs spÃ©cifiques Ã  Excel
+    // Calculs spécifiques à Excel
     const K = H !== 0 ? round2(H * J) : null;
-    const exoBase = r.type === "BÃ¢ti" ? EXO_BATI : EXO_NON_BATI;
+    const exoBase = r.type === "Bâti" ? EXO_BATI : EXO_NON_BATI;
 const exoTotal = exoBase + safeNumber(nbEnfants, 0) * 125;
 const L = H !== 0 && countRCPos > 0
   ? round2((exoTotal * J) / countRCPos)
@@ -2502,7 +2502,7 @@ const L = H !== 0 && countRCPos > 0
     const S = N !== "voir loyer" ? (F !== 0 && isFiniteNumber(N) ? round2(N / 2) : null) : "s. o.";
     const T = S !== "s. o." ? (F !== 0 && R !== null && S !== null ? -round2(Math.min(R, S)) : null) : "s. o.";
 
-    const bucket = r.type === "BÃ¢ti" ? totals.IB : totals.INB;
+    const bucket = r.type === "Bâti" ? totals.IB : totals.INB;
 
     const ressources = isFiniteNumber(N) ? N : 0;
     const dedInterets = isFiniteNumber(Q) ? Q : 0;
@@ -2538,9 +2538,9 @@ function computeCessionsExcel(rows, montantOAnnuel, trancheImmunisee, seuilR, se
     const J = asNumOrZero(r.dispenseEquite);
     const G = r.titrePropriete || "";
 
-    const isUnique = type === "Bien bÃ¢ti (unique)" || type === "Bien non bÃ¢ti (unique)";
+    const isUnique = type === "Bien bâti (unique)" || type === "Bien non bâti (unique)";
 
-    // N (tranche immunisÃ©e)
+    // N (tranche immunisée)
     const N = isUnique ? -round2(trancheImmunisee * F) : 0;
 
     // O (montant annuel cat) est fourni en param
@@ -2584,7 +2584,7 @@ function computeCessionsExcel(rows, montantOAnnuel, trancheImmunisee, seuilR, se
 
 function computeFromForm(data) {
   const categorie =
-    data.menage.situation === "isolÃ©" ? 2 :
+    data.menage.situation === "isolé" ? 2 :
     data.menage.situation === "cohabitant" ? 1 :
     data.menage.situation === "famille" ? 3 : null;
 
@@ -2617,7 +2617,7 @@ function computeFromForm(data) {
     0
   );
 
-  // --- Cessions (annuel) - Nouveau calcul dÃ©taillÃ©
+  // --- Cessions (annuel) - Nouveau calcul détaillé
   const cessionsResult = computeCessionsTotalAnnuel(data.cessionsBiens?.rows || [], categorie);
 
   // --- Immobiliers (annuel) - Calcul correct avec computeImmoExcel
@@ -2625,16 +2625,16 @@ function computeFromForm(data) {
   data.menage.nbEnfants
 );
   
-  // âœ… bm : adapte selon ton modÃ¨le (si tu as dÃ©jÃ  computeBiensMobiliersExcel, utilise-le)
-  // Sinon, on prend lâ€™objet stockÃ© dans data (au minimum il faut bm.totalAnnuel)
+  // ✅ bm : adapte selon ton modèle (si tu as déjà computeBiensMobiliersExcel, utilise-le)
+  // Sinon, on prend l’objet stocké dans data (au minimum il faut bm.totalAnnuel)
   const bm = computeBiensMobiliersExcel(data.biensMobiliers || { montantCapital: 0, partConcernee: 100 });
   
   // Calcul des cohabitants
   const cohabitantsTotals = computeCohabitantsGrouped(data.cohabitants || { rows: [] }, dateISO);
-  // ExonÃ©ration
+  // Exonération
   const exo = computeExonerationExcel({ dateISO, exo: data.exoneration });
 
-  // 1) AperÃ§u SANS RI (pour obtenir C37)
+  // 1) Aperçu SANS RI (pour obtenir C37)
   const apercu0 = computeApercuExcelLike({
     data,
     pieces: {
@@ -2651,13 +2651,13 @@ function computeFromForm(data) {
       avantagesMensuel,
       diversesGenerales,
       diversesBenevoles,
-      cohabitantsMensuel: cohabitantsTotals.totalMensuel, // â† UTILISER LE TOTAL CALCULÃ‰
+      cohabitantsMensuel: cohabitantsTotals.totalMensuel, // ← UTILISER LE TOTAL CALCULÉ
       ri: { montantMensuel: 0 },
     },
   });
 
 
-  // 2) RI Ã  partir de C37
+  // 2) RI à partir de C37
   const ri = computeRIApercuExcel({
     dateISO,
     categorie,
@@ -2666,38 +2666,38 @@ function computeFromForm(data) {
   });
   console.log("DEBUG RI", ri);
 
-  // 3) AperÃ§u final (affichage)
+  // 3) Aperçu final (affichage)
   const apercu = { ...apercu0, ri };
 
   // NOUVEAU: Retourner aussi les cohabitants
   return { 
     ...ri, 
     apercu,
-    cohabitants: cohabitantsTotals // â† AJOUT
+    cohabitants: cohabitantsTotals // ← AJOUT
   };
 }
 
-// â”€â”€â”€ Fiches pratiques CPASConnect â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Fiches pratiques CPASConnect ────────────────────────────────────────────
 const FICHES_PRATIQUES = {
-  // â”€â”€ En-tÃªtes de sections â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── En-têtes de sections ──────────────────────────────────────────────────
   revenus_nets:          { titre: "Revenus nets professionnels",                        url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684897" },
-  cmr:                   { titre: "ChÃ´mage / Mutuelle / Remplacement",                 url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684905" },
+  cmr:                   { titre: "Chômage / Mutuelle / Remplacement",                 url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684905" },
   avantages:             { titre: "Avantages en nature",                               url: null },
   cessions_biens:        { titre: "Cession de biens",                                  url: "https://myportal.vandenbroeleconnect.be/contenu/highlights/detail/720858519162603189"},
   biens_immobiliers:     { titre: "Biens immobiliers",                                 url: null },
   biens_mobiliers:       { titre: "Biens mobiliers",                                   url: null },
   ressources_diverses:   { titre: "Allocations & ressources diverses",                 url: null },
   cohabitants:           { titre: "Revenus des cohabitants",                           url: null },
-  // â”€â”€ Sous-catÃ©gories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  date_reference:        { titre: "Date d'octroi / rÃ©vision",                        url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684678" },
-  insertion_sociopro:    { titre: "Montants exonÃ©rÃ©s â€” Insertion socioprofessionnelle", url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907" },
-  exo_generale_etudiant: { titre: "ExonÃ©ration Pro. gÃ©nÃ©rale / Ã©tudiants",             url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907" },
-  exo_penurie:           { titre: "ExonÃ©ration Pro. pÃ©nurie",                          url: "https://myportal.vandenbroeleconnect.be/perma/149746886634385151" },
+  // ── Sous-catégories ───────────────────────────────────────────────────────
+  date_reference:        { titre: "Date d'octroi / révision",                        url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684678" },
+  insertion_sociopro:    { titre: "Montants exonérés — Insertion socioprofessionnelle", url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907" },
+  exo_generale_etudiant: { titre: "Exonération Pro. générale / étudiants",             url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907" },
+  exo_penurie:           { titre: "Exonération Pro. pénurie",                          url: "https://myportal.vandenbroeleconnect.be/perma/149746886634385151" },
   jours_compteur:        { titre: "Jours compteur socioprofessionnel",                 url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684897" },
-  chomage:               { titre: "ChÃ´mage",                                           url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684905" },
+  chomage:               { titre: "Chômage",                                           url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684905" },
   mutuelle:              { titre: "Mutuelle",                                          url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684905" },
   remplacement:          { titre: "Revenu de remplacement",                            url: null },
-  handicape_arr:         { titre: "Allocation d'HandicapÃ© ARR",                        url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684880" },
+  handicape_arr:         { titre: "Allocation d'Handicapé ARR",                        url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684880" },
   autre_remplacement:    { titre: "Autre revenu de remplacement",                      url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684904" },
   prise_en_charge:       { titre: "Prise en charge cohabitant",                        url: null },
 };
@@ -2715,7 +2715,7 @@ function FicheBtn({ ficheKey, onOpen }) {
         display: "inline-flex", alignItems: "center",
       }}
     >
-      ðŸ“‹
+      📋
     </button>
   );
 }
@@ -2754,14 +2754,14 @@ function FicheModal({ fiche, onClose }) {
               fontSize: "22px", cursor: "pointer", padding: "0 4px", lineHeight: 1,
             }}
           >
-            âœ•
+            ✕
           </button>
         </div>
         {/* Corps */}
         <div style={{ padding: "32px 28px", textAlign: "center" }}>
           <div style={{
             fontSize: "40px", marginBottom: "16px", lineHeight: 1,
-          }}>ðŸ“‹</div>
+          }}>📋</div>
           <div style={{
             fontSize: "18px", fontWeight: 700, color: "#163E67", marginBottom: "8px",
           }}>
@@ -2769,7 +2769,7 @@ function FicheModal({ fiche, onClose }) {
           </div>
           <div style={{ fontSize: "14px", color: "#7F8C8D", marginBottom: "28px" }}>
             Cette fiche s'ouvre dans CPASConnect.<br />
-            Assurez-vous d'Ãªtre connectÃ© pour y accÃ©der.
+            Assurez-vous d'être connecté pour y accéder.
           </div>
           <a
             href={fiche.url}
@@ -2787,7 +2787,7 @@ function FicheModal({ fiche, onClose }) {
             onMouseOver={(e) => e.currentTarget.style.background = "#0f2d4d"}
             onMouseOut={(e) => e.currentTarget.style.background = "#163E67"}
           >
-            Ouvrir dans CPASConnect â†—
+            Ouvrir dans CPASConnect ↗
           </a>
         </div>
       </div>
@@ -2795,9 +2795,9 @@ function FicheModal({ fiche, onClose }) {
   );
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// AccordionBlock â€” bloc accordÃ©on gÃ©nÃ©rique rÃ©utilisable
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
+// CMRSection — Chômage / Mutuelle / Remplacement (accordéons)
+// ─────────────────────────────────────────────────────────────
 function AccordionBlock({ open, onToggle, icon, title, ficheKey, openFiche, total, children }) {
   const hasTotal = total != null && total > 0;
   return (
@@ -2826,9 +2826,6 @@ function AccordionBlock({ open, onToggle, icon, title, ficheKey, openFiche, tota
   );
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// CMRSection â€” ChÃ´mage / Mutuelle / Remplacement (accordÃ©ons)
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function CMRSection({ cmr, dateISO, setCmr, openFiche, embedded = false }) {
   const year = parseInt((dateISO || "2025-01-01").split("-")[0]) || 2025;
 
@@ -2867,25 +2864,12 @@ function CMRSection({ cmr, dateISO, setCmr, openFiche, embedded = false }) {
 
   const inner = (
     <div style={{ display: "grid", gap: 8 }}>
-      {!embedded && totalMois > 0 && (
-        <div className="summary-box">
-          <b>Total CMR mensuel : <Money value={totalMois} /></b>
-          <span style={{ marginLeft: 16, opacity: 0.7, fontSize: 14 }}>
-            {chomTotal > 0 && `ChÃ´mage ${round2(chomTotal)} â‚¬`}
-            {chomTotal > 0 && (mutTotal > 0 || remTotal > 0) && " Â· "}
-            {mutTotal  > 0 && `Mutuelle ${round2(mutTotal)} â‚¬`}
-            {mutTotal  > 0 && remTotal > 0 && " Â· "}
-            {remTotal  > 0 && `Remplacement ${round2(remTotal)} â‚¬`}
-          </span>
-        </div>
-      )}
-
-      {/* â”€â”€ ChÃ´mage â”€â”€ */}
+      {/* ── Chomage ── */}
       <div style={blockStyle}>
         <button type="button" style={hdrStyle(openChom)} onClick={() => setOpenChom(v => !v)}>
           <span style={{ fontWeight: 700, color: colors.primary, display: "flex", alignItems: "center", gap: 8 }}>
             <i className="fas fa-circle-minus" style={{ fontSize: 13, opacity: 0.6 }} aria-hidden="true" />
-            ChÃ´mage
+            Chômage
             <FicheBtn ficheKey="chomage" onOpen={openFiche} />
           </span>
           <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -2896,7 +2880,7 @@ function CMRSection({ cmr, dateISO, setCmr, openFiche, embedded = false }) {
         {openChom && (
           <div style={{ padding: 16 }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
-              <Input label="Montant mensuel rÃ©el" type="number" value={cmr.chomage.mensuelReel}
+              <Input label="Montant mensuel réel" type="number" value={cmr.chomage.mensuelReel}
                 onChange={(e) => setChom({ mensuelReel: safeNumber(e.target.value, 0) })} />
               <Input label="Montant/jour (sur 26 jours)" type="number" value={cmr.chomage.montantJour26}
                 onChange={(e) => setChom({ montantJour26: safeNumber(e.target.value, 0) })} />
@@ -2905,15 +2889,15 @@ function CMRSection({ cmr, dateISO, setCmr, openFiche, embedded = false }) {
             </div>
             {chomTotal > 0 && (
               <div style={{ marginTop: 10, fontSize: 13, color: colors.primary, fontWeight: 600 }}>
-                â†’ <Money value={chomTotal} />/mois
-                {chomCalc.daysPaid > 0 && <span style={{ fontWeight: 400, color: colors.textLight, marginLeft: 6 }}>({chomCalc.daysPaid} jours payÃ©s en {year})</span>}
+                → <Money value={chomTotal} />/mois
+                {chomCalc.daysPaid > 0 && <span style={{ fontWeight: 400, color: colors.textLight, marginLeft: 6 }}>({chomCalc.daysPaid} jours payés en {year})</span>}
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* â”€â”€ Mutuelle â”€â”€ */}
+      {/* ── Mutuelle ── */}
       <div style={blockStyle}>
         <button type="button" style={hdrStyle(openMut)} onClick={() => setOpenMut(v => !v)}>
           <span style={{ fontWeight: 700, color: colors.primary, display: "flex", alignItems: "center", gap: 8 }}>
@@ -2929,7 +2913,7 @@ function CMRSection({ cmr, dateISO, setCmr, openFiche, embedded = false }) {
         {openMut && (
           <div style={{ padding: 16 }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
-              <Input label="Montant mensuel rÃ©el" type="number" value={cmr.mutuelle.mensuelReel}
+              <Input label="Montant mensuel réel" type="number" value={cmr.mutuelle.mensuelReel}
                 onChange={(e) => setMut({ mensuelReel: safeNumber(e.target.value, 0) })} />
               <Input label="Montant/jour (sur 26 jours)" type="number" value={cmr.mutuelle.montantJour26}
                 onChange={(e) => setMut({ montantJour26: safeNumber(e.target.value, 0) })} />
@@ -2938,15 +2922,15 @@ function CMRSection({ cmr, dateISO, setCmr, openFiche, embedded = false }) {
             </div>
             {mutTotal > 0 && (
               <div style={{ marginTop: 10, fontSize: 13, color: colors.primary, fontWeight: 600 }}>
-                â†’ <Money value={mutTotal} />/mois
-                {mutCalc.daysPaid > 0 && <span style={{ fontWeight: 400, color: colors.textLight, marginLeft: 6 }}>({mutCalc.daysPaid} jours payÃ©s en {year})</span>}
+                → <Money value={mutTotal} />/mois
+                {mutCalc.daysPaid > 0 && <span style={{ fontWeight: 400, color: colors.textLight, marginLeft: 6 }}>({mutCalc.daysPaid} jours payés en {year})</span>}
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* â”€â”€ Remplacement â”€â”€ */}
+      {/* ── Remplacement ── */}
       <div style={blockStyle}>
         <button type="button" style={hdrStyle(openRem)} onClick={() => setOpenRem(v => !v)}>
           <span style={{ fontWeight: 700, color: colors.primary, display: "flex", alignItems: "center", gap: 8 }}>
@@ -2962,22 +2946,22 @@ function CMRSection({ cmr, dateISO, setCmr, openFiche, embedded = false }) {
         {openRem && (
           <div style={{ padding: 16 }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
-              <Input label="Pension (â‚¬/mois)" type="number" value={cmr.remplacement.pensionMensuel}
+              <Input label="Pension (€/mois)" type="number" value={cmr.remplacement.pensionMensuel}
                 onChange={(e) => setRem({ pensionMensuel: safeNumber(e.target.value, 0) })} />
-              <Input label="Droit passerelle (â‚¬/mois)" type="number" value={cmr.remplacement.droitPasserelleMensuel}
+              <Input label="Droit passerelle (€/mois)" type="number" value={cmr.remplacement.droitPasserelleMensuel}
                 onChange={(e) => setRem({ droitPasserelleMensuel: safeNumber(e.target.value, 0) })} />
-              <Input label={<span style={{ display: "flex", alignItems: "center", gap: 6 }}>Allocation handicap ARR (â‚¬/mois)<FicheBtn ficheKey="handicape_arr" onOpen={openFiche} /></span>}
+              <Input label={<span style={{ display: "flex", alignItems: "center", gap: 6 }}>Allocation handicap ARR (€/mois)<FicheBtn ficheKey="handicape_arr" onOpen={openFiche} /></span>}
                 type="number" value={cmr.remplacement.allocationHandicapeMensuel}
                 onChange={(e) => setRem({ allocationHandicapeMensuel: safeNumber(e.target.value, 0) })} />
-              <Input label="Indemnisation perte de revenus (â‚¬/mois)" type="number" value={cmr.remplacement.indemnisation_perte_revenus}
+              <Input label="Indemnisation perte de revenus (€/mois)" type="number" value={cmr.remplacement.indemnisation_perte_revenus}
                 onChange={(e) => setRem({ indemnisation_perte_revenus: safeNumber(e.target.value, 0) })} />
-              <Input label={<span style={{ display: "flex", alignItems: "center", gap: 6 }}>Autre revenu de remplacement (â‚¬/mois)<FicheBtn ficheKey="autre_remplacement" onOpen={openFiche} /></span>}
+              <Input label={<span style={{ display: "flex", alignItems: "center", gap: 6 }}>Autre revenu de remplacement (€/mois)<FicheBtn ficheKey="autre_remplacement" onOpen={openFiche} /></span>}
                 type="number" value={cmr.remplacement.autres_revenus}
                 onChange={(e) => setRem({ autres_revenus: safeNumber(e.target.value, 0) })} />
             </div>
             {remTotal > 0 && (
               <div style={{ marginTop: 10, fontSize: 13, color: colors.primary, fontWeight: 600 }}>
-                â†’ <Money value={remTotal} />/mois
+                {"->"} <Money value={remTotal} />/mois
               </div>
             )}
           </div>
@@ -2987,16 +2971,22 @@ function CMRSection({ cmr, dateISO, setCmr, openFiche, embedded = false }) {
   );
 
   if (embedded) return inner;
-
   return (
     <section style={{ display: "grid", gap: 10 }}>
       <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: 8 }}>
-        ChÃ´mage / Mutuelle / Remplacement
+        Chômage / Mutuelle / Remplacement
         <FicheBtn ficheKey="cmr" onOpen={openFiche} />
       </h2>
       {totalMois > 0 && (
         <div className="summary-box">
           <b>Total CMR mensuel : <Money value={totalMois} /></b>
+          <span style={{ marginLeft: 16, opacity: 0.7, fontSize: 14 }}>
+            {chomTotal > 0 && `Chômage ${round2(chomTotal)} €`}
+            {chomTotal > 0 && (mutTotal > 0 || remTotal > 0) && " · "}
+            {mutTotal  > 0 && `Mutuelle ${round2(mutTotal)} €`}
+            {mutTotal  > 0 && remTotal > 0 && " · "}
+            {remTotal  > 0 && `Remplacement ${round2(remTotal)} €`}
+          </span>
         </div>
       )}
       {inner}
@@ -3004,18 +2994,17 @@ function CMRSection({ cmr, dateISO, setCmr, openFiche, embedded = false }) {
   );
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// RevenusDemandeurPage â€” page unifiÃ©e "Revenus du demandeur"
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
+// RevenusDemandeurPage
+// ─────────────────────────────────────────────────────────────
 function RevenusDemandeurPage({ data, setData, openFiche }) {
-  const dateISO  = data.reference.dateISO || firstOfCurrentMonth();
-  const categorie = data.menage.situation === "isolÃ©" ? 2 : data.menage.situation === "cohabitant" ? 1 : 3;
+  const dateISO   = data.reference.dateISO || firstOfCurrentMonth();
+  const categorie = data.menage.situation === "isole" ? 2 : data.menage.situation === "cohabitant" ? 1 : 3;
 
-  // â”€â”€ Calculs pour badges â”€â”€
-  const demNet  = round2(computeNetMonthly(data.revenusNets.demandeur).net);
-  const conjNet = data.revenusNets.conjoint.enabled
+  const demNet    = round2(computeNetMonthly(data.revenusNets.demandeur).net);
+  const conjNet   = data.revenusNets.conjoint.enabled
     ? round2(computeNetMonthly(data.revenusNets.conjoint).net) : 0;
-  const year = parseInt(dateISO.split("-")[0]) || 2025;
+  const year      = parseInt(dateISO.split("-")[0]) || 2025;
   const chomTotal = round2(computeChomageOrMutuelleMonthly({ ...data.cmr.chomage, year }).mensuelTotal);
   const mutTotal  = round2(computeChomageOrMutuelleMonthly({ ...data.cmr.mutuelle, year }).mensuelTotal);
   const remTotal  = round2(
@@ -3037,17 +3026,16 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
   const immoTotal = round2(computeImmoExcel(data.biensImmobiliers.rows, data.menage.nbEnfants).totalMensuel);
   const bmTotal   = round2(computeBiensMobiliersExcel(data.biensMobiliers).totalMensuel);
 
-  // â”€â”€ Ã‰tats ouverts (initialisÃ©s depuis les donnÃ©es) â”€â”€
   const [open, setOpen] = useState(() => ({
-    pro_dem:  demNet > 0,
-    pro_conj: data.revenusNets.conjoint.enabled,
-    cmr:      cmrTotal > 0,
-    exo:      exoTotal > 0,
-    diverses: divTotal > 0,
+    pro_dem:   demNet > 0,
+    pro_conj:  data.revenusNets.conjoint.enabled,
+    cmr:       cmrTotal > 0,
+    exo:       exoTotal > 0,
+    diverses:  divTotal > 0,
     avantages: avTotal > 0,
-    cessions: data.cessionsBiens.rows.length > 0,
-    immo:     data.biensImmobiliers.rows.length > 0,
-    mob:      data.biensMobiliers.montantCapital > 0,
+    cessions:  data.cessionsBiens.rows.length > 0,
+    immo:      data.biensImmobiliers.rows.length > 0,
+    mob:       data.biensMobiliers.montantCapital > 0,
   }));
   const tog = (key) => setOpen(s => ({ ...s, [key]: !s[key] }));
 
@@ -3062,8 +3050,8 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
     <section style={{ display: "grid", gap: 8 }}>
       <h2 style={{ marginTop: 0 }}>Revenus du demandeur</h2>
 
-      {/* Revenus professionnels nets â€” Demandeur */}
-      {AB("pro_dem", "fa-briefcase", "Revenus professionnels nets â€” Demandeur", "revenus_nets", demNet,
+      {/* Revenus professionnels nets - Demandeur */}
+      {AB("pro_dem", "fa-briefcase", "Revenus professionnels nets - Demandeur", "revenus_nets", demNet,
         <RowsTable
           title="Demandeur"
           comptabiliseRows={data.revenusNets.demandeur.comptabiliseRows}
@@ -3073,7 +3061,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
         />
       )}
 
-      {/* Revenus professionnels nets â€” Conjoint */}
+      {/* Revenus professionnels nets - Conjoint */}
       <div style={{ border: `1px solid ${colors.border}`, borderRadius: 10, overflow: "hidden" }}>
         <button type="button" onClick={() => {
           if (!data.revenusNets.conjoint.enabled) {
@@ -3090,12 +3078,12 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
         }}>
           <span style={{ fontWeight: 700, color: colors.primary, display: "flex", alignItems: "center", gap: 8 }}>
             <i className="fas fa-briefcase" style={{ fontSize: 13, opacity: 0.65 }} aria-hidden="true" />
-            Revenus professionnels nets â€” Conjoint
+            Revenus professionnels nets - Conjoint
             <FicheBtn ficheKey="revenus_nets" onOpen={openFiche} />
           </span>
           <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
             {!data.revenusNets.conjoint.enabled
-              ? <span style={{ fontSize: 13, color: colors.textLight, fontStyle: "italic" }}>non activÃ© â€” cliquer pour ajouter</span>
+              ? <span style={{ fontSize: 13, color: colors.textLight, fontStyle: "italic" }}>non active - cliquer pour ajouter</span>
               : conjNet > 0
                 ? <span style={{ fontSize: 13, fontWeight: 700, color: colors.primary, background: "#dbeafe", borderRadius: 20, padding: "2px 10px" }}><Money value={conjNet} />/mois</span>
                 : <span style={{ fontSize: 13, color: colors.textLight, fontStyle: "italic" }}>non saisi</span>
@@ -3111,7 +3099,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
                   setData(d => ({ ...d, revenusNets: { ...d.revenusNets, conjoint: { ...d.revenusNets.conjoint, enabled: e.target.checked } } }));
                   if (!e.target.checked) setOpen(s => ({ ...s, pro_conj: false }));
                 }} />
-              Revenus du conjoint activÃ©s
+              Revenus du conjoint actives
             </label>
             <RowsTable
               title="Conjoint"
@@ -3124,8 +3112,8 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
         )}
       </div>
 
-      {/* CMR â€” sub-accordÃ©ons embarquÃ©s */}
-      {AB("cmr", "fa-file-medical", "ChÃ´mage / Mutuelle / Remplacement", "cmr", cmrTotal,
+      {/* CMR */}
+      {AB("cmr", "fa-file-medical", "Chomage / Mutuelle / Remplacement", "cmr", cmrTotal,
         <CMRSection embedded
           cmr={data.cmr}
           dateISO={dateISO}
@@ -3134,26 +3122,26 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
         />
       )}
 
-      {/* ExonÃ©rations Art. 35 */}
-      {AB("exo", "fa-percent", "ExonÃ©rations â€” Insertion socioprofessionnelle (Art. 35)", "insertion_sociopro", exoTotal,
+      {/* Exonerations Art. 35 */}
+      {AB("exo", "fa-percent", "Exonerations - Insertion socioprofessionnelle (Art. 35)", "insertion_sociopro", exoTotal,
         <>
           <div className="summary-box" style={{ marginBottom: 14 }}>
-            <b>Total exonÃ©ration mensuelle : <Money value={exoTotal} /></b>
+            <b>Total exoneration mensuelle : <Money value={exoTotal} /></b>
             <span style={{ marginLeft: 12, opacity: 0.7, fontSize: 13 }}>(annuel : <Money value={exoCalc.totalAnnuel} />)</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             {[
               { person: "demandeur", label: "Demandeur", checks: [
-                { key: "general",   label: "Exo. gÃ©nÃ©rale",   fk: "exo_generale_etudiant" },
-                { key: "etudiant",  label: "Exo. Ã©tudiants",  fk: "exo_generale_etudiant" },
-                { key: "penurie",   label: "Exo. pÃ©nurie",    fk: "exo_penurie" },
-                { key: "artisteSP", label: "ActivitÃ© artistique socio-prof." },
+                { key: "general",   label: "Exo. generale",   fk: "exo_generale_etudiant" },
+                { key: "etudiant",  label: "Exo. etudiants",  fk: "exo_generale_etudiant" },
+                { key: "penurie",   label: "Exo. penurie",    fk: "exo_penurie" },
+                { key: "artisteSP", label: "Activite artistique socio-prof." },
               ]},
               { person: "conjoint", label: "Conjoint", checks: [
-                { key: "general",   label: "Exo. gÃ©nÃ©rale" },
-                { key: "etudiant",  label: "Exo. Ã©tudiants" },
-                { key: "penurie",   label: "Exo. pÃ©nurie" },
-                { key: "artisteSP", label: "ActivitÃ© artistique socio-prof." },
+                { key: "general",   label: "Exo. generale" },
+                { key: "etudiant",  label: "Exo. etudiants" },
+                { key: "penurie",   label: "Exo. penurie" },
+                { key: "artisteSP", label: "Activite artistique socio-prof." },
               ]},
             ].map(({ person, label, checks }) => (
               <div key={person} style={{ padding: 12, border: `1px solid ${colors.border}`, borderRadius: 8 }}>
@@ -3167,7 +3155,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
                     {fk && <FicheBtn ficheKey={fk} onOpen={openFiche} />}
                   </label>
                 ))}
-                <Field label={<span style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>Jours (si compteur dÃ©passÃ©)<FicheBtn ficheKey="jours_compteur" onOpen={openFiche} /></span>}>
+                <Field label={<span style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>Jours (si compteur depasse)<FicheBtn ficheKey="jours_compteur" onOpen={openFiche} /></span>}>
                   <NumInput value={data.exoneration[person].joursCompteur}
                     onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration, [person]: { ...d.exoneration[person], joursCompteur: safeNumber(e.target.value, 0) } } }))} />
                 </Field>
@@ -3181,7 +3169,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
       {AB("diverses", "fa-chart-bar", "Allocations & ressources diverses", "ressources_diverses", divTotal,
         <>
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontWeight: 600, fontSize: 13, color: colors.primary, marginBottom: 8 }}>Ressources gÃ©nÃ©rales</div>
+            <div style={{ fontWeight: 600, fontSize: 13, color: colors.primary, marginBottom: 8 }}>Ressources generales</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 12 }}>
               {data.ressourcesDiverses.generales.map((r, i) => (
                 <Input key={i} label={r.label} type="number" value={r.montant}
@@ -3194,7 +3182,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
             </div>
           </div>
           <div>
-            <div style={{ fontWeight: 600, fontSize: 13, color: colors.primary, marginBottom: 8 }}>BÃ©nÃ©voles</div>
+            <div style={{ fontWeight: 600, fontSize: 13, color: colors.primary, marginBottom: 8 }}>Benevoles</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 12 }}>
               {data.ressourcesDiverses.benevoles.map((r, i) => (
                 <Input key={i} label={r.label} type="number" value={r.montant}
@@ -3212,13 +3200,13 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
       {/* Avantages en nature */}
       {AB("avantages", "fa-house-user", "Avantages en nature", "avantages", avTotal,
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
-          <Input label="Charges locatives par un tiers (â‚¬/mois)" type="number" value={data.avantages.chargesLocativesTiers}
+          <Input label="Charges locatives par un tiers (euro/mois)" type="number" value={data.avantages.chargesLocativesTiers}
             onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, chargesLocativesTiers: safeNumber(e.target.value, 0) } }))} />
-          <Input label="Loyer fictif (professionnel) (â‚¬/mois)" type="number" value={data.avantages.loyerFictifProfessionnel}
+          <Input label="Loyer fictif (professionnel) (euro/mois)" type="number" value={data.avantages.loyerFictifProfessionnel}
             onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifProfessionnel: safeNumber(e.target.value, 0) } }))} />
-          <Input label="Loyer fictif (simulateur / grille) (â‚¬/mois)" type="number" value={data.avantages.loyerFictifSimulateur}
+          <Input label="Loyer fictif (simulateur / grille) (euro/mois)" type="number" value={data.avantages.loyerFictifSimulateur}
             onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifSimulateur: safeNumber(e.target.value, 0) } }))} />
-          <Input label="PrÃªt hypothÃ©caire par un tiers (â‚¬/mois)" type="number" value={data.avantages.pretHypothecaireTiers}
+          <Input label="Pret hypothecaire par un tiers (euro/mois)" type="number" value={data.avantages.pretHypothecaireTiers}
             onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, pretHypothecaireTiers: safeNumber(e.target.value, 0) } }))} />
         </div>
       )}
@@ -3245,17 +3233,17 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
         return (
           <>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 12 }}>
-              <Input label="Capital (â‚¬)" type="number" value={data.biensMobiliers.montantCapital}
+              <Input label="Capital (euro)" type="number" value={data.biensMobiliers.montantCapital}
                 onChange={(e) => setData(d => ({ ...d, biensMobiliers: { ...d.biensMobiliers, montantCapital: safeNumber(e.target.value, 0) } }))} />
-              <Input label="Part concernÃ©e (%)" type="number" value={data.biensMobiliers.partConcernee}
+              <Input label="Part concernee (%)" type="number" value={data.biensMobiliers.partConcernee}
                 onChange={(e) => setData(d => ({ ...d, biensMobiliers: { ...d.biensMobiliers, partConcernee: safeNumber(e.target.value, 100) } }))} />
             </div>
             {B > 0 && (
               <div style={{ fontSize: 13, color: colors.textLight }}>
-                <div>â‰¤ {MOB_SEUIL_R.toLocaleString("fr-BE")} â‚¬ â†’ <em>exonÃ©rÃ©</em></div>
-                {B > MOB_SEUIL_R && <div>{MOB_SEUIL_R.toLocaleString("fr-BE")}â€“{MOB_SEUIL_S.toLocaleString("fr-BE")} â‚¬ Ã— 6% = <strong><Money value={bm.E6} /></strong>/an</div>}
-                {B > MOB_SEUIL_S && <div>&gt;{MOB_SEUIL_S.toLocaleString("fr-BE")} â‚¬ Ã— 10% = <strong><Money value={bm.E7} /></strong>/an</div>}
-                <div style={{ fontWeight: 700, color: colors.primary, marginTop: 4 }}>Total : <Money value={bm.totalAnnuel} />/an â€” <Money value={bm.totalMensuel} />/mois</div>
+                <div>inf. ou egal {MOB_SEUIL_R.toLocaleString("fr-BE")} euro : exonere</div>
+                {B > MOB_SEUIL_R && <div>{MOB_SEUIL_R.toLocaleString("fr-BE")} - {MOB_SEUIL_S.toLocaleString("fr-BE")} euro x 6% = <strong><Money value={bm.E6} /></strong>/an</div>}
+                {B > MOB_SEUIL_S && <div>sup. {MOB_SEUIL_S.toLocaleString("fr-BE")} euro x 10% = <strong><Money value={bm.E7} /></strong>/an</div>}
+                <div style={{ fontWeight: 700, color: colors.primary, marginTop: 4 }}>Total : <Money value={bm.totalAnnuel} />/an - <Money value={bm.totalMensuel} />/mois</div>
               </div>
             )}
           </>
@@ -3268,7 +3256,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
 
 export default function App() {
   const [active, setActive] = useState("informations");
-  const [data, setData] = useState(defaultData); // Une seule dÃ©claration ici
+  const [data, setData] = useState(defaultData); // Une seule déclaration ici
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isGeneratingTableau, setIsGeneratingTableau] = useState(false);
   const [ficheOuverte, setFicheOuverte] = useState(null);
@@ -3276,7 +3264,7 @@ export default function App() {
 
   const handleExportPDF = async () => {
     if (!result || !apercu) {
-      alert("Veuillez d'abord calculer l'aperÃ§u avant d'exporter");
+      alert("Veuillez d'abord calculer l'aperçu avant d'exporter");
       return;
     }
 
@@ -3286,11 +3274,11 @@ export default function App() {
       const success = await generatePDF(data, result, apercu);
       
       if (!success) {
-        alert("Une erreur est survenue lors de la gÃ©nÃ©ration du PDF");
+        alert("Une erreur est survenue lors de la génération du PDF");
       }
     } catch (error) {
       console.error("Erreur d'export PDF:", error);
-      alert("Erreur lors de la gÃ©nÃ©ration du PDF");
+      alert("Erreur lors de la génération du PDF");
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -3300,25 +3288,25 @@ export default function App() {
     setIsGeneratingTableau(true);
     try {
       const success = await generateTableauCPAS(data, result, apercu);
-      if (!success) alert("Une erreur est survenue lors de la gÃ©nÃ©ration du tableau");
+      if (!success) alert("Une erreur est survenue lors de la génération du tableau");
     } catch (err) {
       console.error("Erreur tableau CPAS:", err);
-      alert("Erreur lors de la gÃ©nÃ©ration du tableau");
+      alert("Erreur lors de la génération du tableau");
     } finally {
       setIsGeneratingTableau(false);
     }
   };
 
-  // Fonction de rÃ©initialisation
+  // Fonction de réinitialisation
   const handleReset = () => {
-    if (window.confirm("ÃŠtes-vous sÃ»r de vouloir rÃ©initialiser toutes les donnÃ©es ?")) {
+    if (window.confirm("Êtes-vous sûr de vouloir réinitialiser toutes les données ?")) {
       setData(defaultData);
       setActive("informations");
-      alert("DonnÃ©es rÃ©initialisÃ©es avec succÃ¨s !");
+      alert("Données réinitialisées avec succès !");
     }
   };
   const result = useMemo(() => {
-    return computeFromForm(data);  // Assure-toi que computeFromForm est une fonction qui prend `data` en paramÃ¨tre et renvoie les rÃ©sultats attendus
+    return computeFromForm(data);  // Assure-toi que computeFromForm est une fonction qui prend `data` en paramètre et renvoie les résultats attendus
   }, [
     data.reference, 
     data.identite, 
@@ -3328,12 +3316,12 @@ export default function App() {
     data.avantages, 
     data.cessionsBiens, 
     data.biensImmobiliers,
-    data.cohabitants, // â† AJOUTER CE CHAMP
-    data.biensMobiliers, // â† AJOUTER CE CHAMP
-    data.exoneration, // â† AJOUTER CE CHAMP
-    data.ressourcesDiverses // â† AJOUTER CE CHAMP
+    data.cohabitants, // ← AJOUTER CE CHAMP
+    data.biensMobiliers, // ← AJOUTER CE CHAMP
+    data.exoneration, // ← AJOUTER CE CHAMP
+    data.ressourcesDiverses // ← AJOUTER CE CHAMP
   ]); 
-  // Utilise uniquement les champs nÃ©cessaires
+  // Utilise uniquement les champs nécessaires
   const apercu = result?.apercu;
 
   return (
@@ -3345,8 +3333,8 @@ export default function App() {
           {active === "informations" && (
             <div style={{ display: "grid", gap: "24px" }}>
               <h2 style={{ marginTop: 0, marginBottom: 0, fontSize: 20, fontWeight: 800, color: colors.primary }}>Informations</h2>
-              {/* Carte RÃ©fÃ©rence */}
-              <Card title="RÃ©fÃ©rence">
+              {/* Carte Référence */}
+              <Card title="Référence">
                 <div style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
@@ -3355,7 +3343,7 @@ export default function App() {
                   <Input
                     label={
                       <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        Date d'octroi / rÃ©vision
+                        Date d'octroi / révision
                         <FicheBtn ficheKey="date_reference" onOpen={openFiche} />
                       </span>
                     }
@@ -3366,8 +3354,8 @@ export default function App() {
                 </div>
               </Card>
 
-              {/* Carte IdentitÃ© */}
-              <Card title="IdentitÃ©">
+              {/* Carte Identité */}
+              <Card title="Identité">
                 <div style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
@@ -3379,7 +3367,7 @@ export default function App() {
                     onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, nom: e.target.value } }))}
                   />
                   <Input
-                    label="PrÃ©nom"
+                    label="Prénom"
                     value={data.identite.prenom}
                     onChange={(e) => setData(d => ({ ...d, identite: { ...d.identite, prenom: e.target.value } }))}
                   />
@@ -3393,11 +3381,11 @@ export default function App() {
                 </div>
               </Card>
 
-              {/* Carte MÃ©nage */}
-               <Card title="MÃ©nage">
+              {/* Carte Ménage */}
+               <Card title="Ménage">
                  <div style={{ display: "grid", gap: "16px" }}>
 
-                   {/* SÃ©lecteur situation familiale */}
+                   {/* Sélecteur situation familiale */}
                    <div>
                      <span style={{ fontSize: 14, opacity: 0.85 }}>
                        Situation familiale <span style={{ color: "#c0392b", fontWeight: 700 }}>*</span>
@@ -3416,19 +3404,19 @@ export default function App() {
                            value: "cohabitant",
                            cat: "Cat. 1",
                            label: "Cohabitant",
-                           desc: "Personne qui partage un logement et met en commun ses dÃ©penses quotidiennes avec une ou plusieurs autres personnes majeures (partenaire, colocataire, parents)."
+                           desc: "Personne qui partage un logement et met en commun ses dépenses quotidiennes avec une ou plusieurs autres personnes majeures (partenaire, colocataire, parents)."
                          },
                          {
-                           value: "isolÃ©",
+                           value: "isolé",
                            cat: "Cat. 2",
-                           label: "IsolÃ©",
-                           desc: " Personne cÃ©libataire, veuve, divorcÃ©e ou sÃ©parÃ©e vivant seule, ou personne vivant avec d'autres adultes mais sans partager les dÃ©penses avec eux"
+                           label: "Isolé",
+                           desc: " Personne célibataire, veuve, divorcée ou séparée vivant seule, ou personne vivant avec d'autres adultes mais sans partager les dépenses avec eux"
                          },
                          {
                            value: "famille",
                            cat: "Cat. 3",
                            label: "Famille avec charge",
-                           desc: "Personne (isolÃ©e ou cohabitante) qui subvient seule aux besoins d'un ou plusieurs enfants mineurs cÃ©libataires vivant sous le mÃªme toit et Ã©conomiquement Ã  sa charge."
+                           desc: "Personne (isolée ou cohabitante) qui subvient seule aux besoins d'un ou plusieurs enfants mineurs célibataires vivant sous le même toit et économiquement à sa charge."
                          }
                        ].map(opt => {
                          const selected = data.menage.situation === opt.value;
@@ -3472,13 +3460,13 @@ export default function App() {
                      {!data.menage.situation && (
                        <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8, color: "#c0392b", fontSize: 13, fontWeight: 600 }}>
                          <i className="fas fa-circle-exclamation" aria-hidden="true" />
-                         Veuillez sÃ©lectionner une situation familiale pour continuer.
+                         Veuillez sélectionner une situation familiale pour continuer.
                        </div>
                      )}
                    </div>
 
                    <Input
-                     label="Nombre d'enfants Ã  charge"
+                     label="Nombre d'enfants à charge"
                      type="number"
                      min="0"
                      value={data.menage.nbEnfants}
