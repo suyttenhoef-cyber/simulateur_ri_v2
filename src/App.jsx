@@ -2857,26 +2857,25 @@ function computeFromForm(data) {
 // ─── Fiches pratiques CPASConnect ────────────────────────────────────────────
 const FICHES_PRATIQUES = {
   // ── En-têtes de sections ──────────────────────────────────────────────────
-  revenus_nets:          { titre: "Revenus nets professionnels",                        url: "https://myportal.vandenbroeleconnect.be/contenu/highlights/detail/720858519162603253" },
+  revenus_nets:          { titre: "Revenus nets professionnels",                       url:"https://myportal.vandenbroeleconnect.be/contenu/highlights/detail/720858519162603253" },
   cmr:                   { titre: "Chômage / Mutuelle / Remplacement",                 url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684905" },
-  avantages:             { titre: "Avantages en nature",                               url: null },
   cessions_biens:        { titre: "Cession de biens",                                  url: "https://myportal.vandenbroeleconnect.be/contenu/highlights/detail/720858519162603189"},
   biens_immobiliers:     { titre: "Biens immobiliers",                                 url: "https://myportal.vandenbroeleconnect.be/contenu/highlights/detail/720858519162603252" },
   biens_mobiliers:       { titre: "Biens mobiliers",                                   url: "https://myportal.vandenbroeleconnect.be/contenu/highlights/detail/720858519162603251"},
-  ressources_diverses:   { titre: "Allocations & ressources diverses",                 url: null },
-  cohabitants:           { titre: "Revenus des cohabitants",                           url: "https://myportal.vandenbroeleconnect.be/contenu/highlights/detail/720858519162603250" }, // TODO: remplacer null par l'URL CPASConnect
+  ressources_diverses:   { titre: "Allocations & ressources diverses",                 url: "https://myportal.vandenbroeleconnect.be/contenu/livres/detail/73184593456853921/#73186792480109584" },
+  cohabitants:           { titre: "Revenus des cohabitants",                           url: "https://myportal.vandenbroeleconnect.be/contenu/livres/detail/73184593456853921/#73186792480109642" }, // TODO: remplacer null par l'URL CPASConnect
   // ── Sous-catégories ───────────────────────────────────────────────────────
-  date_reference:        { titre: "Date d'octroi / révision",                        url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684678" },
-  insertion_sociopro:    { titre: "Montants exonérés — Insertion socioprofessionnelle", url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907" },
+  date_reference:        { titre: "Date d'octroi / révision",                          url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684678" },
+  insertion_sociopro:    { titre: "Montants exonérés — Insertion socioprofessionnelle",url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907" },
   exo_generale_etudiant: { titre: "Exonération Pro. générale / étudiants",             url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907" },
   exo_penurie:           { titre: "Exonération Pro. pénurie",                          url: "https://myportal.vandenbroeleconnect.be/perma/149746886634385151" },
   jours_compteur:        { titre: "Jours compteur socioprofessionnel",                 url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684897" },
-  chomage:               { titre: "Chômage",                                           url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684905" },
-  mutuelle:              { titre: "Mutuelle",                                          url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684905" },
-  remplacement:          { titre: "Revenu de remplacement",                            url: null },
+  chomage:               { titre: "Chômage",                                           url: "https://myportal.vandenbroeleconnect.be/contenu/livres/detail/73184593456853921/#73186792480109597" },
+  mutuelle:              { titre: "Mutuelle",                                          url: "https://myportal.vandenbroeleconnect.be/contenu/livres/detail/73184593456853921/#73186792480109597" },
+  remplacement:          { titre: "Revenu de remplacement",                            url: "https://myportal.vandenbroeleconnect.be/contenu/livres/detail/73184593456853921/#73186792480109597" },
   handicape_arr:         { titre: "Allocation d'Handicapé ARR",                        url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684880" },
   autre_remplacement:    { titre: "Autre revenu de remplacement",                      url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684904" },
-  prise_en_charge:       { titre: "Prise en charge cohabitant",                        url: null },
+  prise_en_charge:       { titre: "Prise en charge cohabitant",                        url: "https://myportal.vandenbroeleconnect.be/contenu/highlights/detail/720858519162603250" },
 };
 
 function FicheBtn({ ficheKey, onOpen }) {
