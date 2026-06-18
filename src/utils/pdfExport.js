@@ -426,7 +426,7 @@ export async function generateTableauCPAS(data, result, apercu) {
 
     // En-tête de section (4 colonnes, bordure gauche colorée)
     // La ligne blanche avant le titre crée un espace propre pour les coupures de page
-    const SEC = (title) => `<tr><td colspan="4" style="padding:0;height:16px;border:none;background:white;"></td></tr>
+    const SEC = (title) => `<tr><td colspan="4" style="padding:0;height:28px;border:none;background:white;"></td></tr>
     <tr style="background:#eef2f7;">
       <td colspan="4" style="padding:8px 10px;border:1px solid #dee2e6;font-weight:bold;color:#163E67;border-left:4px solid #2BEBCE;">${title}</td>
     </tr>`;
@@ -553,19 +553,35 @@ export async function generateTableauCPAS(data, result, apercu) {
     const remAnnuel  = safeN(apercu?.pro?.D11_rem_Annuel);
     if (chomAnnuel + mutAnnuel + remAnnuel > 0) {
       tbody += SEC('Chômage / Mutuelle / Remplacement');
-      if (chomAnnuel > 0) {
-        const cj = safeN(data.cmr?.chomage?.montantJourAnnuel);
-        const cj26 = safeN(data.cmr?.chomage?.montantJour26);
-        const h = cj > 0 ? `${fmt(cj)}/jour × ${nbJours} jours` : cj26 > 0 ? `${fmt(cj26)}/jour × 26` : `${fmt(chomAnnuel / 12)}/mois`;
-        tbody += ROW(demCell(), 'Allocation de chômage', h, chomAnnuel);
-      }
-      if (mutAnnuel > 0) {
-        const mj = safeN(data.cmr?.mutuelle?.montantJourAnnuel);
-        const mj26 = safeN(data.cmr?.mutuelle?.montantJour26);
-        const h = mj > 0 ? `${fmt(mj)}/jour × ${nbJours} jours` : mj26 > 0 ? `${fmt(mj26)}/jour × 26` : `${fmt(mutAnnuel / 12)}/mois`;
-        tbody += ROW(demCell(), 'Indemnité de mutuelle', h, mutAnnuel);
-      }
-      if (remAnnuel > 0) {
+
+      // Helper : détailler les composantes d'une allocation (chômage ou mutuelle)
+      const cmrSubRows = (fields, annuelTotal, shortLabel) => {
+        const m1    = safeN(fields?.mensuelReel);
+        const m2r   = safeN(fields?.montantJour26);
+        const m2m   = r2(m2r * 26);
+        const m3r   = safeN(fields?.montantJourAnnuel);
+        const m3m   = r2(m3r * nbJours / 12);
+        const subs  = [
+          m1  > 0 ? { nature: `${shortLabel} — mensuel réel`,            hauteur: `${fmt(m1)}/mois`,                                                annuel: r2(m1 * 12)   } : null,
+          m2r > 0 ? { nature: `${shortLabel} — taux/j × 26 j/mois`,      hauteur: `${fmt(m2r)}/j × 26 = ${fmt(m2m)}/mois`,                          annuel: r2(m2m * 12)  } : null,
+          m3r > 0 ? { nature: `${shortLabel} — taux/j × ${nbJours} j/an`,hauteur: `${fmt(m3r)}/j × ${nbJours} j = ${fmt(m3m)}/mois`,                annuel: r2(m3m * 12)  } : null,
+        ].filter(Boolean);
+        let out = '';
+        if (subs.length <= 1) {
+          const h = subs.length ? subs[0].hauteur : `${fmt(r2(annuelTotal / 12))}/mois`;
+          out += ROW(demCell(), shortLabel, h, annuelTotal);
+        } else {
+          for (let i = 0; i < subs.length; i++) {
+            out += ROW(i === 0 ? demCell() : '', subs[i].nature, subs[i].hauteur, subs[i].annuel);
+          }
+          out += SUBTOT(`Total ${shortLabel.toLowerCase()}`, annuelTotal);
+        }
+        return out;
+      };
+
+      if (chomAnnuel > 0) tbody += cmrSubRows(data.cmr?.chomage, chomAnnuel, 'Allocation de chômage');
+      if (mutAnnuel  > 0) tbody += cmrSubRows(data.cmr?.mutuelle, mutAnnuel, 'Indemnité de mutuelle');
+      if (remAnnuel  > 0) {
         const cmrR = data.cmr?.remplacement || {};
         const subs = [
           { label: 'Pension',                      val: safeN(cmrR.pensionMensuel) },
@@ -582,22 +598,11 @@ export async function generateTableauCPAS(data, result, apercu) {
     // ════════════════════════════════════════════════════════════════════
     // SECTION 5 — Ressources diverses (toutes, y compris celles exonérées = 0 €)
     // ════════════════════════════════════════════════════════════════════
-    const divItemsAll = [...(data.ressourcesDiverses?.generales || []), ...(data.ressourcesDiverses?.benevoles || [])];
+    const divItemsAll = [...(data.ressourcesDiverses?.generales || []), ...(data.ressourcesDiverses?.benevoles || [])].filter(r => safeN(r.montant) > 0);
     if (divItemsAll.length > 0) {
       tbody += SEC('Ressources diverses');
       for (const r of divItemsAll) {
-        const m = safeN(r.montant);
-        if (m > 0) {
-          tbody += ROW(demCell(), r.label, `${fmt(m)}/mois`, r2(m * 12));
-        } else {
-          // Ressource déclarée mais exonérée ou non comptabilisée
-          tbody += `<tr style="background:#f9f9f9;">
-            ${cell('')}
-            ${cell(`<span style="color:#888;font-style:italic;">${r.label}</span>`)}
-            ${cell('<span style="color:#888;font-style:italic;">exonéré / non comptabilisé</span>')}
-            ${cell(fmt(0), 'text-align:right;color:#aaa;font-style:italic;')}
-          </tr>`;
-        }
+        tbody += ROW(demCell(), r.label, `${fmt(safeN(r.montant))}/mois`, r2(safeN(r.montant) * 12));
       }
       tbody += SEP();
     }
@@ -703,9 +708,19 @@ export async function generateTableauCPAS(data, result, apercu) {
       const bk = coh.breakdown || {};
       const hasBreakdown = Object.values(bk).some(v => v > 0);
       if (hasBreakdown) {
+        // CMR : utiliser les sous-totaux individuels si disponibles (nouveau format)
+        const hasCmrDetail = (bk.chomAnnuel > 0 || bk.mutAnnuel > 0 || bk.remAnnuel > 0);
+        const cmrLines = hasCmrDetail
+          ? [
+              { label: 'Allocation de chômage',   val: bk.chomAnnuel || 0 },
+              { label: 'Indemnité de mutuelle',   val: bk.mutAnnuel  || 0 },
+              { label: 'Revenus de remplacement', val: bk.remAnnuel  || 0 },
+            ]
+          : [{ label: 'Chômage / mutuelle / remplacement', val: bk.cmrAnnuel }];
+
         const bkLines = [
           { label: 'Revenus professionnels nets', val: bk.proAnnuel },
-          { label: 'Chômage / mutuelle / remplacement', val: bk.cmrAnnuel },
+          ...cmrLines,
           { label: 'Cessions de biens', val: bk.cessionsAnnuel },
           { label: 'Biens immobiliers', val: bk.immoAnnuel },
           { label: 'Biens mobiliers', val: bk.mobAnnuel },
@@ -807,12 +822,16 @@ export async function generateTableauCPAS(data, result, apercu) {
       return html;
     }
 
+    // Spacer blanc entre cohabitants pour favoriser les coupures de page propres
+    const SEP_COH = () => `<tr><td colspan="4" style="padding:0;height:20px;border:none;background:white;"></td></tr>`;
+
     if (debiteursCoh.length > 0) {
       tbody += SEC('Revenus des cohabitants — débiteurs d\'aliments');
-      for (const coh of debiteursCoh) {
-        tbody += renderCohDetail(coh);
-        tbody += SEP();
+      for (let ci = 0; ci < debiteursCoh.length; ci++) {
+        if (ci > 0) tbody += SEP_COH();
+        tbody += renderCohDetail(debiteursCoh[ci]);
       }
+      tbody += SEP_COH();
     }
 
     // ════════════════════════════════════════════════════════════════════
@@ -926,7 +945,7 @@ export async function generateTableauCPAS(data, result, apercu) {
 
     // Coupe intelligente : remonte depuis le point idéal pour trouver une ligne blanche
     const findCleanBreakCPAS = (canvas, idealPx, pxPerMm) => {
-      const windowPx = Math.min(Math.round(40 * pxPerMm), 200);
+      const windowPx = Math.min(Math.round(60 * pxPerMm), 300);
       const ctx = canvas.getContext('2d');
       let bestLine = idealPx;
       let bestScore = -1;
@@ -943,11 +962,13 @@ export async function generateTableauCPAS(data, result, apercu) {
       return bestLine;
     };
 
-    if (imgHeight <= pageH) {
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+    const MARGIN_MM = 8;
+    const usableH   = pageH - MARGIN_MM * 2;
+    if (imgHeight <= usableH) {
+      pdf.addImage(imgData, 'PNG', 0, MARGIN_MM, imgWidth, imgHeight);
     } else {
       const pxPerMm = canvas.width / imgWidth;
-      const pageHpx = Math.floor(pageH * pxPerMm);
+      const pageHpx = Math.floor(usableH * pxPerMm);
       let offsetY   = 0;
       let pageIdx   = 0;
       while (offsetY < canvas.height) {
@@ -960,7 +981,7 @@ export async function generateTableauCPAS(data, result, apercu) {
         sliceCv.height = sliceH;
         sliceCv.getContext('2d').drawImage(canvas, 0, offsetY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
         const sliceImg = sliceCv.toDataURL('image/png');
-        pdf.addImage(sliceImg, 'PNG', 0, 0, imgWidth, (sliceH / pxPerMm));
+        pdf.addImage(sliceImg, 'PNG', 0, MARGIN_MM, imgWidth, (sliceH / pxPerMm));
         offsetY = cutPx;
         pageIdx++;
       }

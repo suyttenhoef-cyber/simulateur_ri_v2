@@ -496,13 +496,16 @@ function computeCohabitantRow(row, referenceDate) {
       ? sumSimpleRows(row.proRows)  // old format with periode
       : round2((proCompt - proExo) * 12);
     // CMR : priorité à cmrData (structuré), fallback sur cmrRows (legacy simple rows)
-    let cmrAnnuel;
+    let cmrAnnuel, chomAnnuel = 0, mutAnnuel = 0, remAnnuel = 0;
     if (row.cmrData) {
       const refYear = referenceDate ? parseInt(referenceDate.split("-")[0]) || 2025 : 2025;
       const chomM = computeChomageOrMutuelleMonthly({ ...row.cmrData.chomage, year: refYear }).mensuelTotal;
       const mutM  = computeChomageOrMutuelleMonthly({ ...row.cmrData.mutuelle, year: refYear }).mensuelTotal;
       const remM  = Object.values(row.cmrData.remplacement || {}).reduce((s, v) => s + safeNumber(v, 0), 0);
-      cmrAnnuel = round2((chomM + mutM + remM) * 12);
+      chomAnnuel = round2(chomM * 12);
+      mutAnnuel  = round2(mutM * 12);
+      remAnnuel  = round2(remM * 12);
+      cmrAnnuel  = round2(chomAnnuel + mutAnnuel + remAnnuel);
       // Add legacy cmrRows on top if present (backward compat)
       if ((row.cmrRows || []).length > 0) cmrAnnuel = round2(cmrAnnuel + sumSimpleRows(row.cmrRows));
     } else {
@@ -514,7 +517,7 @@ function computeCohabitantRow(row, referenceDate) {
     const avantagesAnnuel = round2(Object.values(row.avantages || {}).reduce((s, v) => s + safeNumber(v, 0), 0) * 12);
     const diversesAnnuel  = round2(Object.values(row.ressourcesDiverses || {}).reduce((s, v) => s + safeNumber(v, 0), 0) * 12);
     ressourcesTotale = round2(proAnnuel + cmrAnnuel + cessionsAnnuel + immoAnnuel + mobAnnuel + avantagesAnnuel + diversesAnnuel);
-    breakdown = { proAnnuel, cmrAnnuel, cessionsAnnuel, immoAnnuel, mobAnnuel, avantagesAnnuel, diversesAnnuel };
+    breakdown = { proAnnuel, cmrAnnuel, chomAnnuel, mutAnnuel, remAnnuel, cessionsAnnuel, immoAnnuel, mobAnnuel, avantagesAnnuel, diversesAnnuel };
   } else {
     const details = row.revenusDetailes || [];
     ressourcesTotale = details.length > 0
@@ -2865,7 +2868,7 @@ const FICHES_PRATIQUES = {
   ressources_diverses:   { titre: "Allocations & ressources diverses",                 url: "https://myportal.vandenbroeleconnect.be/contenu/livres/detail/73184593456853921/#73186792480109584" },
   cohabitants:           { titre: "Revenus des cohabitants",                           url: "https://myportal.vandenbroeleconnect.be/contenu/livres/detail/73184593456853921/#73186792480109642" }, // TODO: remplacer null par l'URL CPASConnect
   // ── Sous-catégories ───────────────────────────────────────────────────────
-  date_reference:        { titre: "Date d'octroi / révision",                          url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684678" },
+  date_reference:        { titre: "Date d'octroi / révision",                          url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684669" },
   insertion_sociopro:    { titre: "Montants exonérés — Insertion socioprofessionnelle",url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907" },
   exo_generale_etudiant: { titre: "Exonération Pro. générale / étudiants",             url: "https://myportal.vandenbroeleconnect.be/perma/149746886634684907" },
   exo_penurie:           { titre: "Exonération Pro. pénurie",                          url: "https://myportal.vandenbroeleconnect.be/perma/149746886634385151" },
