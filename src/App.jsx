@@ -198,11 +198,6 @@ const defaultData = {
       comptabiliseRows: [{ label: "", customLabel: null, montant: 0 }],
       exonereRows:      [{ type: "", montant: 0 }]
     },
-    conjoint: {
-      enabled: false,
-      comptabiliseRows: [{ label: "", customLabel: null, montant: 0 }],
-      exonereRows:      [{ type: "", montant: 0 }]
-    }
   },
   cmr: {
     chomage: { mensuelReel: 0, montantJour26: 0, montantJourAnnuel: 0 },
@@ -226,13 +221,6 @@ const defaultData = {
       penurie: false,     // Excel C7
       joursCompteur: 0,   // Excel C8 (si compteur dépassé)
       artisteSP: false,   // Excel C11
-    },
-    conjoint: {
-      general: false,     // Excel H5
-      etudiant: false,    // Excel H6
-      penurie: false,     // Excel H7
-      joursCompteur: 0,   // Excel H8
-      artisteSP: false,   // Excel H11
     },
   },
   cohabitants: {
@@ -1987,13 +1975,11 @@ function computeExonerationExcel({ dateISO, exo }) {
   }
 
   const dem = calcPerson(exo.demandeur);
-  const conj = calcPerson(exo.conjoint);
 
   return {
     demandeur: dem,
-    conjoint: conj,
-    totalMensuel: dem.totalMensuel + conj.totalMensuel,
-    totalAnnuel: (dem.totalMensuel + conj.totalMensuel) * 12,
+    totalMensuel: dem.totalMensuel,
+    totalAnnuel: dem.totalAnnuel,
   };
 }
 function Button({ children, onClick, variant = "primary", icon, disabled = false, className = "" }) {
@@ -2303,7 +2289,7 @@ function computeApercuExcelLike({ data, pieces }) {
 
   const {
     categorie,
-    dem, conj,
+    dem,
     chom, mut, rem,
     exo, bm,
     immoTotalAnnuel, cessionsTotalAnnuel,
@@ -2316,33 +2302,24 @@ function computeApercuExcelLike({ data, pieces }) {
   // ---------- Section Ressources professionnelles ----------
   // Aperçu ligne 4/5: net “brut”
   const D4_netDem_Annuel = round2n(dem.net * 12);
-  const D5_netConj_Annuel = round2n(conj.net * 12);
 
-  // Aperçu ligne 6/7: net après exonérations générales + étudiant + pénurie, plancher à 0
+  // Aperçu ligne 6: net après exonérations générales + étudiant + pénurie, plancher à 0
   const exoGenDem  = safeNumber(exo.demandeur?.exoGeneralMens, 0);
   const exoEtudDem = safeNumber(exo.demandeur?.exoEtudMens, 0);
   const exoPenDem  = safeNumber(exo.demandeur?.exoPenurieMens, 0);
-  const exoGenConj  = safeNumber(exo.conjoint?.exoGeneralMens, 0);
-  const exoEtudConj = safeNumber(exo.conjoint?.exoEtudMens, 0);
-  const exoPenConj  = safeNumber(exo.conjoint?.exoPenurieMens, 0);
 
   const netAvantExoSP_Dem_M = Math.max(dem.net + exoGenDem + exoEtudDem + exoPenDem, 0);
-  const netAvantExoSP_Conj_M = Math.max(conj.net + exoGenConj + exoEtudConj + exoPenConj, 0);
 
   const D6_netAvantExoSP_Dem_Annuel = round2n(netAvantExoSP_Dem_M * 12);
-  const D7_netAvantExoSP_Conj_Annuel = round2n(netAvantExoSP_Conj_M * 12);
 
   // Aperçu ligne 8: "Montant net (avec exonérations artistique)"
   const artDem = sumIrregularArtisticMonthly(data.revenusNets.demandeur.comptabiliseRows);
-  const artConj = data.revenusNets.conjoint.enabled ? sumIrregularArtisticMonthly(data.revenusNets.conjoint.comptabiliseRows) : 0;
 
-  const exoArtDem_Ann = safeNumber(exo.demandeur?.exoArtisteAnnuel, 0); // positif chez toi
-  const exoArtConj_Ann = safeNumber(exo.conjoint?.exoArtisteAnnuel, 0);
+  const exoArtDem_Ann = safeNumber(exo.demandeur?.exoArtisteAnnuel, 0);
 
   const artNetDem_M = Math.max(artDem - (exoArtDem_Ann / 12), 0);
-  const artNetConj_M = Math.max(artConj - (exoArtConj_Ann / 12), 0);
 
-  const netAvecArt_M = round2n(artNetDem_M + artNetConj_M);
+  const netAvecArt_M = round2n(artNetDem_M);
   const D8_netAvecArt_Annuel = round2n(netAvecArt_M * 12);
 
   // Aperçu ligne 9-11 (chômage/mutuelle/remplacement) : on est déjà en mensuel -> annuel = *12
@@ -2400,8 +2377,8 @@ const F8_totalProratises_M =
     joursPeriode,
 
     pro: {
-      D4_netDem_Annuel, D5_netConj_Annuel,
-      D6_netAvantExoSP_Dem_Annuel, D7_netAvantExoSP_Conj_Annuel,
+      D4_netDem_Annuel,
+      D6_netAvantExoSP_Dem_Annuel,
       D8_netAvecArt_Annuel,
       D9_chom_Annuel, D10_mut_Annuel, D11_rem_Annuel,
       totalProratisables_M,
@@ -2775,10 +2752,6 @@ function computeFromForm(data) {
   const year = safeNumber(yearStr, 2026);
 
   const dem = computeNetMonthly(data.revenusNets.demandeur);
-  const conj = data.revenusNets.conjoint.enabled
-    ? computeNetMonthly(data.revenusNets.conjoint)
-    : { net: 0, sumComptabilise: 0, sumExonere: 0 };
-
   const chom = computeChomageOrMutuelleMonthly({ ...data.cmr.chomage, year });
   const mut = computeChomageOrMutuelleMonthly({ ...data.cmr.mutuelle, year });
   const rem = computeRemplacementMonthly(data.cmr.remplacement);
@@ -2820,7 +2793,6 @@ function computeFromForm(data) {
     pieces: {
       categorie,
       dem,
-      conj,
       chom,
       mut,
       rem,
@@ -3182,8 +3154,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
   const categorie = data.menage.situation === "isole" ? 2 : data.menage.situation === "cohabitant" ? 1 : 3;
 
   const demNet    = round2(computeNetMonthly(data.revenusNets.demandeur).net);
-  const conjNet   = data.revenusNets.conjoint.enabled
-    ? round2(computeNetMonthly(data.revenusNets.conjoint).net) : 0;
+
   const year      = parseInt(dateISO.split("-")[0]) || 2025;
   const chomTotal = round2(computeChomageOrMutuelleMonthly({ ...data.cmr.chomage, year }).mensuelTotal);
   const mutTotal  = round2(computeChomageOrMutuelleMonthly({ ...data.cmr.mutuelle, year }).mensuelTotal);
@@ -3208,7 +3179,6 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
 
   const [open, setOpen] = useState(() => ({
     pro_dem:   demNet > 0,
-    pro_conj:  data.revenusNets.conjoint.enabled,
     cmr:       cmrTotal > 0,
     exo:       exoTotal > 0,
     diverses:  divTotal > 0,
@@ -3231,7 +3201,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
       <h2 style={{ marginTop: 0 }}>Revenus du demandeur</h2>
 
       {/* Revenus professionnels nets - Demandeur */}
-      {AB("pro_dem", "fa-briefcase", "Revenus professionnels nets - Demandeur", "revenus_nets", demNet,
+      {AB("pro_dem", "fa-briefcase", "Revenus professionnels nets", "revenus_nets", demNet,
         <RowsTable
           title="Demandeur"
           comptabiliseRows={data.revenusNets.demandeur.comptabiliseRows}
@@ -3240,57 +3210,6 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
           onChangeExonere={(rows) => setData(d => ({ ...d, revenusNets: { ...d.revenusNets, demandeur: { ...d.revenusNets.demandeur, exonereRows: rows } } }))}
         />
       )}
-
-      {/* Revenus professionnels nets - Conjoint */}
-      <div style={{ border: `1px solid ${colors.border}`, borderRadius: 10, overflow: "hidden" }}>
-        <button type="button" onClick={() => {
-          if (!data.revenusNets.conjoint.enabled) {
-            setData(d => ({ ...d, revenusNets: { ...d.revenusNets, conjoint: { ...d.revenusNets.conjoint, enabled: true } } }));
-            setOpen(s => ({ ...s, pro_conj: true }));
-          } else {
-            tog("pro_conj");
-          }
-        }} style={{
-          width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "12px 16px", background: open.pro_conj ? "#EEF4FA" : colors.white,
-          border: "none", cursor: "pointer", fontFamily: "'Source Sans Pro', sans-serif",
-          borderBottom: open.pro_conj ? `1px solid ${colors.border}` : "none",
-        }}>
-          <span style={{ fontWeight: 700, color: colors.primary, display: "flex", alignItems: "center", gap: 8 }}>
-            <i className="fas fa-briefcase" style={{ fontSize: 14, opacity: 0.65 }} aria-hidden="true" />
-            Revenus professionnels nets - Conjoint
-            <FicheBtn ficheKey="revenus_nets" onOpen={openFiche} />
-          </span>
-          <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {!data.revenusNets.conjoint.enabled
-              ? <span style={{ fontSize: 14, color: colors.textLight, fontStyle: "italic" }}>non active - cliquer pour ajouter</span>
-              : conjNet > 0
-                ? <span style={{ fontSize: 14, fontWeight: 700, color: colors.primary, background: "#dbeafe", borderRadius: 20, padding: "2px 10px" }}><Money value={conjNet} />/mois</span>
-                : <span style={{ fontSize: 14, color: colors.textLight, fontStyle: "italic" }}>non saisi</span>
-            }
-            <i className={`fas fa-chevron-${open.pro_conj ? "up" : "down"}`} style={{ fontSize: 14, color: colors.textLight }} aria-hidden="true" />
-          </span>
-        </button>
-        {open.pro_conj && data.revenusNets.conjoint.enabled && (
-          <div style={{ padding: 16 }}>
-            <label style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12, fontSize: 14, color: colors.textLight }}>
-              <input type="checkbox" checked={data.revenusNets.conjoint.enabled}
-                onChange={(e) => {
-                  setData(d => ({ ...d, revenusNets: { ...d.revenusNets, conjoint: { ...d.revenusNets.conjoint, enabled: e.target.checked } } }));
-                  if (!e.target.checked) setOpen(s => ({ ...s, pro_conj: false }));
-                }} />
-              Revenus du conjoint actives
-            </label>
-            <RowsTable
-              title="Conjoint"
-              comptabiliseRows={data.revenusNets.conjoint.comptabiliseRows}
-              exonereRows={data.revenusNets.conjoint.exonereRows}
-              onChangeComptabilise={(rows) => setData(d => ({ ...d, revenusNets: { ...d.revenusNets, conjoint: { ...d.revenusNets.conjoint, comptabiliseRows: rows } } }))}
-              onChangeExonere={(rows) => setData(d => ({ ...d, revenusNets: { ...d.revenusNets, conjoint: { ...d.revenusNets.conjoint, exonereRows: rows } } }))}
-            />
-          </div>
-        )}
-      </div>
 
       {/* CMR */}
       {AB("cmr", "fa-file-medical", "Chomage / Mutuelle / Remplacement", "cmr", cmrTotal,
@@ -3302,45 +3221,34 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
         />
       )}
 
-      {/* Exonerations Art. 35 */}
-      {AB("exo", "fa-percent", "Exonerations - Insertion socioprofessionnelle (Art. 35)", "insertion_sociopro", exoTotal,
+      {/* Exonerations socio-professionnelles */}
+      {AB("exo", "fa-percent", "Exonerations socio-professionnelles (Art. 35)", "insertion_sociopro", exoTotal,
         <>
-          <div className="summary-box" style={{ marginBottom: 14 }}>
-            <b>Total exoneration mensuelle : <Money value={exoTotal} /></b>
-            <span style={{ marginLeft: 12, opacity: 0.7, fontSize: 14 }}>(annuel : <Money value={exoCalc.totalAnnuel} />)</span>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          {exoTotal < 0 && (
+            <div className="summary-box" style={{ marginBottom: 14 }}>
+              <b>Total exoneration mensuelle : <Money value={exoTotal} /></b>
+              <span style={{ marginLeft: 12, opacity: 0.7, fontSize: 14 }}>(annuel : <Money value={exoCalc.totalAnnuel} />)</span>
+            </div>
+          )}
+          <div style={{ display: "grid", gap: 6 }}>
             {[
-              { person: "demandeur", label: "Demandeur", checks: [
-                { key: "general",   label: "Exo. generale",   fk: "exo_generale_etudiant" },
-                { key: "etudiant",  label: "Exo. etudiants",  fk: "exo_generale_etudiant" },
-                { key: "penurie",   label: "Exo. penurie",    fk: "exo_penurie" },
-                { key: "artisteSP", label: "Activite artistique socio-prof." },
-              ]},
-              { person: "conjoint", label: "Conjoint", checks: [
-                { key: "general",   label: "Exo. generale" },
-                { key: "etudiant",  label: "Exo. etudiants" },
-                { key: "penurie",   label: "Exo. penurie" },
-                { key: "artisteSP", label: "Activite artistique socio-prof." },
-              ]},
-            ].map(({ person, label, checks }) => (
-              <div key={person} style={{ padding: 12, border: `1px solid ${colors.border}`, borderRadius: 8 }}>
-                <div style={{ fontWeight: 700, color: colors.primary, marginBottom: 8 }}>{label}</div>
-                {checks.map(({ key, label: lbl, fk }) => (
-                  <label key={key} style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6, fontSize: 14 }}>
-                    <input type="checkbox"
-                      checked={!!data.exoneration[person][key]}
-                      onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration, [person]: { ...d.exoneration[person], [key]: e.target.checked } } }))} />
-                    {lbl}
-                    {fk && <FicheBtn ficheKey={fk} onOpen={openFiche} />}
-                  </label>
-                ))}
-                <Field label={<span style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>Jours (si compteur depasse)<FicheBtn ficheKey="jours_compteur" onOpen={openFiche} /></span>}>
-                  <NumInput value={data.exoneration[person].joursCompteur}
-                    onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration, [person]: { ...d.exoneration[person], joursCompteur: safeNumber(e.target.value, 0) } } }))} />
-                </Field>
-              </div>
+              { key: "general",   label: "Exo. generale",   fk: "exo_generale_etudiant" },
+              { key: "etudiant",  label: "Exo. etudiants",  fk: "exo_generale_etudiant" },
+              { key: "penurie",   label: "Exo. penurie",    fk: "exo_penurie" },
+              { key: "artisteSP", label: "Activite artistique socio-prof." },
+            ].map(({ key, label: lbl, fk }) => (
+              <label key={key} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
+                <input type="checkbox"
+                  checked={!!data.exoneration.demandeur[key]}
+                  onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration, demandeur: { ...d.exoneration.demandeur, [key]: e.target.checked } } }))} />
+                {lbl}
+                {fk && <FicheBtn ficheKey={fk} onOpen={openFiche} />}
+              </label>
             ))}
+            <Field label={<span style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>Jours (si compteur depasse)<FicheBtn ficheKey="jours_compteur" onOpen={openFiche} /></span>}>
+              <NumInput value={data.exoneration.demandeur.joursCompteur}
+                onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration, demandeur: { ...d.exoneration.demandeur, joursCompteur: safeNumber(e.target.value, 0) } } }))} />
+            </Field>
           </div>
         </>
       )}
@@ -3766,7 +3674,6 @@ export default function App() {
                   {/* ── Ressources professionnelles ── */}
                   <Sec>Ressources professionnelles</Sec>
                   <Row label="Revenu net — Demandeur" mensuel={apercu.pro.D4_netDem_Annuel / 12} annuel={apercu.pro.D4_netDem_Annuel} total={apercu.pro.D4_netDem_Annuel} />
-                  <Row label="Revenu net — Conjoint" mensuel={apercu.pro.D5_netConj_Annuel / 12} annuel={apercu.pro.D5_netConj_Annuel} total={apercu.pro.D5_netConj_Annuel} />
                   {apercu.pro.D4_netDem_Annuel > apercu.pro.D6_netAvantExoSP_Dem_Annuel && (
                     <Row neg label="(−) Exonération Art. 35 — Demandeur"
                       mensuel={(apercu.pro.D4_netDem_Annuel - apercu.pro.D6_netAvantExoSP_Dem_Annuel) / 12}
@@ -3774,17 +3681,9 @@ export default function App() {
                       total={apercu.pro.D4_netDem_Annuel - apercu.pro.D6_netAvantExoSP_Dem_Annuel}
                     />
                   )}
-                  {apercu.pro.D5_netConj_Annuel > apercu.pro.D7_netAvantExoSP_Conj_Annuel && (
-                    <Row neg label="(−) Exonération Art. 35 — Conjoint"
-                      mensuel={(apercu.pro.D5_netConj_Annuel - apercu.pro.D7_netAvantExoSP_Conj_Annuel) / 12}
-                      annuel={apercu.pro.D5_netConj_Annuel - apercu.pro.D7_netAvantExoSP_Conj_Annuel}
-                      total={apercu.pro.D5_netConj_Annuel - apercu.pro.D7_netAvantExoSP_Conj_Annuel}
-                    />
-                  )}
                   <Row label="Net après exo. Art. 35 — Demandeur" mensuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel / 12} annuel={apercu.pro.D6_netAvantExoSP_Dem_Annuel} total={apercu.pro.D6_netAvantExoSP_Dem_Annuel} />
-                  <Row label="Net après exo. Art. 35 — Conjoint"  mensuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel / 12} annuel={apercu.pro.D7_netAvantExoSP_Conj_Annuel} total={apercu.pro.D7_netAvantExoSP_Conj_Annuel} />
                   {apercu.pro.D8_netAvecArt_Annuel > 0 && (
-                    <Row label="Net avec exo. artistique (dem. + conj.)" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
+                    <Row label="Net avec exo. artistique (demandeur)" mensuel={apercu.pro.D8_netAvecArt_Annuel / 12} annuel={apercu.pro.D8_netAvecArt_Annuel} total={apercu.pro.D8_netAvecArt_Annuel} />
                   )}
                   <Row highlight label="Sous-total revenus professionnels nets" mensuel={apercu.pro.F8_totalProratises_M} annuel={apercu.pro.F8_totalProratises_M * 12} total={apercu.pro.F8_totalProratises_M * 12} />
 

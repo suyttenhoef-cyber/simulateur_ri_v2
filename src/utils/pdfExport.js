@@ -111,7 +111,7 @@ export async function generatePDF(data, result, apercu) {
     const secS = (label) =>
       `<tr><td colspan="3" style="padding:10px 8px;font-weight:bold;background:#f0f8ff;">${label}</td></tr>`;
 
-    // Revenus professionnels demandeur + conjoint (ligne par ligne, filtrés à > 0)
+    // Revenus professionnels demandeur (ligne par ligne, filtrés à > 0)
     const proRows = (() => {
       let html = '';
       for (const r of (data.revenusNets?.demandeur?.comptabiliseRows || [])) {
@@ -121,16 +121,6 @@ export async function generatePDF(data, result, apercu) {
       for (const r of (data.revenusNets?.demandeur?.exonereRows || [])) {
         const m = safeNS(r.montant);
         if (m > 0) html += rowS(`(−) ${r.customLabel || r.label || 'Revenu exonéré'}`, m, m * 12, 'color:#c0392b;');
-      }
-      if (data.revenusNets?.conjoint?.enabled) {
-        for (const r of (data.revenusNets.conjoint.comptabiliseRows || [])) {
-          const m = safeNS(r.montant);
-          if (m > 0) html += rowS(`Conjoint — ${r.customLabel || r.label || 'Revenu net professionnel'}`, m, m * 12);
-        }
-        for (const r of (data.revenusNets.conjoint.exonereRows || [])) {
-          const m = safeNS(r.montant);
-          if (m > 0) html += rowS(`Conjoint — (−) ${r.customLabel || r.label || 'Exonération'}`, m, m * 12, 'color:#c0392b;');
-        }
       }
       return html;
     })();
@@ -465,12 +455,11 @@ export async function generateTableauCPAS(data, result, apercu) {
     // SECTION 1 — Revenus professionnels nets
     // ════════════════════════════════════════════════════════════════════
     // Pré-calcul Art. 35 (utilisé dans Section 1 en sous-ligne)
-    const art35DemAn  = r2(safeN(apercu?.pro?.D4_netDem_Annuel)  - safeN(apercu?.pro?.D6_netAvantExoSP_Dem_Annuel));
-    const art35ConjAn = r2(safeN(apercu?.pro?.D5_netConj_Annuel) - safeN(apercu?.pro?.D7_netAvantExoSP_Conj_Annuel));
+    const art35DemAn = r2(safeN(apercu?.pro?.D4_netDem_Annuel) - safeN(apercu?.pro?.D6_netAvantExoSP_Dem_Annuel));
 
     // Helper : libellé du type d'exo Art. 35 depuis les cases cochées
-    const art35Label = (person) => {
-      const e = data.exoneration?.[person] || {};
+    const art35Label = () => {
+      const e = data.exoneration?.demandeur || {};
       const types = [
         e.general    && 'général',
         e.etudiant   && 'étudiant',
@@ -492,30 +481,16 @@ export async function generateTableauCPAS(data, result, apercu) {
     // SECTION 1 — Revenus professionnels nets + Art. 35 en sous-ligne
     // ════════════════════════════════════════════════════════════════════
     const comptAnnuel = r2(
-      (data.revenusNets?.demandeur?.comptabiliseRows || []).reduce((s, r) => s + safeN(r.montant), 0) * 12 +
-      (data.revenusNets?.conjoint?.enabled
-        ? (data.revenusNets.conjoint.comptabiliseRows || []).reduce((s, r) => s + safeN(r.montant), 0) * 12
-        : 0)
+      (data.revenusNets?.demandeur?.comptabiliseRows || []).reduce((s, r) => s + safeN(r.montant), 0) * 12
     );
-    if (comptAnnuel > 0 || art35DemAn > 0 || art35ConjAn > 0) {
+    if (comptAnnuel > 0 || art35DemAn > 0) {
       tbody += SEC('Revenus professionnels nets');
       for (const row of (data.revenusNets?.demandeur?.comptabiliseRows || [])) {
         const m = safeN(row.montant);
         if (!m) continue;
         tbody += ROW(demCell(), row.customLabel || row.label || 'Revenus professionnels', `${fmt(m)}/mois`, r2(m * 12));
       }
-      // Sous-ligne Art. 35 demandeur
-      if (art35DemAn > 0) tbody += art35SubRow(art35Label('demandeur'), art35DemAn);
-
-      if (data.revenusNets?.conjoint?.enabled) {
-        for (const row of (data.revenusNets.conjoint.comptabiliseRows || [])) {
-          const m = safeN(row.montant);
-          if (!m) continue;
-          tbody += ROW('Conjoint', row.customLabel || row.label || 'Revenus professionnels', `${fmt(m)}/mois`, r2(m * 12));
-        }
-        // Sous-ligne Art. 35 conjoint
-        if (art35ConjAn > 0) tbody += art35SubRow(art35Label('conjoint'), art35ConjAn);
-      }
+      if (art35DemAn > 0) tbody += art35SubRow(art35Label(), art35DemAn);
       tbody += SEP();
     }
 
@@ -523,10 +498,7 @@ export async function generateTableauCPAS(data, result, apercu) {
     // SECTION 2 — Revenus professionnels exonérés (par ligne)
     // ════════════════════════════════════════════════════════════════════
     const exonLigneAnnuel = r2(
-      (data.revenusNets?.demandeur?.exonereRows || []).reduce((s, r) => s + safeN(r.montant), 0) * 12 +
-      (data.revenusNets?.conjoint?.enabled
-        ? (data.revenusNets.conjoint.exonereRows || []).reduce((s, r) => s + safeN(r.montant), 0) * 12
-        : 0)
+      (data.revenusNets?.demandeur?.exonereRows || []).reduce((s, r) => s + safeN(r.montant), 0) * 12
     );
     if (exonLigneAnnuel > 0) {
       tbody += SEC('Revenus professionnels exonérés (Art. 34)');
@@ -534,13 +506,6 @@ export async function generateTableauCPAS(data, result, apercu) {
         const m = safeN(row.montant);
         if (!m) continue;
         tbody += ROW(demCell(), row.type || 'Revenu exonéré', `${fmt(m)}/mois`, r2(m * 12), true);
-      }
-      if (data.revenusNets?.conjoint?.enabled) {
-        for (const row of (data.revenusNets.conjoint.exonereRows || [])) {
-          const m = safeN(row.montant);
-          if (!m) continue;
-          tbody += ROW('Conjoint', row.type || 'Revenu exonéré', `${fmt(m)}/mois`, r2(m * 12), true);
-        }
       }
       tbody += SEP();
     }
