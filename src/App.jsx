@@ -2332,7 +2332,6 @@ function computeApercuExcelLike({ data, pieces }) {
   // Aperçu F4 = Total ressources proratisables = SUM(C6:C11)
   const totalProratisables_M =
     netAvantExoSP_Dem_M +
-    netAvantExoSP_Conj_M +
     netAvecArt_M +
     chom.mensuelTotal +
     mut.mensuelTotal +
