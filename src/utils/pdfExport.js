@@ -120,7 +120,7 @@ export async function generatePDF(data, result, apercu) {
       }
       for (const r of (data.revenusNets?.demandeur?.exonereRows || [])) {
         const m = safeNS(r.montant);
-        if (m > 0) html += rowS(`(−) ${r.customLabel || r.label || 'Revenu exonéré'}`, m, m * 12, 'color:#c0392b;');
+        if (m > 0) html += rowS(`(−) ${r.customLabel || r.label || 'Revenu exonéré'}`, m, m * 12, 'color:#BF2222;');
       }
       return html;
     })();
@@ -426,7 +426,7 @@ export async function generateTableauCPAS(data, result, apercu) {
       ${cell(`<b>${person}</b>`)}
       ${cell(nature)}
       ${cell(hauteur || '', 'color:#444;')}
-      ${cell((neg ? '−' : '') + fmt(Math.abs(annuel)), 'text-align:right;' + (neg ? 'color:#c0392b;' : ''))}
+      ${cell((neg ? '−' : '') + fmt(Math.abs(annuel)), 'text-align:right;' + (neg ? 'color:#BF2222;' : ''))}
     </tr>`;
 
     // Ligne de sous-total
@@ -472,9 +472,9 @@ export async function generateTableauCPAS(data, result, apercu) {
     // Sous-ligne Art. 35 insérée directement après les revenus de la personne
     const art35SubRow = (label, annuel) => `<tr style="background:#fff5f5;">
       ${cell('')}
-      ${cell(`<span style="color:#c0392b;font-style:italic;">${label}</span>`)}
-      ${cell(fmt(annuel / 12) + '/mois', 'color:#c0392b;font-style:italic;')}
-      ${cell('−&nbsp;' + fmt(annuel), 'text-align:right;color:#c0392b;font-style:italic;')}
+      ${cell(`<span style="color:#BF2222;font-style:italic;">${label}</span>`)}
+      ${cell(fmt(annuel / 12) + '/mois', 'color:#BF2222;font-style:italic;')}
+      ${cell('−&nbsp;' + fmt(annuel), 'text-align:right;color:#BF2222;font-style:italic;')}
     </tr>`;
 
     // ════════════════════════════════════════════════════════════════════
@@ -734,9 +734,9 @@ export async function generateTableauCPAS(data, result, apercu) {
       // (−) Seuil RI
       html += `<tr style="background:#fef6f6;">
         ${cell('')}
-        ${cell('(−) Seuil RI', 'color:#c0392b;')}
+        ${cell('(−) Seuil RI', 'color:#BF2222;')}
         ${cell('')}
-        ${cell('−&nbsp;' + fmt(safeN(coh.seuilRI)), 'text-align:right;color:#c0392b;')}
+        ${cell('−&nbsp;' + fmt(safeN(coh.seuilRI)), 'text-align:right;color:#BF2222;')}
       </tr>`;
 
       if (excedentBrut > 0) {

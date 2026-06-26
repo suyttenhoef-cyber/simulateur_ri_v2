@@ -35,10 +35,10 @@ const colors = {
   background: "#F5F8FA",
   white: "#FFFFFF",
   text: "#2C3E50",
-  textLight: "#7F8C8D",
+  textLight: "#767676",
   border: "#E1E8ED",
   success: "#2BEBCE",
-  danger: "#E74C3C"
+  danger: "#BF2222"
 };
 function computeCohabitantsMonthly(rows) {
   return rows.reduce((acc, row) => acc + safeNumber(row.mensuel, 0), 0);
@@ -56,7 +56,7 @@ function Row({ label, mensuel, annuel, highlight = false, neg = false, grand = f
   } else if (highlight) {
     base = { padding: "6px 12px", background: "#DDE9F5", color: "#163E67", fontWeight: 700, borderTop: "1px solid #B8D0EC" };
   } else if (neg) {
-    base = { padding: "5px 8px 5px 24px", color: "#c0392b", fontStyle: "italic", fontSize: 14 };
+    base = { padding: "5px 8px 5px 24px", color: "#BF2222", fontStyle: "italic", fontSize: 14 };
   } else {
     base = { padding: "5px 8px 5px 20px", color: "#2C3E50" };
   }
@@ -286,7 +286,7 @@ function Field({ label, hint, children }) {
     <label style={{ display: "grid", gap: 6 }}>
       <span style={{ fontSize: 14, opacity: 0.85 }}>{label}</span>
       {children}
-      {hint && <span style={{ fontSize: 14, opacity: 0.65 }}>{hint}</span>}
+      {hint && <span style={{ fontSize: 14, color: "#767676" }}>{hint}</span>}
     </label>
   );
 }
@@ -828,7 +828,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                                   </td>
                                   <td style={{ textAlign: "center" }}>
                                     <button onClick={() => onRemove(j)}
-                                      style={{ background: "none", border: "none", cursor: "pointer", color: "#c0392b", fontSize: 14, padding: "2px 4px" }}
+                                      style={{ background: "none", border: "none", cursor: "pointer", color: "#BF2222", fontSize: 14, padding: "2px 4px" }}
                                       aria-label="Supprimer">
                                       <i className="fas fa-times" aria-hidden="true" />
                                     </button>
@@ -913,7 +913,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                                     </td>
                                     <td style={{ textAlign: "center" }}>
                                       <button onClick={() => removeProRow(i, j)}
-                                        style={{ background: "none", border: "none", cursor: "pointer", color: "#c0392b", fontSize: 14, padding: "2px 4px" }}>
+                                        style={{ background: "none", border: "none", cursor: "pointer", color: "#BF2222", fontSize: 14, padding: "2px 4px" }}>
                                         <i className="fas fa-times" aria-hidden="true" />
                                       </button>
                                     </td>
@@ -954,7 +954,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                                     </td>
                                     <td style={{ textAlign: "center" }}>
                                       <button onClick={() => removeProExoRow(i, j)}
-                                        style={{ background: "none", border: "none", cursor: "pointer", color: "#c0392b", fontSize: 14, padding: "2px 4px" }}>
+                                        style={{ background: "none", border: "none", cursor: "pointer", color: "#BF2222", fontSize: 14, padding: "2px 4px" }}>
                                         <i className="fas fa-times" aria-hidden="true" />
                                       </button>
                                     </td>
@@ -1221,7 +1221,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                   {safeNumber(r.chargesAdmissibles, 0) > 0 && (
                     <div style={{ marginTop: 6, paddingLeft: 4, fontSize: 14, color: colors.textLight }}>
                       Disponible (après charges admissibles) :&nbsp;
-                      <strong style={{ color: round2(safeNumber(calc.ressourcesTotale, 0) / 12 - safeNumber(r.chargesAdmissibles, 0)) >= 0 ? "#1a7a3c" : "#c0392b" }}>
+                      <strong style={{ color: round2(safeNumber(calc.ressourcesTotale, 0) / 12 - safeNumber(r.chargesAdmissibles, 0)) >= 0 ? "#1a7a3c" : "#BF2222" }}>
                         <Money value={round2(safeNumber(calc.ressourcesTotale, 0) / 12 - safeNumber(r.chargesAdmissibles, 0))} /> /mois
                       </strong>
                     </div>
@@ -1285,7 +1285,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                       Seuil garanti ({totalSeuilCount} cohabitant{totalSeuilCount !== 1 ? "s" : ""})
                       {autreCount > 0 && <span style={{ color: colors.textLight, fontSize: 14, marginLeft: 6 }}>dont {autreCount} « Autre » (seuil uniquement)</span>}
                     </td>
-                    <td style={{ padding: "6px 8px", textAlign: "right", color: "#c0392b", fontWeight: 600 }}>−&nbsp;<Money value={grouped.seuilTotal} /> /an</td>
+                    <td style={{ padding: "6px 8px", textAlign: "right", color: "#BF2222", fontWeight: 600 }}>−&nbsp;<Money value={grouped.seuilTotal} /> /an</td>
                   </tr>
                   <tr style={{ borderBottom: `1px solid ${colors.border}`, background: hasPartiel ? undefined : "#EEF4FA" }}>
                     <td style={{ padding: "7px 8px", fontWeight: hasPartiel ? 500 : 700, color: colors.primary }}>
@@ -1362,7 +1362,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                   </tr>
                   <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
                     <td style={{ padding: "5px 8px" }}>Charges admissibles (cohabitants)</td>
-                    <td style={{ padding: "5px 8px", textAlign: "right", color: "#c0392b" }}>−&nbsp;<Money value={totalChargesAdmCohab} /> /mois</td>
+                    <td style={{ padding: "5px 8px", textAlign: "right", color: "#BF2222" }}>−&nbsp;<Money value={totalChargesAdmCohab} /> /mois</td>
                   </tr>
                   <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
                     <td style={{ padding: "5px 8px" }}>
@@ -1382,13 +1382,13 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                     </tr>
                   )}
                   <tr style={{ background: disponibleAdm >= 0 ? "#d4edda" : "#fde8e8", fontWeight: 700 }}>
-                    <td style={{ padding: "6px 8px", color: disponibleAdm >= 0 ? "#1a7a3c" : "#c0392b" }}>Disponible ménage (charges admissibles)</td>
-                    <td style={{ padding: "6px 8px", textAlign: "right", color: disponibleAdm >= 0 ? "#1a7a3c" : "#c0392b" }}><Money value={disponibleAdm} /> /mois</td>
+                    <td style={{ padding: "6px 8px", color: disponibleAdm >= 0 ? "#1a7a3c" : "#BF2222" }}>Disponible ménage (charges admissibles)</td>
+                    <td style={{ padding: "6px 8px", textAlign: "right", color: disponibleAdm >= 0 ? "#1a7a3c" : "#BF2222" }}><Money value={disponibleAdm} /> /mois</td>
                   </tr>
                   {totalChargesInadmCohab > 0 && (
                     <tr style={{ background: disponibleTotal >= 0 ? "#d4edda" : "#fde8e8" }}>
-                      <td style={{ padding: "6px 8px", color: disponibleTotal >= 0 ? "#1a7a3c" : "#c0392b", fontStyle: "italic", fontSize: 14 }}>Disponible ménage (toutes charges)</td>
-                      <td style={{ padding: "6px 8px", textAlign: "right", color: disponibleTotal >= 0 ? "#1a7a3c" : "#c0392b", fontSize: 14 }}><Money value={disponibleTotal} /> /mois</td>
+                      <td style={{ padding: "6px 8px", color: disponibleTotal >= 0 ? "#1a7a3c" : "#BF2222", fontStyle: "italic", fontSize: 14 }}>Disponible ménage (toutes charges)</td>
+                      <td style={{ padding: "6px 8px", textAlign: "right", color: disponibleTotal >= 0 ? "#1a7a3c" : "#BF2222", fontSize: 14 }}><Money value={disponibleTotal} /> /mois</td>
                     </tr>
                   )}
                 </tbody>
@@ -1402,8 +1402,8 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
               <span style={{ fontSize: 14, fontWeight: 700, color: colors.primary, display: "block", marginBottom: 8 }}>Fourchette RIS</span>
               <div style={{ display: "grid", gridTemplateColumns: priseEnCompte === "equite" ? "1fr 1fr 1fr" : "1fr 1fr", gap: 8 }}>
                 <div style={{ background: "#fde8e8", borderRadius: 8, padding: "8px 12px" }}>
-                  <div style={{ fontSize: 14, color: "#c0392b", fontWeight: 600, marginBottom: 2 }}>Minimum légal</div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: "#c0392b" }}><Money value={risMinLegalMensuel} /> /mois</div>
+                  <div style={{ fontSize: 14, color: "#BF2222", fontWeight: 600, marginBottom: 2 }}>Minimum légal</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: "#BF2222" }}><Money value={risMinLegalMensuel} /> /mois</div>
                   <div style={{ fontSize: 14, color: colors.textLight }}>Application stricte</div>
                 </div>
                 {priseEnCompte === "equite" && (
@@ -2863,8 +2863,9 @@ function FicheBtn({ ficheKey, onOpen }) {
       title={`Fiche pratique : ${fiche.titre}`}
       style={{
         background: "transparent", border: "none", cursor: "pointer",
-        fontSize: "14px", color: "#7F8C8D", padding: "0 2px", lineHeight: 1,
-        display: "inline-flex", alignItems: "center",
+        fontSize: "14px", color: "#767676", padding: 0, lineHeight: 1,
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        minWidth: 24, minHeight: 24,
       }}
     >
       <i className="fas fa-arrow-up-right-from-square" aria-hidden="true" />
@@ -2919,7 +2920,7 @@ function FicheModal({ fiche, onClose }) {
           }}>
             {fiche.titre}
           </div>
-          <div style={{ fontSize: "14px", color: "#7F8C8D", marginBottom: "28px" }}>
+          <div style={{ fontSize: "14px", color: "#767676", marginBottom: "28px" }}>
             Cette fiche s'ouvre dans CPASConnect.<br />
             Assurez-vous d'être connecté pour y accéder.
           </div>
@@ -3333,7 +3334,10 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
         const bm = computeBiensMobiliersExcel(data.biensMobiliers);
         const B  = safeNumber(data.biensMobiliers.montantCapital, 0);
         return (
-          <>
+          <div className="card" style={{ padding: 16 }}>
+            <h3 style={{ margin: "0 0 14px 0", fontSize: 15, fontWeight: 700, color: colors.primary, paddingBottom: 12, borderBottom: "2px solid #F0F4F8" }}>
+              Demandeur — Biens mobiliers
+            </h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 12 }}>
               <Input label="Capital (euro)" type="number" value={data.biensMobiliers.montantCapital}
                 onChange={(e) => setData(d => ({ ...d, biensMobiliers: { ...d.biensMobiliers, montantCapital: safeNumber(e.target.value, 0) } }))} />
@@ -3348,7 +3352,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
                 <div style={{ fontWeight: 700, color: colors.primary, marginTop: 4 }}>Total : <Money value={bm.totalAnnuel} />/an - <Money value={bm.totalMensuel} />/mois</div>
               </div>
             )}
-          </>
+          </div>
         );
       })())}
 
@@ -3490,7 +3494,7 @@ export default function App() {
                    {/* Sélecteur situation familiale */}
                    <div>
                      <span style={{ fontSize: 14, opacity: 0.85 }}>
-                       Situation familiale <span style={{ color: "#c0392b", fontWeight: 700 }}>*</span>
+                       Situation familiale <span style={{ color: "#BF2222", fontWeight: 700 }}>*</span>
                      </span>
                      <div style={{
                        display: "grid",
@@ -3560,7 +3564,7 @@ export default function App() {
                        })}
                      </div>
                      {!data.menage.situation && (
-                       <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8, color: "#c0392b", fontSize: 14, fontWeight: 600 }}>
+                       <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8, color: "#BF2222", fontSize: 14, fontWeight: 600 }}>
                          <i className="fas fa-circle-exclamation" aria-hidden="true" />
                          Veuillez sélectionner une situation familiale pour continuer.
                        </div>
@@ -3624,7 +3628,7 @@ export default function App() {
                     display: "inline-flex", alignItems: "center", gap: 6,
                     padding: "4px 14px", borderRadius: 20, fontWeight: 700, fontSize: 14,
                     background: result.apercu?.ri?.eligible ? "#d4edda" : "#fde8e8",
-                    color: result.apercu?.ri?.eligible ? "#1a7a3c" : "#c0392b",
+                    color: result.apercu?.ri?.eligible ? "#1a7a3c" : "#BF2222",
                     border: `1.5px solid ${result.apercu?.ri?.eligible ? "#a3d9b1" : "#f5a0a0"}`,
                   }}>
                     <i className={`fas fa-${result.apercu?.ri?.eligible ? "circle-check" : "circle-xmark"}`} aria-hidden="true" />

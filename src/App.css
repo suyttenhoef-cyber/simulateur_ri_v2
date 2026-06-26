@@ -9,7 +9,7 @@
   --color-primary-dark: #0f2d4d;
   --color-accent:       #2BEBCE;
   --color-accent-dark:  #1BC9B0;
-  --color-danger:       #E74C3C;
+  --color-danger:       #BF2222;
 
   /* Fonds */
   --bg-page:    #F5F8FA;
@@ -18,7 +18,7 @@
 
   /* Texte */
   --text:       #2C3E50;
-  --text-muted: #7F8C8D;
+  --text-muted: #767676;
   --text-light: #A0AEB8;
 
   /* Bordure */
@@ -316,7 +316,7 @@
   background: var(--color-danger);
   color: #fff;
 }
-.btn--danger:hover { background: #c0392b; }
+.btn--danger:hover { background: #9B1A1A; }
 
 .btn--ghost {
   background: rgba(255,255,255,0.15);
@@ -517,7 +517,7 @@ input[type="number"] { -moz-appearance: textfield; }
   gap: 5px;
   padding: 5px 12px;
   background: #FEF2F2;
-  color: #E74C3C;
+  color: #BF2222;
   border: 1.5px solid #FECACA;
   border-radius: 99px;
   font-family: 'Source Sans Pro', sans-serif;
@@ -527,11 +527,11 @@ input[type="number"] { -moz-appearance: textfield; }
   transition: all 0.2s ease;
 }
 .btn-remove:hover {
-  background: #E74C3C;
+  background: #BF2222;
   color: #fff;
-  border-color: #E74C3C;
+  border-color: #BF2222;
   transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(231, 76, 60, 0.25);
+  box-shadow: 0 4px 10px rgba(191, 34, 34, 0.25);
 }
 
 /* ===== Footer ===== */
