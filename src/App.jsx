@@ -1537,32 +1537,34 @@ function RowsTable({ title, comptabiliseRows, exonereRows, onChangeComptabilise,
         </div>
       </div>
 
-      {/* ── BLOC 2 : Revenus professionnels exonérés ── */}
-      <div className="card" style={{ padding: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 12, borderBottom: "2px solid #F0F4F8" }}>
-          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>{title} — Revenus professionnels exonérés</h3>
-          <button onClick={addE} className="btn-add">+ Ajouter</button>
-        </div>
-        <div style={colHdr}><div>Type d'exonération</div><div>Montant exonéré (€/mois)</div><div /></div>
-        {(exonereRows || []).map((r, i) => (
-          <div key={i} style={colRow(i)}>
-            <select value={r.type || ""} onChange={(e) => updateE(i, { type: e.target.value })}>
-              {REVENUS_EXONERES_SUGGESTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-            <NumInput value={r.montant} onChange={(e) => updateE(i, { montant: safeNumber(e.target.value, 0) })} />
-            {trashBtn(() => removeE(i))}
+      {onChangeExonere && (
+        <div className="card" style={{ padding: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 12, borderBottom: "2px solid #F0F4F8" }}>
+            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>{title} — Revenus professionnels exonérés</h3>
+            <button onClick={addE} className="btn-add">+ Ajouter</button>
           </div>
-        ))}
-        <div style={{ marginTop: 12, padding: "10px 4px", background: "#F5F8FA", borderRadius: 6, fontWeight: 600, fontSize: 14 }}>
-          Total exonéré : <Money value={sumExon} />/mois
+          <div style={colHdr}><div>Type d'exonération</div><div>Montant exonéré (€/mois)</div><div /></div>
+          {(exonereRows || []).map((r, i) => (
+            <div key={i} style={colRow(i)}>
+              <select value={r.type || ""} onChange={(e) => updateE(i, { type: e.target.value })}>
+                {REVENUS_EXONERES_SUGGESTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+              <NumInput value={r.montant} onChange={(e) => updateE(i, { montant: safeNumber(e.target.value, 0) })} />
+              {trashBtn(() => removeE(i))}
+            </div>
+          ))}
+          <div style={{ marginTop: 12, padding: "10px 4px", background: "#F5F8FA", borderRadius: 6, fontWeight: 600, fontSize: 14 }}>
+            Total exonéré : <Money value={sumExon} />/mois
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* ── Résumé net ── */}
-      <div className="summary-box">
-        <div><b>Net mensuel ({title}) :</b> <Money value={net} /></div>
-        <div style={{ opacity: 0.75, fontSize: 14 }}>Net annuel : <b><Money value={net * 12} /></b></div>
-      </div>
+      {onChangeComptabilise && onChangeExonere && (
+        <div className="summary-box">
+          <div><b>Net mensuel ({title}) :</b> <Money value={net} /></div>
+          <div style={{ opacity: 0.75, fontSize: 14 }}>Net annuel : <b><Money value={net * 12} /></b></div>
+        </div>
+      )}
     </div>
   );
 }
@@ -3168,6 +3170,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
   const cmrTotal  = round2(chomTotal + mutTotal + remTotal);
   const exoCalc   = computeExonerationExcel({ dateISO, exo: data.exoneration });
   const exoTotal  = round2(exoCalc.totalMensuel);
+  const exonereRowsTotal = round2((data.revenusNets.demandeur.exonereRows || []).reduce((s, r) => s + safeNumber(r.montant, 0), 0));
   const divTotal  = round2(
     data.ressourcesDiverses.generales.reduce((s, r) => s + safeNumber(r.montant, 0), 0) +
     data.ressourcesDiverses.benevoles.reduce((s, r) => s + safeNumber(r.montant, 0), 0)
@@ -3180,7 +3183,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
   const [open, setOpen] = useState(() => ({
     pro_dem:   demNet > 0,
     cmr:       cmrTotal > 0,
-    exo:       exoTotal > 0,
+    exo:       exoTotal > 0 || exonereRowsTotal > 0,
     diverses:  divTotal > 0,
     avantages: avTotal > 0,
     cessions:  data.cessionsBiens.rows.length > 0,
@@ -3205,9 +3208,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
         <RowsTable
           title="Demandeur"
           comptabiliseRows={data.revenusNets.demandeur.comptabiliseRows}
-          exonereRows={data.revenusNets.demandeur.exonereRows}
           onChangeComptabilise={(rows) => setData(d => ({ ...d, revenusNets: { ...d.revenusNets, demandeur: { ...d.revenusNets.demandeur, comptabiliseRows: rows } } }))}
-          onChangeExonere={(rows) => setData(d => ({ ...d, revenusNets: { ...d.revenusNets, demandeur: { ...d.revenusNets.demandeur, exonereRows: rows } } }))}
         />
       )}
 
@@ -3221,9 +3222,23 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
         />
       )}
 
-      {/* Exonerations socio-professionnelles */}
-      {AB("exo", "fa-percent", "Exonerations socio-professionnelles (Art. 35)", "insertion_sociopro", exoTotal,
+      {/* Exonerations */}
+      {AB("exo", "fa-percent", "Exonerations", "insertion_sociopro", exonereRowsTotal,
         <>
+          {/* ── Exonérations sur revenus (Art. 34) ── */}
+          <div style={{ fontWeight: 700, fontSize: 14, color: colors.primary, marginBottom: 10 }}>
+            Exonérations sur revenus (Art. 34)
+          </div>
+          <RowsTable
+            title="Demandeur"
+            exonereRows={data.revenusNets.demandeur.exonereRows}
+            onChangeExonere={(rows) => setData(d => ({ ...d, revenusNets: { ...d.revenusNets, demandeur: { ...d.revenusNets.demandeur, exonereRows: rows } } }))}
+          />
+
+          {/* ── Exonérations socio-professionnelles (Art. 35) ── */}
+          <div style={{ fontWeight: 700, fontSize: 14, color: colors.primary, marginTop: 20, marginBottom: 10 }}>
+            Exonérations socio-professionnelles (Art. 35)
+          </div>
           {exoTotal < 0 && (
             <div className="summary-box" style={{ marginBottom: 14 }}>
               <b>Total exoneration mensuelle : <Money value={exoTotal} /></b>
