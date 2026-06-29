@@ -3346,7 +3346,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
             </div>
             {B > 0 && (
               <div style={{ fontSize: 14, color: colors.textLight }}>
-                <div>inf. ou egal {MOB_SEUIL_R.toLocaleString("fr-BE")} euro : exonere</div>
+                <div>inférieur ou égal {MOB_SEUIL_R.toLocaleString("fr-BE")} euro : exonéré</div>
                 {B > MOB_SEUIL_R && <div>{MOB_SEUIL_R.toLocaleString("fr-BE")} - {MOB_SEUIL_S.toLocaleString("fr-BE")} euro x 6% = <strong><Money value={bm.E6} /></strong>/an</div>}
                 {B > MOB_SEUIL_S && <div>sup. {MOB_SEUIL_S.toLocaleString("fr-BE")} euro x 10% = <strong><Money value={bm.E7} /></strong>/an</div>}
                 <div style={{ fontWeight: 700, color: colors.primary, marginTop: 4 }}>Total : <Money value={bm.totalAnnuel} />/an - <Money value={bm.totalMensuel} />/mois</div>
