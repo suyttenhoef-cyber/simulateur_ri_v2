@@ -1183,7 +1183,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                             transition: "all 0.2s",
                             fontFamily: "'Source Sans Pro', sans-serif"
                           }}>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: sel ? colors.secondary : colors.textLight, textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>{opt.cat}</div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: sel ? colors.primary : colors.textLight, textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>{opt.cat}</div>
                           <div style={{ fontSize: 14, fontWeight: 700, color: sel ? colors.primary : colors.text, marginBottom: 4 }}>{opt.label}</div>
                           <div style={{ fontSize: 14, color: colors.textLight, lineHeight: 1.4 }}>{opt.desc}</div>
                         </button>
@@ -3546,7 +3546,7 @@ export default function App() {
                            >
                              <div style={{
                                fontSize: 14, fontWeight: 700,
-                               color: selected ? colors.secondary : colors.textLight,
+                               color: selected ? colors.primary : colors.textLight,
                                textTransform: "uppercase", letterSpacing: 1,
                                marginBottom: 4
                              }}>
@@ -3630,9 +3630,9 @@ export default function App() {
                   <span style={{
                     display: "inline-flex", alignItems: "center", gap: 6,
                     padding: "4px 14px", borderRadius: 20, fontWeight: 700, fontSize: 14,
-                    background: result.apercu?.ri?.eligible ? "#d4edda" : "#fde8e8",
-                    color: result.apercu?.ri?.eligible ? "#1a7a3c" : "#BF2222",
-                    border: `1.5px solid ${result.apercu?.ri?.eligible ? "#a3d9b1" : "#f5a0a0"}`,
+                    background: result.apercu?.ri?.eligible ? "#e6f2ee" : "#fde8e8",
+                    color: result.apercu?.ri?.eligible ? "#067A57" : "#BF2222",
+                    border: `1.5px solid ${result.apercu?.ri?.eligible ? "#9fcfbc" : "#f5a0a0"}`,
                   }}>
                     <i className={`fas fa-${result.apercu?.ri?.eligible ? "circle-check" : "circle-xmark"}`} aria-hidden="true" />
                     {result.apercu?.ri?.eligible ? "Éligible au RI" : "Non éligible au RI"}
