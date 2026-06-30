@@ -1509,33 +1509,35 @@ function RowsTable({ title, comptabiliseRows, exonereRows, onChangeComptabilise,
     <div style={{ display: "grid", gap: 12 }}>
 
       {/* ── BLOC 1 : Revenus professionnels nets ── */}
-      <div className="card" style={{ padding: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 12, borderBottom: "2px solid #F0F4F8" }}>
-          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>{title} — Revenus professionnels nets</h3>
-          <button onClick={addC} className="btn-add">+ Ajouter</button>
-        </div>
-        <div style={colHdr}><div>Type de revenu</div><div>Montant (€/mois)</div><div /></div>
-        {(comptabiliseRows || []).map((r, i) => (
-          <div key={i} style={colRow(i)}>
-            <div style={{ display: "grid", gap: 6 }}>
-              <select value={r.customLabel !== undefined && r.customLabel !== null ? "Autre" : (r.label || "")}
-                onChange={(e) => { const v = e.target.value; updateC(i, { label: v, customLabel: v === "Autre" ? "" : null }); }}>
-                {REVENUS_COMPTABILISES_SUGGESTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-              {r.label === "Autre" && (
-                <input value={r.customLabel || ""} onChange={(e) => updateC(i, { customLabel: e.target.value })}
-                  placeholder="Précisez le type de revenu..."
-                  style={{ border: "2px solid #2BEBCE", background: "#F0FFFE" }} />
-              )}
-            </div>
-            <NumInput value={r.montant} onChange={(e) => updateC(i, { montant: safeNumber(e.target.value, 0) })} />
-            {trashBtn(() => removeC(i))}
+      {onChangeComptabilise && (
+        <div className="card" style={{ padding: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 12, borderBottom: "2px solid #F0F4F8" }}>
+            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.primary }}>{title} — Revenus professionnels nets</h3>
+            <button onClick={addC} className="btn-add">+ Ajouter</button>
           </div>
-        ))}
-        <div style={{ marginTop: 12, padding: "10px 4px", background: "#F5F8FA", borderRadius: 6, fontWeight: 600, fontSize: 14 }}>
-          Total comptabilisé : <Money value={sumCompt} />/mois
+          <div style={colHdr}><div>Type de revenu</div><div>Montant (€/mois)</div><div /></div>
+          {(comptabiliseRows || []).map((r, i) => (
+            <div key={i} style={colRow(i)}>
+              <div style={{ display: "grid", gap: 6 }}>
+                <select value={r.customLabel !== undefined && r.customLabel !== null ? "Autre" : (r.label || "")}
+                  onChange={(e) => { const v = e.target.value; updateC(i, { label: v, customLabel: v === "Autre" ? "" : null }); }}>
+                  {REVENUS_COMPTABILISES_SUGGESTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+                {r.label === "Autre" && (
+                  <input value={r.customLabel || ""} onChange={(e) => updateC(i, { customLabel: e.target.value })}
+                    placeholder="Précisez le type de revenu..."
+                    style={{ border: "2px solid #2BEBCE", background: "#F0FFFE" }} />
+                )}
+              </div>
+              <NumInput value={r.montant} onChange={(e) => updateC(i, { montant: safeNumber(e.target.value, 0) })} />
+              {trashBtn(() => removeC(i))}
+            </div>
+          ))}
+          <div style={{ marginTop: 12, padding: "10px 4px", background: "#F5F8FA", borderRadius: 6, fontWeight: 600, fontSize: 14 }}>
+            Total comptabilisé : <Money value={sumCompt} />/mois
+          </div>
         </div>
-      </div>
+      )}
 
       {onChangeExonere && (
         <div className="card" style={{ padding: 16 }}>
