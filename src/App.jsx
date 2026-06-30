@@ -1183,7 +1183,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                             transition: "all 0.2s",
                             fontFamily: "'Source Sans Pro', sans-serif"
                           }}>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: sel ? colors.primary : colors.textLight, textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>{opt.cat}</div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: sel ? colors.primary : colors.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>{opt.cat}</div>
                           <div style={{ fontSize: 14, fontWeight: 700, color: sel ? colors.primary : colors.text, marginBottom: 4 }}>{opt.label}</div>
                           <div style={{ fontSize: 14, color: colors.textLight, lineHeight: 1.4 }}>{opt.desc}</div>
                         </button>
@@ -3548,7 +3548,7 @@ export default function App() {
                            >
                              <div style={{
                                fontSize: 14, fontWeight: 700,
-                               color: selected ? colors.primary : colors.textLight,
+                               color: selected ? colors.primary : colors.textMuted,
                                textTransform: "uppercase", letterSpacing: 1,
                                marginBottom: 4
                              }}>
