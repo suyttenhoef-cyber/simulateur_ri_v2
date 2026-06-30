@@ -3658,7 +3658,8 @@ export default function App() {
                   onMouseOver={(e) => { if (!isGeneratingPDF) e.currentTarget.style.transform = "translateY(-1px)"; }}
                   onMouseOut={(e)  => { if (!isGeneratingPDF) e.currentTarget.style.transform = "translateY(0)"; }}
                 >
-                  {isGeneratingPDF ? "⏳ Génération..." : "📄 Exporter en PDF"}
+                  <i className={`fas ${isGeneratingPDF ? "fa-spinner fa-spin" : "fa-file-arrow-down"}`} aria-hidden="true" />
+                  {isGeneratingPDF ? "Génération..." : "Exporter en PDF"}
                 </button>
 
                 <button
@@ -3676,7 +3677,8 @@ export default function App() {
                   onMouseOver={(e) => { if (!isGeneratingTableau) e.currentTarget.style.transform = "translateY(-1px)"; }}
                   onMouseOut={(e)  => { if (!isGeneratingTableau) e.currentTarget.style.transform = "translateY(0)"; }}
                 >
-                  {isGeneratingTableau ? "⏳ Génération..." : "📊 Tableau CPAS"}
+                  <i className={`fas ${isGeneratingTableau ? "fa-spinner fa-spin" : "fa-chart-bar"}`} aria-hidden="true" />
+                  {isGeneratingTableau ? "Génération..." : "Tableau CPAS"}
                 </button>
               </div>
             </div>
