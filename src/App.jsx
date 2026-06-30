@@ -2118,9 +2118,7 @@ function Input({ label, type = "text", value, onChange, placeholder, hint }) {
     </Field>
   );
 }
-function Sidebar({ active, onSelect, onNewCalcul }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
+function Sidebar({ active, onSelect, onNewCalcul, isCollapsed, onToggleCollapse }) {
   return (
     <nav style={{
       background: colors.primary,
@@ -2129,7 +2127,8 @@ function Sidebar({ active, onSelect, onNewCalcul }) {
       height: "fit-content",
       position: "sticky",
       top: "20px",
-      transition: "all 0.3s"
+      transition: "width 0.3s, padding 0.3s",
+      overflow: "hidden"
     }}>
       <div style={{
         display: "flex",
@@ -2151,7 +2150,7 @@ function Sidebar({ active, onSelect, onNewCalcul }) {
           </p>
         )}
         <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={onToggleCollapse}
           aria-label={isCollapsed ? "Déplier le menu" : "Replier le menu"}
           style={{
             background: "rgba(255,255,255,0.1)",
@@ -3365,6 +3364,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
 
 export default function App() {
   const [active, setActive] = useState("informations");
+  const [isNavCollapsed, setIsNavCollapsed] = useState(false);
   const [data, setData] = useState(defaultData); // Une seule déclaration ici
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isGeneratingTableau, setIsGeneratingTableau] = useState(false);
@@ -3435,8 +3435,8 @@ export default function App() {
 
   return (
     <div className="app-layout-wrapper">
-      <div className="app-layout">
-        <Sidebar active={active} onSelect={setActive} onNewCalcul={handleReset} />
+      <div className="app-layout" style={{ gridTemplateColumns: isNavCollapsed ? "64px 1fr" : "260px 1fr" }}>
+        <Sidebar active={active} onSelect={setActive} onNewCalcul={handleReset} isCollapsed={isNavCollapsed} onToggleCollapse={() => setIsNavCollapsed(c => !c)} />
 
         <main className="app-main">
           {active === "informations" && (
