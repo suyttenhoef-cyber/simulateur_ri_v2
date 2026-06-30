@@ -2091,8 +2091,9 @@ function NumInput({ value, onChange, style, disabled, placeholder, ...rest }) {
         if (onChange) onChange({ target: { value: draft } });
       }}
       onChange={(e) => {
-        setDraft(e.target.value);
-        if (onChange) onChange(e);
+        const filtered = e.target.value.replace(/[^0-9.,]/g, '');
+        setDraft(filtered);
+        if (onChange) onChange({ target: { value: filtered } });
       }}
       {...rest}
     />
