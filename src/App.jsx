@@ -1646,7 +1646,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
                 </button>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10, marginBottom: 10 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10, marginBottom: 10, alignItems: "start" }}>
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Type de bien</span>
                   <select
@@ -1709,9 +1709,9 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
                     style={{ padding: "6px", opacity: cession.natureCession === "Cession à titre gratuit" ? 0.45 : 1 }}
                     disabled={cession.natureCession === "Cession à titre gratuit"}
                   />
-                  <span style={{ fontSize: 14, color: "#666", visibility: cession.natureCession === "Cession à titre gratuit" ? "visible" : "hidden" }}>
-                    Non applicable pour cession gratuite
-                  </span>
+                  {cession.natureCession === "Cession à titre gratuit" && (
+                    <span style={{ fontSize: 14, color: "#666" }}>Non applicable pour cession gratuite</span>
+                  )}
                 </label>
 
                 <label style={{ display: "grid", gap: 4 }}>
@@ -1802,7 +1802,7 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
                 </button>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10, alignItems: "start" }}>
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Type de bien</span>
                   <select
@@ -3278,7 +3278,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
             <div style={{ fontWeight: 600, fontSize: 14, color: colors.primary, marginBottom: 8 }}>Ressources generales</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 12 }}>
               {data.ressourcesDiverses.generales.map((r, i) => (
-                <Input key={i} label={r.label} type="number" value={r.montant}
+                <Input key={i} label={r.label} type="number" value={r.montant} hint="€ / mois"
                   onChange={(e) => {
                     const next = [...data.ressourcesDiverses.generales];
                     next[i] = { ...next[i], montant: safeNumber(e.target.value, 0) };
@@ -3291,7 +3291,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
             <div style={{ fontWeight: 600, fontSize: 14, color: colors.primary, marginBottom: 8 }}>Benevoles</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 12 }}>
               {data.ressourcesDiverses.benevoles.map((r, i) => (
-                <Input key={i} label={r.label} type="number" value={r.montant}
+                <Input key={i} label={r.label} type="number" value={r.montant} hint="€ / mois"
                   onChange={(e) => {
                     const next = [...data.ressourcesDiverses.benevoles];
                     next[i] = { ...next[i], montant: safeNumber(e.target.value, 0) };

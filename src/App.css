@@ -256,9 +256,6 @@
   transition: box-shadow 0.2s;
 }
 
-.card:hover {
-  box-shadow: var(--shadow-md);
-}
 
 .card__title {
   margin: 0 0 16px;
