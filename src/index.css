@@ -132,8 +132,8 @@ h3 { font-size: 16px; font-weight: 600; }
 }
 
 .formControl:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(22, 62, 103, 0.08);
+  border-color: var(--border-focus) !important;
+  box-shadow: 0 0 0 3px rgba(22, 62, 103, 0.10) !important;
 }
 
 .formControl::placeholder {
