@@ -1706,7 +1706,7 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
                   <NumInput
                     value={cession.dettesPersonnelles}
                     onChange={(e) => updateRow(i, { dettesPersonnelles: safeNumber(e.target.value, 0) })}
-                    style={{ padding: "6px", opacity: cession.natureCession === "Cession à titre gratuit" ? 0.45 : 1 }}
+                    style={{ padding: "6px" }}
                     disabled={cession.natureCession === "Cession à titre gratuit"}
                   />
                   {cession.natureCession === "Cession à titre gratuit" && (
