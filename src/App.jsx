@@ -3365,6 +3365,8 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
 export default function App() {
   const [active, setActive] = useState("informations");
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
+
+  useEffect(() => { window.scrollTo({ top: 0 }); }, [active]);
   const [data, setData] = useState(defaultData); // Une seule déclaration ici
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isGeneratingTableau, setIsGeneratingTableau] = useState(false);
