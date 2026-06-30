@@ -888,7 +888,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                               <thead>
                                 <tr style={{ background: "#EEF4FA" }}>
                                   <th style={{ padding: "4px 6px", textAlign: "left", fontWeight: 600, color: colors.primary, width: "50%" }}>Type de revenu</th>
-                                  <th style={{ padding: "4px 6px", textAlign: "right", fontWeight: 600, color: colors.primary, width: "30%" }}>Montant (euro/mois)</th>
+                                  <th style={{ padding: "4px 6px", textAlign: "right", fontWeight: 600, color: colors.primary, width: "30%" }}>Montant (€/mois)</th>
                                   <th style={{ width: "20%" }}></th>
                                 </tr>
                               </thead>
@@ -934,7 +934,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                               <thead>
                                 <tr style={{ background: "#EEF4FA" }}>
                                   <th style={{ padding: "4px 6px", textAlign: "left", fontWeight: 600, color: colors.primary, width: "50%" }}>Type d'exoneration</th>
-                                  <th style={{ padding: "4px 6px", textAlign: "right", fontWeight: 600, color: colors.primary, width: "30%" }}>Montant (euro/mois)</th>
+                                  <th style={{ padding: "4px 6px", textAlign: "right", fontWeight: 600, color: colors.primary, width: "30%" }}>Montant (€/mois)</th>
                                   <th style={{ width: "20%" }}></th>
                                 </tr>
                               </thead>
@@ -1002,7 +1002,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                               {/* Chomage */}
                               <div>
                                 <div style={{ fontWeight: 700, fontSize: 14, color: colors.primary, marginBottom: 6 }}>Allocation de chomage</div>
-                                {fieldRow("Montant mensuel reel (euro/mois)", cData.chomage?.mensuelReel || 0, (e) => setChom({ mensuelReel: safeNumber(e.target.value, 0) }))}
+                                {fieldRow("Montant mensuel reel (€/mois)", cData.chomage?.mensuelReel || 0, (e) => setChom({ mensuelReel: safeNumber(e.target.value, 0) }))}
                                 {fieldRow("Montant/jour x 26 jours (euro)", cData.chomage?.montantJour26 || 0, (e) => setChom({ montantJour26: safeNumber(e.target.value, 0) }))}
                                 {fieldRow("Montant/jour (base annuelle) (euro)", cData.chomage?.montantJourAnnuel || 0, (e) => setChom({ montantJourAnnuel: safeNumber(e.target.value, 0) }))}
                                 {cmrChomM > 0 && <div style={{ fontSize: 14, color: colors.primary, fontWeight: 600 }}>= <Money value={cmrChomM} />/mois</div>}
@@ -1010,7 +1010,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                               {/* Mutuelle */}
                               <div>
                                 <div style={{ fontWeight: 700, fontSize: 14, color: colors.primary, marginBottom: 6 }}>Indemnite de mutuelle</div>
-                                {fieldRow("Montant mensuel reel (euro/mois)", cData.mutuelle?.mensuelReel || 0, (e) => setMut({ mensuelReel: safeNumber(e.target.value, 0) }))}
+                                {fieldRow("Montant mensuel reel (€/mois)", cData.mutuelle?.mensuelReel || 0, (e) => setMut({ mensuelReel: safeNumber(e.target.value, 0) }))}
                                 {fieldRow("Montant/jour x 26 jours (euro)", cData.mutuelle?.montantJour26 || 0, (e) => setMut({ montantJour26: safeNumber(e.target.value, 0) }))}
                                 {fieldRow("Montant/jour (base annuelle) (euro)", cData.mutuelle?.montantJourAnnuel || 0, (e) => setMut({ montantJourAnnuel: safeNumber(e.target.value, 0) }))}
                                 {cmrMutM > 0 && <div style={{ fontSize: 14, color: colors.primary, fontWeight: 600 }}>= <Money value={cmrMutM} />/mois</div>}
@@ -1018,11 +1018,11 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                               {/* Remplacement */}
                               <div>
                                 <div style={{ fontWeight: 700, fontSize: 14, color: colors.primary, marginBottom: 6 }}>Revenus de remplacement</div>
-                                {fieldRow("Pension (euro/mois)", cData.remplacement?.pensionMensuel || 0, (e) => setRem({ pensionMensuel: safeNumber(e.target.value, 0) }))}
-                                {fieldRow("Droit passerelle (euro/mois)", cData.remplacement?.droitPasserelleMensuel || 0, (e) => setRem({ droitPasserelleMensuel: safeNumber(e.target.value, 0) }))}
-                                {fieldRow("Allocation handicap ARR (euro/mois)", cData.remplacement?.allocationHandicapeMensuel || 0, (e) => setRem({ allocationHandicapeMensuel: safeNumber(e.target.value, 0) }))}
-                                {fieldRow("Indemn. perte de revenus (euro/mois)", cData.remplacement?.indemnisation_perte_revenus || 0, (e) => setRem({ indemnisation_perte_revenus: safeNumber(e.target.value, 0) }))}
-                                {fieldRow("Autre revenu de remplacement (euro/mois)", cData.remplacement?.autres_revenus || 0, (e) => setRem({ autres_revenus: safeNumber(e.target.value, 0) }))}
+                                {fieldRow("Pension (€/mois)", cData.remplacement?.pensionMensuel || 0, (e) => setRem({ pensionMensuel: safeNumber(e.target.value, 0) }))}
+                                {fieldRow("Droit passerelle (€/mois)", cData.remplacement?.droitPasserelleMensuel || 0, (e) => setRem({ droitPasserelleMensuel: safeNumber(e.target.value, 0) }))}
+                                {fieldRow("Allocation handicap ARR (€/mois)", cData.remplacement?.allocationHandicapeMensuel || 0, (e) => setRem({ allocationHandicapeMensuel: safeNumber(e.target.value, 0) }))}
+                                {fieldRow("Indemn. perte de revenus (€/mois)", cData.remplacement?.indemnisation_perte_revenus || 0, (e) => setRem({ indemnisation_perte_revenus: safeNumber(e.target.value, 0) }))}
+                                {fieldRow("Autre revenu de remplacement (€/mois)", cData.remplacement?.autres_revenus || 0, (e) => setRem({ autres_revenus: safeNumber(e.target.value, 0) }))}
                               </div>
                               {cmrTotal > 0 && (
                                 <div style={{ fontWeight: 700, fontSize: 14, color: colors.primary, background: "#EEF4FA", padding: "6px 10px", borderRadius: 6 }}>
@@ -3305,13 +3305,13 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
       {/* Avantages en nature */}
       {AB("avantages", "fa-house-user", "Avantages en nature", "avantages", avTotal,
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
-          <Input label="Charges locatives par un tiers (euro/mois)" type="number" value={data.avantages.chargesLocativesTiers}
+          <Input label="Charges locatives par un tiers (€/mois)" type="number" value={data.avantages.chargesLocativesTiers}
             onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, chargesLocativesTiers: safeNumber(e.target.value, 0) } }))} />
-          <Input label="Loyer fictif (professionnel) (euro/mois)" type="number" value={data.avantages.loyerFictifProfessionnel}
+          <Input label="Loyer fictif (professionnel) (€/mois)" type="number" value={data.avantages.loyerFictifProfessionnel}
             onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifProfessionnel: safeNumber(e.target.value, 0) } }))} />
-          <Input label="Loyer fictif (simulateur / grille) (euro/mois)" type="number" value={data.avantages.loyerFictifSimulateur}
+          <Input label="Loyer fictif (simulateur / grille) (€/mois)" type="number" value={data.avantages.loyerFictifSimulateur}
             onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, loyerFictifSimulateur: safeNumber(e.target.value, 0) } }))} />
-          <Input label="Pret hypothecaire par un tiers (euro/mois)" type="number" value={data.avantages.pretHypothecaireTiers}
+          <Input label="Pret hypothecaire par un tiers (€/mois)" type="number" value={data.avantages.pretHypothecaireTiers}
             onChange={(e) => setData(d => ({ ...d, avantages: { ...d.avantages, pretHypothecaireTiers: safeNumber(e.target.value, 0) } }))} />
         </div>
       )}
