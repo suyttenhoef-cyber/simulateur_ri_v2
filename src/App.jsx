@@ -229,6 +229,7 @@ const defaultData = {
     montantRetenuAnnuel: 0,        // utilisé si priseEnCompte === "equite"
     risOctroyeCible: "",           // RIS mensuel cible → recalcule montantRetenuAnnuel
     chargesAdmissiblesDemandeur: 0,
+    nbBeneficiairesRIS: 1,
     rows: [defaultCohabitantRow()]
   },
   ressourcesDiverses: {
@@ -609,16 +610,18 @@ function computeCohabitantsGrouped(cohabitantsData, referenceDate) {
     }, 0));
   }
 
-  const montantAnnuel =
+  const nbBeneficiaires = Math.max(1, safeNumber(cohabitantsData.nbBeneficiairesRIS, 1));
+  const montantAnnuelBrut =
     priseEnCompte === "legale" ? excedentGroupe :
     priseEnCompte === "equite" ? montantRetenuAnnuel : 0;
+  const montantAnnuel = round2(montantAnnuelBrut / nbBeneficiaires);
 
   return {
     totalAnnuel: round2(montantAnnuel),
     totalMensuel: round2(montantAnnuel / 12),
     details, debiteurs, autresCohabitants,
     modeCalcul, ressourcesTotal, seuilTotal, rawExcedent, excedentGroupe,
-    priseEnCompte, montantRetenuAnnuel,
+    priseEnCompte, montantRetenuAnnuel, nbBeneficiaires,
   };
 }
 
@@ -635,6 +638,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
   const montantRetenuAnnuel = safeNumber(cohabitants.montantRetenuAnnuel, 0);
   const risOctroyeCible  = cohabitants.risOctroyeCible ?? "";
   const chargesAdmDem    = safeNumber(cohabitants.chargesAdmissiblesDemandeur, 0);
+  const nbBeneficiairesRIS = Math.max(1, safeNumber(cohabitants.nbBeneficiairesRIS, 1));
 
   const grouped = useMemo(() => computeCohabitantsGrouped(cohabitants, referenceDate), [cohabitants, referenceDate]);
 
@@ -725,6 +729,23 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {btnMode("groupe",     "Groupé — Circulaire 16/01/2026",  "Seuil calculé sur l'ensemble des cohabitants combinés (recommandé)")}
           {btnMode("individuel", "Individuel (ancienne méthode)",    "Excédent calculé séparément pour chaque cohabitant")}
+        </div>
+      </div>
+
+      {/* ── Nombre de bénéficiaires RIS ── */}
+      <div style={{ marginBottom: 16 }}>
+        <span style={{ fontSize: 14, fontWeight: 700, color: colors.primary, display: "block", marginBottom: 6 }}>
+          Nombre de bénéficiaires RIS dans le ménage
+        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <NumInput
+            value={nbBeneficiairesRIS}
+            style={{ width: 80, padding: "8px 10px", border: `1px solid ${colors.border}`, borderRadius: 8, fontSize: 14, textAlign: "center" }}
+            onChange={(e) => update({ nbBeneficiairesRIS: Math.max(1, safeNumber(e.target.value, 1)) })}
+          />
+          <span style={{ fontSize: 14, color: colors.textMuted }}>
+            {nbBeneficiairesRIS > 1 ? `L'excédent sera divisé par ${nbBeneficiairesRIS}` : "Aucune division appliquée"}
+          </span>
         </div>
       </div>
 
@@ -1315,6 +1336,19 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                       </td>
                     </tr>
                   )}
+                  {(grouped.nbBeneficiaires || 1) > 1 && grouped.rawExcedent > 0 && (
+                    <tr style={{ background: "#EEF4FA", borderTop: `1px solid ${colors.border}` }}>
+                      <td style={{ padding: "7px 8px", fontWeight: 700, color: colors.primary }}>
+                        Part demandeur (÷ {grouped.nbBeneficiaires} bénéficiaires RIS)
+                      </td>
+                      <td style={{ padding: "7px 8px", textAlign: "right", fontWeight: 700, color: colors.primary }}>
+                        <Money value={grouped.totalAnnuel} /> /an
+                        <span style={{ color: colors.textLight, fontWeight: 400, fontSize: 14, marginLeft: 8 }}>
+                          = <Money value={grouped.totalMensuel} />/mois
+                        </span>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             );
@@ -1324,7 +1358,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
           <div style={{ marginBottom: 14 }}>
             <span style={{ fontSize: 14, fontWeight: 700, color: colors.primary, display: "block", marginBottom: 8 }}>Prise en compte des ressources</span>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-              {btnPrise("legale",  "Légale complète",  grouped.excedentGroupe > 0 ? `${round2(grouped.excedentGroupe / 12).toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €/mois` : "0 €")}
+              {btnPrise("legale",  "Légale complète",  grouped.totalMensuel > 0 ? `${grouped.totalMensuel.toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €/mois` : "0 €")}
               {btnPrise("equite",  "Par équité",        "Montant réduit — raisons d'équité")}
               {btnPrise("aucune",  "Pas de report",     "0 € comptabilisé")}
             </div>
