@@ -122,6 +122,13 @@ export async function generatePDF(data, result, apercu) {
         const m = safeNS(r.montant);
         if (m > 0) html += rowS(`(−) ${r.customLabel || r.label || 'Revenu exonéré'}`, m, m * 12, 'color:#BF2222;');
       }
+      const art35 = Math.round((safeNS(apercu?.pro?.D4_netDem_Annuel) - safeNS(apercu?.pro?.D6_netAvantExoSP_Dem_Annuel)) * 100) / 100;
+      if (art35 > 0) {
+        const e = data.exoneration?.demandeur || {};
+        const types = [e.general && 'général', e.etudiant && 'étudiant', e.penurie && 'pénurie', e.artisteSP && 'artiste SP'].filter(Boolean);
+        const art35Label = `(−) Exo. socioprofessionnelle Art. 35${types.length ? ' (' + types.join(' + ') + ')' : ''}`;
+        html += rowS(art35Label, art35 / 12, art35, 'color:#BF2222;');
+      }
       return html;
     })();
 
@@ -441,6 +448,22 @@ export async function generateTableauCPAS(data, result, apercu) {
     // Séparateur fort (entre grandes sections)
     const SEP_STRONG = () => `<tr><td colspan="4" style="padding:0;height:3px;background:#163E67;border:none;"></td></tr>`;
 
+    // Ligne détail (sous-ligne sans montant annuel — pour décomposition)
+    const ROWSUB = (nature, detail) => `<tr style="font-size:12px;background:#f9fbfc;">
+      ${cell('')}
+      ${cell(`<span style="color:#666;font-style:italic;padding-left:12px;">↳ ${nature}</span>`)}
+      ${cell(detail || '', 'color:#777;font-style:italic;')}
+      ${cell('', 'text-align:right;')}
+    </tr>`;
+
+    // Ligne détail avec montant (tranches imputées)
+    const ROWAMOUNT = (nature, detail, annuel) => `<tr style="font-size:12px;background:#f9fbfc;">
+      ${cell('')}
+      ${cell(`<span style="color:#666;font-style:italic;padding-left:12px;">↳ ${nature}</span>`)}
+      ${cell(detail || '', 'color:#777;font-style:italic;')}
+      ${cell(fmt(annuel), 'text-align:right;color:#555;')}
+    </tr>`;
+
     // Constantes apercu
     const cohDetails = result.cohabitants?.details || [];
     const hasAutreCohabitants = cohDetails.some(c => c.type === 'Autre' && safeN(c.ressourcesTotale) > 0);
@@ -615,15 +638,40 @@ export async function generateTableauCPAS(data, result, apercu) {
     const immoAnnuel = safeN(apercu?.autres?.D23_immobiliers_Annuel);
     if (immoAnnuel > 0) {
       tbody += SEC('Biens immobiliers');
-      for (const bien of (data.biensImmobiliers?.rows || [])) {
-        const rc = safeN(bien.rcNonIndexe);
-        const loyer = safeN(bien.loyerAnnuel);
-        const type = bien.typeBien || 'Bien immobilier';
-        const loc = bien.localisation ? ` (${bien.localisation})` : '';
-        const hauteur = rc > 0 ? `RC non indexé : ${fmt(rc)} × ${safeN(bien.quotePart)}%` : loyer > 0 ? `Loyer : ${fmt(loyer)}/an` : '—';
-        tbody += ROW(demCell(), type + loc, hauteur, 0);
+      const immoRowsDetail = result.immoDetails?.rowsDetail || [];
+      if (immoRowsDetail.length > 0) {
+        for (const r of immoRowsDetail) {
+          const type = r.type || 'Bien immobilier';
+          const loc = r.localisation ? ` (${r.localisation})` : '';
+          let hauteur;
+          if (r.type === 'Étranger' || r.type === 'Etranger') {
+            hauteur = 'Revenu immobilier étranger';
+          } else {
+            const pct = r2(r.quote * 100);
+            const parts = [];
+            if (r.rc > 0) {
+              parts.push(`RC non indexé : ${fmt(r.rc)} × ${pct}%`);
+              if (r.L > 0) parts.push(`Exo. : ${fmt(r.L)}`);
+              if (r.M > 0) parts.push(`(RC − Exo.) × 3 = ${fmt(r.M)}`);
+            }
+            if (r.locatifs > 0) parts.push(`Loyer : ${fmt(r.loyer)}/an × ${pct}% = ${fmt(r.locatifs)}`);
+            if (r.dedInterets < 0) parts.push(`Int. déduits : ${fmt(r.dedInterets)}`);
+            if (r.dedRente < 0) parts.push(`Rente déduite : ${fmt(r.dedRente)}`);
+            hauteur = parts.join(' — ') || '—';
+          }
+          tbody += ROW(demCell(), type + loc, hauteur, r.rowAnnuel);
+        }
+      } else {
+        for (const bien of (data.biensImmobiliers?.rows || [])) {
+          const rc = safeN(bien.rcNonIndexe);
+          const loyer = safeN(bien.loyerAnnuel);
+          const type = bien.typeBien || 'Bien immobilier';
+          const loc = bien.localisation ? ` (${bien.localisation})` : '';
+          const hauteur = rc > 0 ? `RC non indexé : ${fmt(rc)} × ${safeN(bien.quotePart)}%` : loyer > 0 ? `Loyer : ${fmt(loyer)}/an` : '—';
+          tbody += ROW(demCell(), type + loc, hauteur, 0);
+        }
       }
-      tbody += SUBTOT('Total biens immobiliers (calculé)', immoAnnuel);
+      tbody += SUBTOT('Total biens immobiliers', immoAnnuel);
       tbody += SEP();
     }
 
@@ -633,15 +681,30 @@ export async function generateTableauCPAS(data, result, apercu) {
     const cessionsAnnuel = safeN(apercu?.autres?.D26_cessions_Annuel);
     if (cessionsAnnuel > 0) {
       tbody += SEC('Cessions de biens');
-      for (const c of (data.cessionsBiens?.rows || [])) {
+      const cessionsDetailList = result.cessionsDetails?.details || [];
+      const cessionsRows = data.cessionsBiens?.rows || [];
+      let detailIdx = 0;
+      for (const c of cessionsRows) {
         const vv = safeN(c.valeurVenale);
         if (!vv) continue;
+        const calc = cessionsDetailList[detailIdx++];
         const type = c.typeBien || 'Bien cédé';
         const nat = c.natureCession || 'Cession';
-        const hauteur = `${nat} — Valeur vénale : ${fmt(vv)} × ${safeN(c.partConcernee)}% (${c.titrePropriete || 'P.P.'})`;
-        tbody += ROW(demCell(), type, hauteur, 0);
+        if (calc) {
+          tbody += ROW(demCell(), type, nat, calc.totalRevenu);
+          tbody += ROWSUB('Valeur vénale', `${fmt(vv)} × ${safeN(c.partConcernee)}% (${c.titrePropriete || 'P.P.'}) = ${fmt(calc.montantVenal)}`);
+          if (calc.trancheImmunisee > 0) tbody += ROWSUB('(−) Tranche immunisée', fmt(calc.trancheImmunisee));
+          if (calc.abattement > 0) tbody += ROWSUB(`(−) Abattement (${calc.nbMois} mois)`, fmt(calc.abattement));
+          if (calc.dettesApplicables > 0) tbody += ROWSUB('(−) Dettes personnelles', fmt(calc.dettesApplicables));
+          if (calc.dispenseEquite > 0) tbody += ROWSUB('(−) Dispense équité', fmt(calc.dispenseEquite));
+          tbody += ROWSUB('Montant à considérer', fmt(calc.montantConsideration));
+          if (calc.revenus.revenu2 > 0) tbody += ROWAMOUNT('Tranche T2 (6.200 – 12.500 €)', `${fmt(calc.tranches.tranche2 - calc.tranches.tranche1)} × 6 %`, calc.revenus.revenu2);
+          if (calc.revenus.revenu3 > 0) tbody += ROWAMOUNT('Tranche T3 (> 12.500 €)', `${fmt(calc.tranches.tranche3 - calc.tranches.tranche2)} × 10 %`, calc.revenus.revenu3);
+        } else {
+          tbody += ROW(demCell(), type, `${nat} — Valeur vénale : ${fmt(vv)} × ${safeN(c.partConcernee)}% (${c.titrePropriete || 'P.P.'})`, 0);
+        }
       }
-      tbody += SUBTOT('Total cessions (calculé)', cessionsAnnuel);
+      tbody += SUBTOT('Total cessions', cessionsAnnuel);
       tbody += SEP();
     }
 
