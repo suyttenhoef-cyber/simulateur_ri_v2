@@ -526,7 +526,7 @@ function computeCohabitantRow(row, referenceDate) {
   let message = "";
   
   if (ressourcesTotale > seuilRI) {
-    excedent = ressourcesTotale - seuilRI;
+    excedent = round2(ressourcesTotale - seuilRI);
   } else {
     message = "Le cohabitant a possiblement droit au RI";
   }
@@ -2408,7 +2408,8 @@ const F8_totalProratises_M =
 
 function round2(n) {
   const x = Number(n);
-  return Number.isFinite(x) ? Math.round(x * 100) / 100 : 0;
+  if (!Number.isFinite(x)) return 0;
+  return Number(`${Math.round(`${x}e+2`)}e-2`);
 }
 
 function computeImmoAnnualExcelLike(rows) {
