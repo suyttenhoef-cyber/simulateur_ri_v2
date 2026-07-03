@@ -3341,9 +3341,9 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
           )}
           <div style={{ display: "grid", gap: 6 }}>
             {[
-              { key: "general",   label: "Exo. generale",   fk: "exo_generale_etudiant" },
-              { key: "etudiant",  label: "Exo. etudiants",  fk: "exo_generale_etudiant" },
-              { key: "penurie",   label: "Exo. penurie",    fk: "exo_penurie" },
+              { key: "general",   label: "Exonération générale",   fk: "exo_generale_etudiant" },
+              { key: "etudiant",  label: "Exonération étudiants",  fk: "exo_generale_etudiant" },
+              { key: "penurie",   label: "Exonération métiers en pénurie",    fk: "exo_penurie" },
               { key: "artisteSP", label: "Activite artistique socio-prof." },
             ].map(({ key, label: lbl, fk }) => (
               <label key={key} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
@@ -3354,7 +3354,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
                 {fk && <FicheBtn ficheKey={fk} onOpen={openFiche} />}
               </label>
             ))}
-            <Field label={<span style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>Jours (si compteur depasse)<FicheBtn ficheKey="jours_compteur" onOpen={openFiche} /></span>}>
+            <Field label={<span style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>Jours (si compteur dépassé)<FicheBtn ficheKey="jours_compteur" onOpen={openFiche} /></span>}>
               <NumInput value={data.exoneration.demandeur.joursCompteur}
                 onChange={(e) => setData(d => ({ ...d, exoneration: { ...d.exoneration, demandeur: { ...d.exoneration.demandeur, joursCompteur: safeNumber(e.target.value, 0) } } }))} />
             </Field>
