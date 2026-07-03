@@ -284,11 +284,11 @@ const CESSION_TRANCHE_IMMUNISEE = 37200;
 
 function Field({ label, hint, children }) {
   return (
-    <label style={{ display: "grid", gap: 6 }}>
+    <div style={{ display: "grid", gap: 6 }}>
       <span style={{ fontSize: 14, opacity: 0.85 }}>{label}</span>
       {children}
       {hint && <span style={{ fontSize: 14, color: "#767676" }}>{hint}</span>}
-    </label>
+    </div>
   );
 }
 
@@ -2153,6 +2153,20 @@ function Input({ label, type = "text", value, onChange, placeholder, hint }) {
   );
 }
 function Sidebar({ active, onSelect, onNewCalcul, isCollapsed, onToggleCollapse }) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
+
   return (
     <nav style={{
       background: colors.primary,
@@ -2263,6 +2277,33 @@ function Sidebar({ active, onSelect, onNewCalcul, isCollapsed, onToggleCollapse 
         >
           <i className="fas fa-rotate-left" aria-hidden="true" style={{ width: 20, textAlign: "center", fontSize: 15, flexShrink: 0 }} />
           {!isCollapsed && <span>Nouveau calcul</span>}
+        </button>
+
+        {/* Bouton Plein écran */}
+        <button
+          onClick={toggleFullscreen}
+          title={isFullscreen ? "Quitter le plein écran" : "Afficher en plein écran"}
+          style={{
+            marginTop: 8,
+            width: "100%",
+            padding: isCollapsed ? "10px" : "10px 12px",
+            borderRadius: "8px",
+            border: "2px solid rgba(255,255,255,0.4)",
+            background: "rgba(255,255,255,0.08)",
+            color: colors.white,
+            cursor: "pointer",
+            fontFamily: "'Source Sans Pro', sans-serif",
+            fontSize: "14px",
+            fontWeight: "600",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: isCollapsed ? "center" : "flex-start",
+            gap: "10px",
+            transition: "all 0.2s",
+          }}
+        >
+          <i className={`fas ${isFullscreen ? "fa-compress" : "fa-expand"}`} aria-hidden="true" style={{ width: 20, textAlign: "center", fontSize: 15, flexShrink: 0 }} />
+          {!isCollapsed && <span>{isFullscreen ? "Quitter plein écran" : "Plein écran"}</span>}
         </button>
       </div>
     </nav>
