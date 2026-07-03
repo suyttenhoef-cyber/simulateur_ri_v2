@@ -500,7 +500,7 @@ input[type="number"] { -moz-appearance: textfield; }
   padding: 8px 16px;
   background: var(--bg-subtle);
   color: var(--color-primary);
-  border: 1.5px dashed var(--color-accent);
+  border: 1.5px solid var(--color-accent);
   border-radius: 99px;
   font-family: 'Source Sans Pro', sans-serif;
   font-size: 14px;
@@ -511,7 +511,6 @@ input[type="number"] { -moz-appearance: textfield; }
 }
 .btn-add:hover {
   background: var(--color-accent);
-  border-style: solid;
   border-color: var(--color-accent);
   color: var(--color-primary);
   transform: translateY(-1px);
