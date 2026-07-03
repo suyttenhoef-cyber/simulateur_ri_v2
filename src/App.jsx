@@ -3155,7 +3155,7 @@ function CMRSection({ cmr, dateISO, setCmr, openFiche, embedded = false }) {
 
 function RevenusDemandeurPage({ data, setData, openFiche }) {
   const dateISO   = data.reference.dateISO || firstOfCurrentMonth();
-  const categorie = data.menage.situation === "isole" ? 2 : data.menage.situation === "cohabitant" ? 1 : 3;
+  const categorie = data.menage.situation === "isolé" ? 2 : data.menage.situation === "cohabitant" ? 1 : 3;
 
   const demNet    = round2(computeNetMonthly(data.revenusNets.demandeur).net);
 
