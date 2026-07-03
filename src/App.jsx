@@ -254,12 +254,12 @@ const defaultData = {
 // VLOOKUP Données!A2:D (montant du RI annuel) : date -> [cat1, cat2, cat3]
 
 const RI_ANNUEL_TABLE = [
-  { date: "2023-01-01", cat1: 9713.04, cat2: 14569.58, cat3: 19690.01 },
-  { date: "2023-07-01", cat1: 9907.30, cat2: 14860.96, cat3: 20083.80 },
+  { date: "2023-01-01", cat1: 9713.04,  cat2: 14569.58, cat3: 19690.01 },
+  { date: "2023-07-01", cat1: 9907.30,  cat2: 14860.96, cat3: 20083.80 },
   { date: "2023-11-01", cat1: 10105.38, cat2: 15158.08, cat3: 20485.33 },
   { date: "2024-05-01", cat1: 10307.68, cat2: 15461.53, cat3: 20895.43 },
   { date: "2025-02-01", cat1: 10513.60, cat2: 15770.41, cat3: 21312.87 },
-  { date: firstOfCurrentMonth(), cat1: 10723.75, cat2: 16085.64, cat3: 21738.88 },
+  { date: "2026-03-01", cat1: 10723.75, cat2: 16085.64, cat3: 21738.88 },
 ];
 
 // VLOOKUP Données!K3:O (exonérations) : date -> montants (mensuel/annuel)
@@ -269,7 +269,7 @@ const EXO_TABLE = [
   { date: "2024-01-01", generalMensuel: 297.46, artistiqueAnnuel: 3569.56, etudiantMensuel: 297.46, penurieMensuel: null },
   { date: "2024-05-01", generalMensuel: 303.42, artistiqueAnnuel: 3641.02, etudiantMensuel: 303.42, penurieMensuel: 434.83 },
   { date: "2025-02-01", generalMensuel: 309.48, artistiqueAnnuel: 3713.76, etudiantMensuel: 309.48, penurieMensuel: 443.52 },
-  { date: firstOfCurrentMonth(), generalMensuel: 315.67, artistiqueAnnuel: 3787.99, etudiantMensuel: 315.67, penurieMensuel: 452.39 },
+  { date: "2026-03-01", generalMensuel: 315.67, artistiqueAnnuel: 3787.99, etudiantMensuel: 315.67, penurieMensuel: 452.39 },
 ];
 
 // Données!Q3:S3 (Exonération supplémentaire annuelle ©)
@@ -2664,11 +2664,14 @@ function computeImmoExcel(rows, nbEnfants = 0) {
     etranger: 0,
     totalAnnuel: 0,
     totalMensuel: 0,
+    rowsDetail: [],
   };
 
   for (const r of list) {
     if (r.type === "Étranger" || r.type === "Etranger") {
-      totals.etranger += round2(r.revEtranger);
+      const revEtr = round2(r.revEtranger);
+      totals.etranger += revEtr;
+      totals.rowsDetail.push({ type: r.type, localisation: r.localisation, rc: 0, loyer: 0, quote: r.quote, K: 0, L: 0, M: 0, locatifs: 0, ressources: 0, dedInterets: 0, dedRente: 0, rowAnnuel: revEtr });
       continue;
     }
 
@@ -2708,6 +2711,7 @@ const L = H !== 0 && countRCPos > 0
     bucket.dedInterets += dedInterets;
     bucket.dedRente += dedRente;
     bucket.locatifs += locatifs;
+    totals.rowsDetail.push({ type: r.type, localisation: r.localisation, rc: r.rc, loyer: r.loyer, quote: r.quote, K: K ?? 0, L: L ?? 0, M: M ?? 0, locatifs, ressources, dedInterets, dedRente, rowAnnuel: round2(ressources + locatifs + dedInterets + dedRente) });
   }
 
   totals.IB.total = round2(totals.IB.ressources + totals.IB.dedInterets + totals.IB.dedRente + totals.IB.locatifs);
@@ -2860,10 +2864,12 @@ function computeFromForm(data) {
   const apercu = { ...apercu0, ri };
 
   // NOUVEAU: Retourner aussi les cohabitants
-  return { 
-    ...ri, 
+  return {
+    ...ri,
     apercu,
-    cohabitants: cohabitantsTotals // ← AJOUT
+    cohabitants: cohabitantsTotals,
+    immoDetails: immoTotals,
+    cessionsDetails: cessionsResult,
   };
 }
 
