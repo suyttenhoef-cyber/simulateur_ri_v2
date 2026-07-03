@@ -739,6 +739,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <NumInput
+            aria-label="Nombre de bénéficiaires RIS dans le ménage"
             value={nbBeneficiairesRIS}
             style={{ width: 80, padding: "8px 10px", border: `1px solid ${colors.border}`, borderRadius: 8, fontSize: 14, textAlign: "center" }}
             onChange={(e) => update({ nbBeneficiairesRIS: Math.max(1, safeNumber(e.target.value, 1)) })}
@@ -821,23 +822,27 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                                   <td style={{ padding: "4px 5px" }}>
                                     {suggestions ? (
                                       <select className="formControl" style={{ padding: "3px 5px", fontSize: 14 }}
+                                        aria-label="Nature du revenu"
                                         value={d.label}
                                         onChange={(e) => onUpdate(j, { label: e.target.value })}>
                                         {suggestions.map(s => <option key={s} value={s}>{s}</option>)}
                                       </select>
                                     ) : (
                                       <input className="formControl" style={{ padding: "3px 5px", fontSize: 14, width: "100%" }}
+                                        aria-label="Nature du revenu"
                                         value={d.label} placeholder="Nature du revenu"
                                         onChange={(e) => onUpdate(j, { label: e.target.value })} />
                                     )}
                                   </td>
                                   <td style={{ padding: "4px 5px" }}>
                                     <NumInput value={d.montant}
+                                      aria-label="Montant"
                                       onChange={(e) => onUpdate(j, { montant: safeNumber(e.target.value, 0) })}
                                       style={{ textAlign: "right", padding: "3px 5px", fontSize: 14, width: "100%" }} />
                                   </td>
                                   <td style={{ padding: "4px 5px", textAlign: "center" }}>
                                     <select className="formControl" style={{ padding: "3px 5px", fontSize: 14 }}
+                                      aria-label="Période"
                                       value={d.periode}
                                       onChange={(e) => onUpdate(j, { periode: e.target.value })}>
                                       <option value="mensuel">Mensuel</option>
@@ -918,18 +923,21 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                                   <tr key={j} style={{ borderBottom: `1px solid ${colors.border}` }}>
                                     <td style={{ padding: "4px 5px" }}>
                                       <select className="formControl" style={{ padding: "3px 5px", fontSize: 14, width: "100%" }}
+                                        aria-label="Type de revenu"
                                         value={d.label === "Autre" ? "Autre" : (d.label || "")}
                                         onChange={(e) => updateProRow(i, j, { label: e.target.value, customLabel: e.target.value === "Autre" ? "" : null })}>
                                         {REVENUS_COMPTABILISES_SUGGESTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                                       </select>
                                       {d.label === "Autre" && (
                                         <input className="formControl" style={{ marginTop: 4, fontSize: 14, width: "100%", border: "2px solid #2BEBCE", background: "#F0FFFE" }}
+                                          aria-label="Précisez le type de revenu"
                                           value={d.customLabel || ""} placeholder="Precisez..."
                                           onChange={(e) => updateProRow(i, j, { customLabel: e.target.value })} />
                                       )}
                                     </td>
                                     <td style={{ padding: "4px 5px" }}>
                                       <NumInput value={d.montant} onChange={(e) => updateProRow(i, j, { montant: safeNumber(e.target.value, 0) })}
+                                        aria-label="Montant (€/mois)"
                                         style={{ textAlign: "right", padding: "3px 5px", fontSize: 14, width: "100%" }} />
                                     </td>
                                     <td style={{ textAlign: "center" }}>
@@ -964,6 +972,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                                   <tr key={j} style={{ borderBottom: `1px solid ${colors.border}` }}>
                                     <td style={{ padding: "4px 5px" }}>
                                       <select className="formControl" style={{ padding: "3px 5px", fontSize: 14, width: "100%" }}
+                                        aria-label="Type d'exonération"
                                         value={d.type || ""}
                                         onChange={(e) => updateProExoRow(i, j, { type: e.target.value })}>
                                         {REVENUS_EXONERES_SUGGESTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
@@ -971,6 +980,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                                     </td>
                                     <td style={{ padding: "4px 5px" }}>
                                       <NumInput value={d.montant} onChange={(e) => updateProExoRow(i, j, { montant: safeNumber(e.target.value, 0) })}
+                                        aria-label="Montant exonéré (€/mois)"
                                         style={{ textAlign: "right", padding: "3px 5px", fontSize: 14, width: "100%" }} />
                                     </td>
                                     <td style={{ textAlign: "center" }}>
@@ -1369,13 +1379,13 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, background: "#FFF8E1", border: "1px solid #f0d060", borderRadius: 8, padding: 12, marginBottom: 14 }}>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, color: colors.primary }}>Ressources retenues (€/an)</div>
-                <NumInput value={montantRetenuAnnuel}
+                <NumInput aria-label="Ressources retenues (€/an)" value={montantRetenuAnnuel}
                   onChange={(e) => update({ montantRetenuAnnuel: safeNumber(e.target.value, 0), risOctroyeCible: "" })} />
                 <div style={{ fontSize: 14, color: colors.textLight, marginTop: 3 }}>Maximum légal : <Money value={grouped.excedentGroupe} /> €/an</div>
               </div>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, color: colors.primary }}>— ou — RIS visé (€/mois)</div>
-                <NumInput value={risOctroyeCible}
+                <NumInput aria-label="RIS visé (€/mois)" value={risOctroyeCible}
                   onChange={(e) => handleRisOctroyeCible(e.target.value)} />
                 <div style={{ fontSize: 14, color: colors.textLight, marginTop: 3 }}>→ Recalcule automatiquement les ressources retenues</div>
               </div>
@@ -1403,7 +1413,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                       Charges admissibles (demandeur)
                     </td>
                     <td style={{ padding: "5px 8px", textAlign: "right" }}>
-                      <NumInput value={chargesAdmDem}
+                      <NumInput aria-label="Charges admissibles du demandeur (€/mois)" value={chargesAdmDem}
                         onChange={(e) => update({ chargesAdmissiblesDemandeur: safeNumber(e.target.value, 0) })}
                         style={{ width: 90, textAlign: "right", padding: "3px 6px", fontSize: 14 }} />
                       <span style={{ color: colors.textLight, marginLeft: 4 }}>€/mois</span>
@@ -1553,17 +1563,17 @@ function RowsTable({ title, comptabiliseRows, exonereRows, onChangeComptabilise,
           {(comptabiliseRows || []).map((r, i) => (
             <div key={i} style={colRow(i)}>
               <div style={{ display: "grid", gap: 6 }}>
-                <select value={r.customLabel !== undefined && r.customLabel !== null ? "Autre" : (r.label || "")}
+                <select aria-label="Type de revenu" value={r.customLabel !== undefined && r.customLabel !== null ? "Autre" : (r.label || "")}
                   onChange={(e) => { const v = e.target.value; updateC(i, { label: v, customLabel: v === "Autre" ? "" : null }); }}>
                   {REVENUS_COMPTABILISES_SUGGESTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
                 {r.label === "Autre" && (
-                  <input value={r.customLabel || ""} onChange={(e) => updateC(i, { customLabel: e.target.value })}
+                  <input aria-label="Précisez le type de revenu" value={r.customLabel || ""} onChange={(e) => updateC(i, { customLabel: e.target.value })}
                     placeholder="Précisez le type de revenu..."
                     style={{ border: "2px solid #2BEBCE", background: "#F0FFFE" }} />
                 )}
               </div>
-              <NumInput value={r.montant} onChange={(e) => updateC(i, { montant: safeNumber(e.target.value, 0) })} />
+              <NumInput aria-label="Montant (€/mois)" value={r.montant} onChange={(e) => updateC(i, { montant: safeNumber(e.target.value, 0) })} />
               {trashBtn(() => removeC(i))}
             </div>
           ))}
@@ -1582,10 +1592,10 @@ function RowsTable({ title, comptabiliseRows, exonereRows, onChangeComptabilise,
           <div style={colHdr}><div>Type d'exonération</div><div>Montant exonéré (€/mois)</div><div /></div>
           {(exonereRows || []).map((r, i) => (
             <div key={i} style={colRow(i)}>
-              <select value={r.type || ""} onChange={(e) => updateE(i, { type: e.target.value })}>
+              <select aria-label="Type d'exonération" value={r.type || ""} onChange={(e) => updateE(i, { type: e.target.value })}>
                 {REVENUS_EXONERES_SUGGESTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
-              <NumInput value={r.montant} onChange={(e) => updateE(i, { montant: safeNumber(e.target.value, 0) })} />
+              <NumInput aria-label="Montant exonéré (€/mois)" value={r.montant} onChange={(e) => updateE(i, { montant: safeNumber(e.target.value, 0) })} />
               {trashBtn(() => removeE(i))}
             </div>
           ))}
@@ -3887,6 +3897,7 @@ export default function App() {
                             <div>Nbre de jours pris en compte dans la période concernée :</div>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                               <NumInput
+                                aria-label="Nombre de jours pris en compte"
                                 style={{ width: 70, padding: "6px 8px" }}
                                 value={data.reference.joursPrisEnCompte}
                                 onChange={(e) =>
@@ -3901,6 +3912,7 @@ export default function App() {
                               />
                               <span>sur</span>
                               <input
+                                aria-label="Nombre de jours dans le mois (automatique)"
                                 style={{ width: 70, padding: "6px 8px", background: "#f5f5f5" }}
                                 type="number"
                                 value={result.apercu.ri.joursMois}
