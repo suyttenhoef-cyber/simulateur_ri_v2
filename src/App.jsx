@@ -2709,7 +2709,7 @@ function computeImmoExcel(rows, nbEnfants = 0) {
     quote: asNumOrZero(r.quotePart) / 100,
   }));
 
-  const countRCPos = list.reduce((c, r) => c + (r.rc > 0 ? 1 : 0), 0);
+  const exoBati = 750 + safeNumber(nbEnfants, 0) * 125;
 
   const totals = {
     IB: { ressources: 0, dedInterets: 0, dedRente: 0, locatifs: 0, total: 0 },
@@ -2736,12 +2736,16 @@ function computeImmoExcel(rows, nbEnfants = 0) {
 
     // Calculs spécifiques à Excel
     const K = H !== 0 ? round2(H * J) : null;
-    const exoBase = r.type === "Bâti" ? EXO_BATI : EXO_NON_BATI;
-const exoTotal = exoBase + safeNumber(nbEnfants, 0) * 125;
-const L = H !== 0 && countRCPos > 0
-  ? round2((exoTotal * J) / countRCPos)
-  : null;
-    const M = H !== 0 && K !== null && L !== null ? (K >= L ? round2((K - L) * 3) : 0) : null;
+    // Bâti : revenu = max(0, RC×J×3 − exoBati×J) ; exo individuelle par bien, non divisée
+    // Non bâti : revenu = max(0, (RC − 6) × J × 3) ; seuil légal 6 € de RC par bien
+    const L = H !== 0
+      ? (r.type === "Bâti" ? round2(exoBati * J) : round2(6 * J))
+      : null;
+    const M = H !== 0
+      ? (r.type === "Bâti"
+          ? Math.max(0, round2(H * J * 3 - exoBati * J))
+          : Math.max(0, round2((H - 6) * J * 3)))
+      : null;
     const U = I !== 0 ? round2(I * J) : "s. o.";
     const V = isFiniteNumber(U) && isFiniteNumber(M) && U > M ? U : "s. o.";
 
