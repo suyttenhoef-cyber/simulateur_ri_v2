@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef, useEffect, useId, isValidElement, cloneElement } from "react";
 import { generatePDF, generateTableauCPAS } from './utils/pdfExport.js';
 import './App.css';
 
@@ -283,10 +283,12 @@ const MOB_SEUIL_S = 12500;
 const CESSION_TRANCHE_IMMUNISEE = 37200;
 
 function Field({ label, hint, children }) {
+  const id = useId();
+  const labeled = isValidElement(children) ? cloneElement(children, { id }) : children;
   return (
     <div style={{ display: "grid", gap: 6 }}>
-      <span style={{ fontSize: 14, opacity: 0.85 }}>{label}</span>
-      {children}
+      <label htmlFor={id} style={{ fontSize: 14, opacity: 0.85, display: "block" }}>{label}</label>
+      {labeled}
       {hint && <span style={{ fontSize: 14, color: "#767676" }}>{hint}</span>}
     </div>
   );
