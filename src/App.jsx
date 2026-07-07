@@ -1809,14 +1809,14 @@ function CessionsBiensTable({ rows, onChangeRows, categorie }) {
   );
 }
 
-function BiensImmobiliersTable({ rows, onChangeRows }) {
+function BiensImmobiliersTable({ rows, onChangeRows, nbEnfants = 0 }) {
   function updateRow(i, patch) {
     onChangeRows(rows.map((r, idx) => idx === i ? { ...r, ...patch } : r));
   }
   function addRow() { onChangeRows([...rows, defaultBienImmobilierRow()]); }
   function removeRow(i) { onChangeRows(rows.filter((_, idx) => idx !== i)); }
-  
-  const immo = useMemo(() => computeImmoExcel(rows), [rows]);
+
+  const immo = useMemo(() => computeImmoExcel(rows, nbEnfants), [rows, nbEnfants]);
 
   return (
     <div className="card" style={{ padding: 16 }}>
@@ -1925,9 +1925,9 @@ function BiensImmobiliersTable({ rows, onChangeRows }) {
       )}
       
       <div style={{ marginTop: 10, padding: 10, background: "#e8f4f8", borderRadius: 5, border: "1px solid #0066cc" }}>
-        <div><b>Biens Immobiliers Bâtis (IB)</b> — Total annuel : <Money value={immo.IB.total} /></div>
-        <div style={{ marginTop: 5 }}><b>Biens Immobiliers Non Bâtis (INB)</b> — Total annuel : <Money value={immo.INB.total} /></div>
-        <div style={{ marginTop: 5 }}><b>Immeubles étrangers</b> — Total annuel : <Money value={immo.etranger} /></div>
+        <div><b>Biens Immobiliers Bâtis (IB)</b> : Total annuel : <Money value={immo.IB.total} /></div>
+        <div style={{ marginTop: 5 }}><b>Biens Immobiliers Non Bâtis (INB)</b> : Total annuel : <Money value={immo.INB.total} /></div>
+        <div style={{ marginTop: 5 }}><b>Immeubles étrangers</b> : Total annuel : <Money value={immo.etranger} /></div>
         <div style={{ marginTop: 5, paddingTop: 5, borderTop: "1px solid #0088cc", fontWeight: 700 }}>
           <b>Total mensuel : <Money value={immo.totalMensuel} /></b>
         </div>
@@ -3426,6 +3426,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
       {AB("immo", "fa-house", "Biens immobiliers", "biens_immobiliers", immoTotal,
         <BiensImmobiliersTable
           rows={data.biensImmobiliers.rows}
+          nbEnfants={data.menage.nbEnfants}
           onChangeRows={(rows) => setData(d => ({ ...d, biensImmobiliers: { rows } }))} />
       )}
 
