@@ -1,5 +1,5 @@
 import { useMemo, useState, useRef, useEffect, useId, isValidElement, cloneElement } from "react";
-import { generatePDF, generateTableauCPAS } from './utils/pdfExport.js';
+import { generatePDF } from './utils/pdfExport.js';
 import './App.css';
 
 // Injection Font Awesome + styles globaux dans le <head>
@@ -3463,7 +3463,6 @@ export default function App() {
   useEffect(() => { window.scrollTo({ top: 0 }); }, [active]);
   const [data, setData] = useState(defaultData); // Une seule déclaration ici
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [isGeneratingTableau, setIsGeneratingTableau] = useState(false);
   const [ficheOuverte, setFicheOuverte] = useState(null);
   const openFiche = (key) => { const f = FICHES_PRATIQUES[key]; if (f?.url) setFicheOuverte(f); };
 
@@ -3488,20 +3487,6 @@ export default function App() {
       setIsGeneratingPDF(false);
     }
   };
-  const handleExportTableau = async () => {
-    if (!result || !apercu) return;
-    setIsGeneratingTableau(true);
-    try {
-      const success = await generateTableauCPAS(data, result, apercu);
-      if (!success) alert("Une erreur est survenue lors de la génération du tableau");
-    } catch (err) {
-      console.error("Erreur tableau CPAS:", err);
-      alert("Erreur lors de la génération du tableau");
-    } finally {
-      setIsGeneratingTableau(false);
-    }
-  };
-
   // Fonction de réinitialisation
   const handleReset = () => {
     if (window.confirm("Êtes-vous sûr de vouloir réinitialiser toutes les données ?")) {
@@ -3756,24 +3741,6 @@ export default function App() {
                   {isGeneratingPDF ? "Génération..." : "Exporter en PDF"}
                 </button>
 
-                <button
-                  onClick={handleExportTableau}
-                  disabled={isGeneratingTableau}
-                  style={{
-                    display: "flex", alignItems: "center", gap: "8px",
-                    padding: "10px 20px",
-                    background: isGeneratingTableau ? "#ccc" : colors.secondary,
-                    color: colors.primary, border: "none", borderRadius: "8px",
-                    cursor: isGeneratingTableau ? "not-allowed" : "pointer",
-                    fontWeight: "600", fontSize: "14px",
-                    fontFamily: "'Source Sans Pro', sans-serif", transition: "all 0.2s"
-                  }}
-                  onMouseOver={(e) => { if (!isGeneratingTableau) e.currentTarget.style.transform = "translateY(-1px)"; }}
-                  onMouseOut={(e)  => { if (!isGeneratingTableau) e.currentTarget.style.transform = "translateY(0)"; }}
-                >
-                  <i className={`fas ${isGeneratingTableau ? "fa-spinner fa-spin" : "fa-chart-bar"}`} aria-hidden="true" />
-                  {isGeneratingTableau ? "Génération..." : "Tableau CPAS"}
-                </button>
               </div>
             </div>
 
