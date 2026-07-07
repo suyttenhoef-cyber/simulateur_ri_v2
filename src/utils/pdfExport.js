@@ -319,7 +319,9 @@ export async function generatePDF(data, result, apercu) {
             if (r.rc > 0) {
               parts.push(`RC non indexé : ${fmt(r.rc)} × ${pct}%`);
               if (r.L > 0) parts.push(`Exo. : ${fmt(r.L)}`);
-              if (r.M > 0) parts.push(`(RC − Exo.) × 3 = ${fmt(r.M)}`);
+              if (r.M > 0) parts.push(r.type === 'Bâti'
+                ? `RC × 3 − Exo. = ${fmt(r.M)}`
+                : `(RC − seuil) × 3 = ${fmt(r.M)}`);
             }
             if (r.locatifs > 0) parts.push(`Loyer : ${fmt(r.loyer)}/an × ${pct}% = ${fmt(r.locatifs)}`);
             if (r.dedInterets < 0) parts.push(`Int. déduits : ${fmt(r.dedInterets)}`);
