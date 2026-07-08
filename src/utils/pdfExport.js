@@ -31,16 +31,19 @@ async function imageToBase64(url) {
 
 async function downloadPDF(pdfBlob, fileName) {
   if (isInIframe()) {
-    try {
-      const base64Data = await blobToBase64(pdfBlob);
-      window.parent.postMessage({ type: 'DOWNLOAD_PDF', fileName, pdfData: base64Data }, '*');
-      return true;
-    } catch {
-      const url = URL.createObjectURL(pdfBlob);
-      window.open(url, '_blank');
-      setTimeout(() => URL.revokeObjectURL(url), 100);
-      return true;
+    // Dans un iframe, les téléchargements via <a download> sont bloqués par la Permissions Policy.
+    // On ouvre le PDF dans un nouvel onglet (ne nécessite pas la feature "downloads").
+    const url = URL.createObjectURL(pdfBlob);
+    const opened = window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    if (!opened) {
+      // Popup bloqué par le navigateur — dernier recours via postMessage au parent
+      try {
+        const base64Data = await blobToBase64(pdfBlob);
+        window.parent.postMessage({ type: 'DOWNLOAD_PDF', fileName, pdfData: base64Data }, '*');
+      } catch {}
     }
+    return true;
   } else {
     const link = document.createElement('a');
     const url = URL.createObjectURL(pdfBlob);
