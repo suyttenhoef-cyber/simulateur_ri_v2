@@ -2325,34 +2325,19 @@ function Sidebar({ active, onSelect, onNewCalcul, isCollapsed, onToggleCollapse 
   function computeRIApercuExcel({ dateISO, categorie, C37_totalRessourcesAnnuelles, joursPrisEnCompte }) {
     const riAnnuelBrut = getRIAnnuel(dateISO, categorie); // Informations!F7
 
-    console.log("DEBUG", {
-      C37_totalRessourcesAnnuelles,
-      riAnnuelBrut,
-    });
-
     const eligible = C37_totalRessourcesAnnuelles < riAnnuelBrut;
-
-    console.log("Eligible:", eligible);
 
     // C39 = IF(eligible, -HLOOKUP(categorie, Données!Q2:S3, 2, FALSE), "Pas de droit")
     const C39_exoSupplAnnuelle = eligible ? -safeNumber(EXO_SUPPL_ANNUEL[categorie], 0) : 0;
 
-    console.log("C39_exoSupplAnnuelle:", C39_exoSupplAnnuelle);
-
     // C41 = IF(eligible, IF(C37 + C39 > 0, C37 + C39, 0), "Pas de droit")
     const C41_ressourcesApresExo = Math.max(C37_totalRessourcesAnnuelles + C39_exoSupplAnnuelle, 0);
-
-    console.log("C41_ressourcesApresExo:", C41_ressourcesApresExo);
 
     // C43 = IF(eligible, riAnnuelBrut - C41, "Pas de droit")
     const C43_riAnnuelNet = eligible ? Math.max(riAnnuelBrut - C41_ressourcesApresExo, 0) : 0;
 
-    console.log("C43_riAnnuelNet:", C43_riAnnuelNet);
-
     // E45 = IF(eligible, ROUND(C43/12, 2), "Pas de droit")
     const E45_montantMensuel = eligible ? round2(C43_riAnnuelNet / 12) : 0;
-
-    console.log("E45_montantMensuel:", E45_montantMensuel);
 
     const dim = daysInMonth(dateISO);
     const jp = safeNumber(joursPrisEnCompte, 0);
