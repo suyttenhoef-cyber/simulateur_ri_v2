@@ -137,7 +137,7 @@ const defaultCessionRow = () => ({
 
 const defaultBienImmobilierRow = () => ({
   typeBien: "", localisation: "", interetsPaye: 0, renteAnnuelle: 0,
-  revenuImmoEtranger: 0, rcNonIndexe: 0, loyerAnnuel: 0, quotePart: 50
+  revenuImmoEtranger: 0, rcNonIndexe: 0, loyerAnnuel: 0, quotePart: 100
 });
 
 const NATURES_REVENU_COHABITANT = [
@@ -1883,7 +1883,7 @@ function BiensImmobiliersTable({ rows, onChangeRows, nbEnfants = 0 }) {
                 <label style={{ display: "grid", gap: 4 }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Quote-part (%)</span>
                   <NumInput value={r.quotePart}
-                    onChange={(e) => updateRow(i, { quotePart: safeNumber(e.target.value, 50) })}
+                    onChange={(e) => updateRow(i, { quotePart: safeNumber(e.target.value, 100) })}
                     style={{ padding: "6px" }} />
                 </label>
 
@@ -2492,7 +2492,7 @@ function computeImmoAnnualExcelLike(rows) {
     renteAnnuelle: safeNumber(r.renteAnnuelle, 0),
     loyerAnnuel: safeNumber(r.loyerAnnuel, 0),
     revenuImmoEtranger: safeNumber(r.revenuImmoEtranger, 0),
-    quotePart: safeNumber(r.quotePart, 50) / 100
+    quotePart: safeNumber(r.quotePart, 100) / 100
   }));
 
   const countRCPos = safeRows.reduce((c, r) => c + (r.rcNonIndexe > 0 ? 1 : 0), 0);
@@ -2721,15 +2721,15 @@ function computeImmoExcel(rows, nbEnfants = 0) {
 
     // Calculs spécifiques à Excel
     const K = H !== 0 ? round2(H * J) : null;
-    // Bâti : revenu = max(0, RC×J×3 − exoBati×J) ; exo individuelle par bien, non divisée
-    // Non bâti : revenu = max(0, (RC − 6) × J × 3) ; seuil légal 6 € de RC par bien
+    // L = seuil en € (exo × quote-part) — identique pour bâti et non bâti, valeur seuil différente
+    // Bâti    : exo = 750 + 125×nbEnfants (seuil en RC)
+    // Non bâti: seuil = 6 € de RC par bien
+    // Formule : M = (K − L) × 3 = (RC − seuil) × J × 3
     const L = H !== 0
       ? (r.type === "Bâti" ? round2(exoBati * J) : round2(6 * J))
       : null;
-    const M = H !== 0
-      ? (r.type === "Bâti"
-          ? Math.max(0, round2(H * J * 3 - exoBati * J))
-          : Math.max(0, round2((H - 6) * J * 3)))
+    const M = H !== 0 && K !== null && L !== null
+      ? (K >= L ? round2((K - L) * 3) : 0)
       : null;
     const U = I !== 0 ? round2(I * J) : "s. o.";
     const V = isFiniteNumber(U) && isFiniteNumber(M) && U > M ? U : "s. o.";
