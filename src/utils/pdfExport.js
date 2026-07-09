@@ -352,6 +352,7 @@ export async function generatePDF(data, result, apercu) {
     if (cessionsAnnuel > 0) {
       tbody += SEC('Cessions de biens');
       const cessionsDetailList = result.cessionsDetails?.details || [];
+      const cTranches = result.cessionsDetails?.tranches || {};
       const cessionsRows = data.cessionsBiens?.rows || [];
       let detailIdx = 0;
       for (const c of cessionsRows) {
@@ -361,19 +362,20 @@ export async function generatePDF(data, result, apercu) {
         const type = c.typeBien || 'Bien cédé';
         const nat  = c.natureCession || 'Cession';
         if (calc) {
-          tbody += ROW(demCell(), type, nat, calc.totalRevenu);
+          tbody += ROW(demCell(), type, nat, calc.montantConsideration);
           tbody += ROWSUB('Valeur vénale', `${fmt(vv)} × ${safeN(c.partConcernee)}% (${c.titrePropriete || 'P.P.'}) = ${fmt(calc.montantVenal)}`);
           if (calc.trancheImmunisee > 0) tbody += ROWSUB('(−) Tranche immunisée', fmt(calc.trancheImmunisee));
           if (calc.abattement > 0)       tbody += ROWSUB(`(−) Abattement (${calc.nbMois} mois)`, fmt(calc.abattement));
           if (calc.dettesApplicables > 0) tbody += ROWSUB('(−) Dettes personnelles', fmt(calc.dettesApplicables));
           if (calc.dispenseEquite > 0)   tbody += ROWSUB('(−) Dispense équité', fmt(calc.dispenseEquite));
           tbody += ROWSUB('Montant à considérer', fmt(calc.montantConsideration));
-          if (calc.revenus.revenu2 > 0)  tbody += ROWAMOUNT('Tranche T2 (6.200 – 12.500 €)', `${fmt(calc.tranches.tranche2 - calc.tranches.tranche1)} × 6 %`, calc.revenus.revenu2);
-          if (calc.revenus.revenu3 > 0)  tbody += ROWAMOUNT('Tranche T3 (> 12.500 €)', `${fmt(calc.tranches.tranche3 - calc.tranches.tranche2)} × 10 %`, calc.revenus.revenu3);
         } else {
           tbody += ROW(demCell(), type, `${nat} — Valeur vénale : ${fmt(vv)} × ${safeN(c.partConcernee)}% (${c.titrePropriete || 'P.P.'})`, 0);
         }
       }
+      // Art. 6.1c : tranches appliquées une fois sur le total des considérations
+      if (cTranches.revenu2 > 0) tbody += ROWAMOUNT('Tranche T2 (6.200 – 12.500 €)', `${fmt(cTranches.t2 - cTranches.t1)} × 6 %`, cTranches.revenu2);
+      if (cTranches.revenu3 > 0) tbody += ROWAMOUNT('Tranche T3 (> 12.500 €)', `${fmt(cTranches.t3 - cTranches.t2)} × 10 %`, cTranches.revenu3);
       tbody += SUBTOT('Total cessions', cessionsAnnuel);
       tbody += SEP();
     }

@@ -89,8 +89,11 @@ export function calculateMonthsDiffCession(dateCession, datePriseCoursRI) {
 
   if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
 
-  const deltaDays = (d2 - d1) / (1000 * 60 * 60 * 24);
-  return Math.floor(deltaDays / 30.44);
+  // Art. 6.2a.3 : compter à partir du premier du mois qui SUIT la cession
+  const startYear  = d1.getMonth() === 11 ? d1.getFullYear() + 1 : d1.getFullYear();
+  const startMonth = (d1.getMonth() + 1) % 12; // 0-indexed
+  const months = (d2.getFullYear() - startYear) * 12 + (d2.getMonth() - startMonth);
+  return Math.max(0, months);
 }
 
 export function calculateCessionDetailed(cession, categorie) {
@@ -107,31 +110,25 @@ export function calculateCessionDetailed(cession, categorie) {
 
   const coeffTitre = TITRE_PROPRIETE_COEFF[titrePropriete] || 1.0;
   const montantVenal = round2(montant * part * coeffTitre);
-  const trancheImmunisee = typeInfo.unique ? round2(TRANCHE_IMMUNISEE_CESSION * part) : 0;
+
+  // Art. 6.3 / 6.5 : pour une cession gratuite, aucune déduction (pas de tranche
+  // immunisée ni d'abattement) — les tranches s'appliquent directement sur la valeur vénale.
+  const isOnerous = natureCession === "Cession à titre onéreux";
+
+  const trancheImmunisee = typeInfo.unique && isOnerous ? round2(TRANCHE_IMMUNISEE_CESSION * part) : 0;
 
   let abattement = 0;
   let nbMois = 0;
-  if (typeInfo.unique && cession.dateCession && cession.datePriseCoursRI) {
+  if (typeInfo.unique && isOnerous && cession.dateCession && cession.datePriseCoursRI) {
     nbMois = calculateMonthsDiffCession(cession.dateCession, cession.datePriseCoursRI);
     const montantAnnuel = ABATTEMENT_PAR_CATEGORIE[categorie] || 0;
     abattement = round2((montantAnnuel * nbMois) / 12);
   }
 
-  // Dettes uniquement si cession onéreuse
-  const dettesApplicables = natureCession === "Cession à titre onéreux" ? dettesPersonnelles : 0;
+  const dettesApplicables = isOnerous ? dettesPersonnelles : 0;
 
   let montantConsideration = montantVenal - dettesApplicables - trancheImmunisee - abattement - dispenseEquite;
-  montantConsideration = Math.max(montantConsideration, 0);
-
-  const tranche1 = montantConsideration === 0 ? 0 : Math.min(SEUIL_CESSION_T1, montantConsideration);
-  const tranche2 = montantConsideration > SEUIL_CESSION_T1 ? Math.min(SEUIL_CESSION_T2, montantConsideration) : 0;
-  const tranche3 = montantConsideration > SEUIL_CESSION_T2 ? montantConsideration : 0;
-
-  const revenu1 = 0;
-  const revenu2 = tranche2 > tranche1 ? round2((tranche2 - tranche1) * 0.06) : 0;
-  const revenu3 = tranche3 > 0 ? round2((tranche3 - tranche2) * 0.10) : 0;
-
-  const totalRevenu = round2(revenu1 + revenu2 + revenu3);
+  montantConsideration = Math.max(0, round2(montantConsideration));
 
   return {
     montantVenal,
@@ -143,26 +140,34 @@ export function calculateCessionDetailed(cession, categorie) {
     dettesApplicables,
     dispenseEquite,
     montantConsideration,
-    tranches: { tranche1, tranche2, tranche3 },
-    revenus: { revenu1, revenu2, revenu3 },
-    totalRevenu,
-    totalMensuel: round2(totalRevenu / 12),
   };
 }
 
 export function computeCessionsTotalAnnuel(rows, categorie) {
   if (!rows || rows.length === 0) {
-    return { totalAnnuel: 0, totalMensuel: 0, details: [] };
+    return { totalAnnuel: 0, totalMensuel: 0, totalConsideration: 0, tranches: {}, details: [] };
   }
 
   const details = rows
     .map((cession) => calculateCessionDetailed(cession, categorie))
     .filter((calc) => calc !== null);
-  const totalAnnuel = details.reduce((sum, calc) => sum + calc.totalRevenu, 0);
+
+  // Art. 6.1c : les tranches s'appliquent UNE FOIS sur le total de toutes les
+  // considérations (pas par bien séparément).
+  const totalConsideration = round2(details.reduce((s, d) => s + d.montantConsideration, 0));
+
+  const t1 = totalConsideration > 0 ? Math.min(SEUIL_CESSION_T1, totalConsideration) : 0;
+  const t2 = totalConsideration > SEUIL_CESSION_T1 ? Math.min(SEUIL_CESSION_T2, totalConsideration) : 0;
+  const t3 = totalConsideration > SEUIL_CESSION_T2 ? totalConsideration : 0;
+  const revenu2 = t2 > t1 ? round2((t2 - t1) * 0.06) : 0;
+  const revenu3 = t3 > 0 ? round2((t3 - t2) * 0.10) : 0;
+  const totalAnnuel = round2(revenu2 + revenu3);
 
   return {
-    totalAnnuel: round2(totalAnnuel),
+    totalAnnuel,
     totalMensuel: round2(totalAnnuel / 12),
+    totalConsideration,
+    tranches: { t1, t2, t3, revenu2, revenu3 },
     details,
   };
 }

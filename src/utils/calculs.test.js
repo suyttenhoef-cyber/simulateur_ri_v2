@@ -269,34 +269,34 @@ describe("computeCessionsTotalAnnuel", () => {
   // -----------------------------------------------------------------------
   describe("Bien non unique (Autre bien bâti)", () => {
     it("valeur = 20 000, 100% PP → totalAnnuel = 1128", () => {
-      // montantConsideration = 20 000
-      // tranche2 = 12 500, tranche3 = 20 000
-      // revenu2 = (12 500 − 6 200) × 0.06 = 378
-      // revenu3 = (20 000 − 12 500) × 0.10 = 750
+      // consideration = 20 000
+      // T2 = (12 500 − 6 200) × 6% = 378 ; T3 = (20 000 − 12 500) × 10% = 750
       const rows = [{ typeBien: "Autre bien bâti", valeurVenale: 20000, partConcernee: 100 }];
       const r = computeCessionsTotalAnnuel(rows, 1);
       expect(r.totalAnnuel).toBe(1128);
     });
 
     it("valeur = 8 000, 100% PP → totalAnnuel = 108", () => {
-      // montantConsideration = 8 000
-      // revenu2 = (8 000 − 6 200) × 0.06 = 1 800 × 0.06 = 108
+      // consideration = 8 000 ; T2 = (8 000 − 6 200) × 6% = 108
       const rows = [{ typeBien: "Autre bien bâti", valeurVenale: 8000, partConcernee: 100 }];
       const r = computeCessionsTotalAnnuel(rows, 1);
       expect(r.totalAnnuel).toBe(108);
     });
 
-    it("deux biens cumulés : 20 000 + 8 000 → totalAnnuel = 1236", () => {
+    it("Art. 6.1c — deux biens cumulés → tranches sur le total (28 000)", () => {
+      // total consideration = 20 000 + 8 000 = 28 000
+      // T2 = (12 500 − 6 200) × 6% = 378 ; T3 = (28 000 − 12 500) × 10% = 1 550
+      // ATTENTION : per-bien séparé donnerait 1128+108=1236, ce qui est FAUX
       const rows = [
         { typeBien: "Autre bien bâti", valeurVenale: 20000, partConcernee: 100 },
         { typeBien: "Autre bien bâti", valeurVenale: 8000,  partConcernee: 100 },
       ];
       const r = computeCessionsTotalAnnuel(rows, 1);
-      expect(r.totalAnnuel).toBe(1236);
+      expect(r.totalConsideration).toBe(28000);
+      expect(r.totalAnnuel).toBe(1928);
     });
 
-    it("valeur = 6 200 (exactement seuil T1) → totalAnnuel = 0", () => {
-      // Tranche 1 entière = exonérée, pas de tranche 2
+    it("valeur = 6 200 → totalAnnuel = 0 (exactement au seuil T1)", () => {
       const rows = [{ typeBien: "Autre bien bâti", valeurVenale: 6200, partConcernee: 100 }];
       const r = computeCessionsTotalAnnuel(rows, 1);
       expect(r.totalAnnuel).toBe(0);
@@ -304,25 +304,41 @@ describe("computeCessionsTotalAnnuel", () => {
   });
 
   // -----------------------------------------------------------------------
-  // Bien unique : tranche immunisée 37 200 € appliquée
+  // Bien unique (cession onéreuse) : tranche 37 200 + abattement
   // -----------------------------------------------------------------------
-  describe("Bien unique (Bien bâti unique)", () => {
+  describe("Bien unique onéreux (Bien bâti unique)", () => {
     it("valeur = 50 000, sans dates → abattement = 0, totalAnnuel = 408", () => {
-      // montantVenal = 50 000
-      // trancheImmunisee = 37 200
-      // montantConsideration = 50 000 − 37 200 = 12 800
-      // revenu2 = (12 500 − 6 200) × 0.06 = 378
-      // revenu3 = (12 800 − 12 500) × 0.10 = 30
-      // total = 408
+      // consideration = 50 000 − 37 200 = 12 800
+      // T2 = 378 ; T3 = (12 800 − 12 500) × 10% = 30 → total = 408
       const rows = [{ typeBien: "Bien bâti (unique)", valeurVenale: 50000, partConcernee: 100 }];
       const r = computeCessionsTotalAnnuel(rows, 3);
       expect(r.totalAnnuel).toBe(408);
     });
 
-    it("valeur = 37 200 (= tranche immunisée) → totalAnnuel = 0", () => {
+    it("valeur = 37 200 → totalAnnuel = 0 (entièrement couvert par tranche immunisée)", () => {
       const rows = [{ typeBien: "Bien bâti (unique)", valeurVenale: 37200, partConcernee: 100 }];
       const r = computeCessionsTotalAnnuel(rows, 1);
       expect(r.totalAnnuel).toBe(0);
+    });
+
+    it("Art. 6.2a — exemple légal : 75 000, dettes 5 000, isolé (cat 2), 38 mois", () => {
+      // montantVenal = 75 000 ; dettes = 5 000 ; tranche immunisée = 37 200
+      // abattement = 38/12 × 2000 = 6333.33
+      // consideration = 75000 − 5000 − 37200 − 6333.33 = 26466.67
+      // T2 = 378 ; T3 = (26466.67 − 12500) × 10% = 1396.67 → total = 1774.67
+      const rows = [{
+        typeBien: "Bien bâti (unique)",
+        valeurVenale: 75000,
+        partConcernee: 100,
+        natureCession: "Cession à titre onéreux",
+        dettesPersonnelles: 5000,
+        dateCession: "2013-01-15",
+        datePriseCoursRI: "2016-04-01",
+      }];
+      const r = computeCessionsTotalAnnuel(rows, 2);
+      expect(r.details[0].abattement).toBeCloseTo(6333.33, 1);
+      expect(r.details[0].montantConsideration).toBeCloseTo(26466.67, 1);
+      expect(r.totalAnnuel).toBeCloseTo(1774.67, 1);
     });
 
     it("valeur = 0 → ignoré (null filtré), totalAnnuel = 0", () => {
@@ -333,22 +349,75 @@ describe("computeCessionsTotalAnnuel", () => {
   });
 
   // -----------------------------------------------------------------------
-  // Cession à titre gratuit : dettes personnelles non applicables
+  // Art. 6.3 — Cession gratuite : aucune déduction (ni tranche ni abattement)
   // -----------------------------------------------------------------------
-  it("cession à titre gratuit : dettes ignorées", () => {
-    const rows = [{
-      typeBien: "Autre bien bâti",
-      valeurVenale: 20000,
-      partConcernee: 100,
-      natureCession: "Cession à titre gratuit",
-      dettesPersonnelles: 5000, // doit être ignoré
-    }];
-    const onerous = computeCessionsTotalAnnuel(
-      [{ typeBien: "Autre bien bâti", valeurVenale: 20000, partConcernee: 100 }], 1
-    );
-    const gratuit = computeCessionsTotalAnnuel(rows, 1);
-    // Le résultat doit être identique (dettes non applicables)
-    expect(gratuit.totalAnnuel).toBe(onerous.totalAnnuel);
+  describe("Cession à titre gratuit (art. 6.3 / 6.5 / 6.7)", () => {
+    it("bien unique gratuit : pas de tranche immunisée ni d'abattement", () => {
+      // Si onéreux : consideration = 50000 − 37200 = 12800 → 408€
+      // Si gratuit  : consideration = 50000 → T2+T3 = 378 + (50000-12500)×10% = 378+3750 = 4128€
+      const rows = [{
+        typeBien: "Bien bâti (unique)",
+        valeurVenale: 50000,
+        partConcernee: 100,
+        natureCession: "Cession à titre gratuit",
+        dettesPersonnelles: 5000, // ignoré
+        dateCession: "2020-01-01",
+        datePriseCoursRI: "2024-01-01",
+      }];
+      const r = computeCessionsTotalAnnuel(rows, 3);
+      expect(r.details[0].trancheImmunisee).toBe(0);
+      expect(r.details[0].abattement).toBe(0);
+      expect(r.details[0].dettesApplicables).toBe(0);
+      expect(r.details[0].montantConsideration).toBe(50000);
+      expect(r.totalAnnuel).toBe(4128);
+    });
+
+    it("bien non unique gratuit : pas de dettes déduites", () => {
+      const onerous = computeCessionsTotalAnnuel(
+        [{ typeBien: "Autre bien bâti", valeurVenale: 20000, partConcernee: 100 }], 1
+      );
+      const gratuit = computeCessionsTotalAnnuel([{
+        typeBien: "Autre bien bâti",
+        valeurVenale: 20000,
+        partConcernee: 100,
+        natureCession: "Cession à titre gratuit",
+        dettesPersonnelles: 5000,
+      }], 1);
+      expect(gratuit.totalAnnuel).toBe(onerous.totalAnnuel);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Art. 6.2a.3 — Calcul des mois d'abattement
+  // -----------------------------------------------------------------------
+  describe("calculateMonthsDiffCession — premier du mois suivant", () => {
+    it("exemple légal : cession 15.01.2013, RI 01.04.2016 → 38 mois", () => {
+      // Du 01.02.2013 au 01.04.2016 = 38 mois
+      const rows = [{
+        typeBien: "Bien bâti (unique)",
+        valeurVenale: 75000,
+        partConcernee: 100,
+        dettesPersonnelles: 5000,
+        dateCession: "2013-01-15",
+        datePriseCoursRI: "2016-04-01",
+      }];
+      const r = computeCessionsTotalAnnuel(rows, 2);
+      expect(r.details[0].nbMois).toBe(38);
+    });
+
+    it("cession en fin de mois (31 jan) → commence en mars (pas en fév)", () => {
+      // 31.01.2020 → premier du mois suivant = 01.02.2020
+      // RI 01.04.2020 → 2 mois (fév + mars)
+      const rows = [{
+        typeBien: "Bien bâti (unique)",
+        valeurVenale: 50000,
+        partConcernee: 100,
+        dateCession: "2020-01-31",
+        datePriseCoursRI: "2020-04-01",
+      }];
+      const r = computeCessionsTotalAnnuel(rows, 2);
+      expect(r.details[0].nbMois).toBe(2);
+    });
   });
 
   it("totalMensuel = totalAnnuel / 12", () => {
