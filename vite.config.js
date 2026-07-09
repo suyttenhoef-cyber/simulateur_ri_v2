@@ -5,4 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/simulateur_ri_v2/', // Nécessaire pour GitHub Pages
+  test: {
+    environment: 'node',
+    globals: true,
+  },
 })

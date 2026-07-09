@@ -1,6 +1,14 @@
 import { useMemo, useState, useRef, useEffect, useId, isValidElement, cloneElement } from "react";
 import { generatePDF } from './utils/pdfExport.js';
 import './App.css';
+import {
+  safeNumber, round2, asNumOrZero, isFiniteNumber,
+  MOB_SEUIL_R, MOB_SEUIL_S,
+  TRANCHE_IMMUNISEE_CESSION, SEUIL_CESSION_T1, SEUIL_CESSION_T2,
+  TITRE_PROPRIETE_COEFF, ABATTEMENT_PAR_CATEGORIE, TYPE_CESSION_MAP,
+  calculateMonthsDiffCession, calculateCessionDetailed,
+  computeCessionsTotalAnnuel, computeBiensMobiliersExcel, computeImmoExcel,
+} from './utils/calculs.js';
 
 // Injection Font Awesome + styles globaux dans le <head>
 const globalStyles = `
@@ -97,8 +105,6 @@ const TRANCHE_1 = 1250;             // Tranche 1 pour cession
 const TRANCHE_2 = 2000;             // Tranche 2 pour cession
 const TRANCHE_3 = 2500;             // Tranche 3 pour cession
 
-const EXO_BATI = 750;            // Exonération pour Bâti (à adapter selon ton Excel)
-const EXO_NON_BATI = 30;        // Exonération pour Non-Bâti (à adapter selon ton Excel)
 
 const MONTANT_FORFAITAIRE_CESSION_AN = 37200; // Tranche immunisée
 
@@ -275,12 +281,8 @@ const EXO_TABLE = [
 // Données!Q3:S3 (Exonération supplémentaire annuelle ©)
 const EXO_SUPPL_ANNUEL = { 1: 155, 2: 250, 3: 310 };
 
-// Données!R13 / S13 (seuils mobiliers)
-const MOB_SEUIL_R = 6200;
-const MOB_SEUIL_S = 12500;
-
-// Données!S22 (tranche immunisée cessions)
-const CESSION_TRANCHE_IMMUNISEE = 37200;
+// Données!S22 (tranche immunisée cessions — dead code, utiliser TRANCHE_IMMUNISEE_CESSION de calculs.js)
+// const CESSION_TRANCHE_IMMUNISEE = 37200;
 
 function Field({ label, hint, children }) {
   const id = useId();
@@ -294,10 +296,7 @@ function Field({ label, hint, children }) {
   );
 }
 
-function safeNumber(x, fallback = 0) {
-  const n = Number(String(x ?? "").replace(",", "."));
-  return Number.isFinite(n) ? n : fallback;
-}
+// safeNumber importée depuis ./utils/calculs.js
 function toISODateOnly(d) {
   if (!d) return "1970-01-01";
   if (typeof d === "string") return d.slice(0, 10);
@@ -338,113 +337,10 @@ function Money({ value }) {
 // CALCULS POUR CESSIONS DE BIENS
 // ========================================
 
-const TRANCHE_IMMUNISEE_CESSION = 37200;
-const SEUIL_CESSION_T1 = 6200;
-const SEUIL_CESSION_T2 = 12500;
-
-const TITRE_PROPRIETE_COEFF = {
-  "Pleine Propriété (P.P.)": 1.0,
-  "Nu-propriété (N.P.)": 0.6,
-  "Usufruit": 0.4
-};
-
-const ABATTEMENT_PAR_CATEGORIE = {
-  1: 1250,  // Cohabitant
-  2: 2000,  // Isolé
-  3: 2500   // Famille
-};
-
-const TYPE_CESSION_MAP = {
-  "Bien bâti (unique)": { unique: true },
-  "Bien non bâti (unique)": { unique: true },
-  "Autre bien bâti": { unique: false },
-  "Autre bien non bâti": { unique: false },
-  "Bien meuble": { unique: false }
-};
-
-function calculateMonthsDiffCession(dateCession, datePriseCoursRI) {
-  if (!dateCession || !datePriseCoursRI) return 0;
-  
-  const d1 = new Date(dateCession);
-  const d2 = new Date(datePriseCoursRI);
-  
-  if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
-  
-  const deltaDays = (d2 - d1) / (1000 * 60 * 60 * 24);
-  return Math.floor(deltaDays / 30.44);
-}
-
-function calculateCessionDetailed(cession, categorie) {
-  const typeInfo = TYPE_CESSION_MAP[cession.typeBien] || { unique: false };
-  
-  const montant = safeNumber(cession.valeurVenale, 0);
-  const part = safeNumber(cession.partConcernee, 100) / 100;
-  const titrePropriete = cession.titrePropriete || "Pleine Propriété (P.P.)";
-  const natureCession = cession.natureCession || "Cession à titre onéreux"; // 👈 AJOUT
-  const dettesPersonnelles = safeNumber(cession.dettesPersonnelles, 0);
-  const dispenseEquite = safeNumber(cession.dispenseEquite, 0);
-  
-  if (montant === 0) return null;
-  
-  const coeffTitre = TITRE_PROPRIETE_COEFF[titrePropriete] || 1.0;
-  const montantVenal = round2(montant * part * coeffTitre);
-  const trancheImmunisee = typeInfo.unique ? round2(TRANCHE_IMMUNISEE_CESSION * part) : 0;
-  
-  let abattement = 0;
-  let nbMois = 0;
-  if (typeInfo.unique && cession.dateCession && cession.datePriseCoursRI) {
-    nbMois = calculateMonthsDiffCession(cession.dateCession, cession.datePriseCoursRI);
-    const montantAnnuel = ABATTEMENT_PAR_CATEGORIE[categorie] || 0;
-    abattement = round2((montantAnnuel * nbMois) / 12);
-  }
-  
-  // 👇 AJOUT : Dettes uniquement si cession onéreuse
-  const dettesApplicables = natureCession === "Cession à titre onéreux" ? dettesPersonnelles : 0;
-  
-  let montantConsideration = montantVenal - dettesApplicables - trancheImmunisee - abattement - dispenseEquite;
-  montantConsideration = Math.max(montantConsideration, 0);
-  
-  const tranche1 = montantConsideration === 0 ? 0 : Math.min(SEUIL_CESSION_T1, montantConsideration);
-  const tranche2 = montantConsideration > SEUIL_CESSION_T1 ? Math.min(SEUIL_CESSION_T2, montantConsideration) : 0;
-  const tranche3 = montantConsideration > SEUIL_CESSION_T2 ? montantConsideration : 0;
-  
-  const revenu1 = 0;
-  const revenu2 = tranche2 > tranche1 ? round2((tranche2 - tranche1) * 0.06) : 0;
-  const revenu3 = tranche3 > 0 ? round2((tranche3 - tranche2) * 0.10) : 0;
-  
-  const totalRevenu = round2(revenu1 + revenu2 + revenu3);
-  
-  return {
-    montantVenal,
-    trancheImmunisee,
-    nbMois,
-    abattement,
-    natureCession,        // 👈 AJOUT
-    dettesPersonnelles,
-    dettesApplicables,    // 👈 AJOUT
-    dispenseEquite,
-    montantConsideration,
-    tranches: { tranche1, tranche2, tranche3 },
-    revenus: { revenu1, revenu2, revenu3 },
-    totalRevenu,
-    totalMensuel: round2(totalRevenu / 12)
-  };
-}
-
-function computeCessionsTotalAnnuel(rows, categorie) {
-  if (!rows || rows.length === 0) {
-    return { totalAnnuel: 0, totalMensuel: 0, details: [] };
-  }
-  
-  const details = rows.map(cession => calculateCessionDetailed(cession, categorie)).filter(calc => calc !== null);
-  const totalAnnuel = details.reduce((sum, calc) => sum + calc.totalRevenu, 0);
-  
-  return {
-    totalAnnuel: round2(totalAnnuel),
-    totalMensuel: round2(totalAnnuel / 12),
-    details
-  };
-}
+// Constantes et fonctions de cession importées depuis ./utils/calculs.js :
+// TRANCHE_IMMUNISEE_CESSION, SEUIL_CESSION_T1, SEUIL_CESSION_T2,
+// TITRE_PROPRIETE_COEFF, ABATTEMENT_PAR_CATEGORIE, TYPE_CESSION_MAP,
+// calculateMonthsDiffCession, calculateCessionDetailed, computeCessionsTotalAnnuel
 function computeNetMonthly({ comptabiliseRows, exonereRows }) {
   const sumC = (comptabiliseRows || []).reduce((acc, r) => acc + safeNumber(r.montant, 0), 0);
   const sumE = (exonereRows     || []).reduce((acc, r) => acc + safeNumber(r.montant, 0), 0);
@@ -1961,23 +1857,7 @@ function computeChomageOrMutuelleMonthly({ mensuelReel, montantJour26, montantJo
 function computeRemplacementMonthly({ pensionMensuel, droitPasserelleMensuel, allocationHandicapeMensuel, indemnisation_perte_revenus, autres_revenus, }) {
   return safeNumber(pensionMensuel, 0) + safeNumber(droitPasserelleMensuel, 0) + safeNumber(allocationHandicapeMensuel, 0) + safeNumber(indemnisation_perte_revenus, 0), + safeNumber(autres_revenus, 0);
 }
-function computeBiensMobiliersExcel({ montantCapital, partConcernee }) {
-  const B = safeNumber(montantCapital, 0);
-  const C = safeNumber(partConcernee, 100) / 100;
-
-  // D5 / D6 / D7 (Tranches)
-  const D5 = B === 0 ? 0 : Math.min(MOB_SEUIL_R, B) * C;
-  const D6 = B === 0 ? 0 : (B > MOB_SEUIL_R ? Math.min(MOB_SEUIL_S, B) * C : 0);
-  const D7 = B > MOB_SEUIL_S ? B * C : null;
-
-  // E6 / E7 (Revenus)
-  const E6 = D6 > D5 ? (D6 - D5) * 0.06 : 0;
-  const E7 = D7 !== null ? (D7 - D6) * 0.10 : 0;
-
-  // Total = SUM(E5:E7) avec E5 = 0 dans ton fichier
-  const totalAnnuel = E6 + E7;
-  return { totalAnnuel, totalMensuel: totalAnnuel / 12, D5, D6, D7, E6, E7 };
-}
+// computeBiensMobiliersExcel importée depuis ./utils/calculs.js
 function daysInMonth(dateISO) {
   const [y, m] = toISODateOnly(dateISO).split("-").map(Number);
   return new Date(y, m, 0).getDate();
@@ -2478,77 +2358,7 @@ const F8_totalProratises_M =
   };
 }
 
-function round2(n) {
-  const x = Number(n);
-  if (!Number.isFinite(x)) return 0;
-  return Number(`${Math.round(`${x}e+2`)}e-2`);
-}
-
-function computeImmoAnnualExcelLike(rows) {
-  const safeRows = (rows || []).map(r => ({
-    typeBien: r.typeBien || "",
-    rcNonIndexe: safeNumber(r.rcNonIndexe, 0),
-    interetsPaye: safeNumber(r.interetsPaye, 0),
-    renteAnnuelle: safeNumber(r.renteAnnuelle, 0),
-    loyerAnnuel: safeNumber(r.loyerAnnuel, 0),
-    revenuImmoEtranger: safeNumber(r.revenuImmoEtranger, 0),
-    quotePart: safeNumber(r.quotePart, 100) / 100
-  }));
-
-  const countRCPos = safeRows.reduce((c, r) => c + (r.rcNonIndexe > 0 ? 1 : 0), 0);
-
-  let total = 0;
-
-  for (const r of safeRows) {
-    // Cas "Etranger" : Excel somme directement le revenu étranger (col G) à part
-    // (sans passer par RC / exonération / loyer).
-    if (r.typeBien === "Étranger" || r.typeBien === "Etranger") {
-      total += r.revenuImmoEtranger;
-      continue;
-    }
-
-    if (r.rcNonIndexe <= 0) {
-      // Si pas de RC => ressourcesZT vides, mais le loyer pourrait exister.
-      // En Excel, le loyer est comparé à M (qui vaut 0) donc si loyer>0, il est compté.
-    }
-
-    const K = round2(r.rcNonIndexe * r.quotePart); // RC x Part
-
-    // Exo/bat (L) : (exo*2) réparti entre les biens avec RC>0, puis * quotePart
-    const baseExo = (r.typeBien === "Bâti" ? EXO_BATI : EXO_NON_BATI) * 2;
-    const L = (r.rcNonIndexe > 0 && countRCPos > 0)
-      ? round2((baseExo * r.quotePart) / countRCPos)
-      : 0;
-
-    // Ressources - ZT (M)
-    const M = (r.rcNonIndexe > 0 && K >= L) ? round2((K - L) * 3) : 0;
-
-    // Loyer droit (U) + loyer compté (V)
-    const U = (r.loyerAnnuel > 0) ? round2(r.loyerAnnuel * r.quotePart) : 0;
-    const loyerCompte = (U > M) ? U : 0;
-
-    // Si loyer compté => ressources RC "voir loyer" => on ne prend pas M
-    const ressourcesRC = loyerCompte > 0 ? 0 : M;
-
-    // Intérêts et rente plafonnés à 50% des ressourcesRC (Excel: N/2)
-    const maxDed = round2(ressourcesRC / 2);
-
-    const interetsDroit = round2(r.interetsPaye * r.quotePart);
-    const dedInterets = (ressourcesRC > 0 && interetsDroit > 0)
-      ? -round2(Math.min(interetsDroit, maxDed))
-      : 0;
-
-    const renteDroit = round2(r.renteAnnuelle * r.quotePart);
-    const dedRente = (ressourcesRC > 0 && renteDroit > 0)
-      ? -round2(Math.min(renteDroit, maxDed))
-      : 0;
-
-    // Total annuel de la ligne
-    total += ressourcesRC + loyerCompte + dedInterets + dedRente;
-  }
-
-  return round2(total);
-}
+// round2 importée depuis ./utils/calculs.js
 const TRANCHE_IMMUNISEE_UNIQUE = 37200;
 const SEUIL_T2 = 6200;
 const SEUIL_T3 = 12500;
@@ -2631,14 +2441,7 @@ function computeCessionsAnnualExcelLike(rows, categorie) {
 
   return round2(total);
 }
-function isFiniteNumber(x) {
-  return typeof x === "number" && Number.isFinite(x);
-}
-
-function asNumOrZero(x) {
-  const n = Number(x);
-  return Number.isFinite(n) ? n : 0;
-}
+// isFiniteNumber et asNumOrZero importées depuis ./utils/calculs.js
 
 /**
  * Reproduit les colonnes Excel:
@@ -2682,90 +2485,7 @@ function monthsPExcel(dateCession, dateRI) {
 }
 
 
-function computeImmoExcel(rows, nbEnfants = 0) {
-  const list = (rows || []).map((r) => ({
-    type: r.typeBien || "", // "Bâti" | "Non bâti" | "Étranger"
-    localisation: r.localisation || "",
-    interets: asNumOrZero(r.interetsPaye),
-    rente: asNumOrZero(r.renteAnnuelle),
-    revEtranger: asNumOrZero(r.revenuImmoEtranger),
-    rc: asNumOrZero(r.rcNonIndexe),
-    loyer: asNumOrZero(r.loyerAnnuel),
-    quote: asNumOrZero(r.quotePart) / 100,
-  }));
-
-  const exoBati = 750 + safeNumber(nbEnfants, 0) * 125;
-
-  const totals = {
-    IB: { ressources: 0, dedInterets: 0, dedRente: 0, locatifs: 0, total: 0 },
-    INB: { ressources: 0, dedInterets: 0, dedRente: 0, locatifs: 0, total: 0 },
-    etranger: 0,
-    totalAnnuel: 0,
-    totalMensuel: 0,
-    rowsDetail: [],
-  };
-
-  for (const r of list) {
-    if (r.type === "Étranger" || r.type === "Etranger") {
-      const revEtr = round2(r.revEtranger);
-      totals.etranger += revEtr;
-      totals.rowsDetail.push({ type: r.type, localisation: r.localisation, rc: 0, loyer: 0, quote: r.quote, K: 0, L: 0, M: 0, locatifs: 0, ressources: 0, dedInterets: 0, dedRente: 0, rowAnnuel: revEtr });
-      continue;
-    }
-
-    const J = r.quote; 
-    const H = r.rc;    
-    const E = r.interets;
-    const F = r.rente;
-    const I = r.loyer;
-
-    // Calculs spécifiques à Excel
-    const K = H !== 0 ? round2(H * J) : null;
-    // L = seuil en € (exo × quote-part) — identique pour bâti et non bâti, valeur seuil différente
-    // Bâti    : exo = 750 + 125×nbEnfants (seuil en RC)
-    // Non bâti: seuil = 6 € de RC par bien
-    // Formule : M = (K − L) × 3 = (RC − seuil) × J × 3
-    const L = H !== 0
-      ? (r.type === "Bâti" ? round2(exoBati * J) : round2(6 * J))
-      : null;
-    const M = H !== 0 && K !== null && L !== null
-      ? (K >= L ? round2((K - L) * 3) : 0)
-      : null;
-    const U = I !== 0 ? round2(I * J) : "s. o.";
-    const V = isFiniteNumber(U) && isFiniteNumber(M) && U > M ? U : "s. o.";
-
-    const N = V !== "" ? (V !== "s. o." ? "voir loyer" : M ?? "") : "";
-    const O = E !== 0 ? round2(E * J) : null;
-    const P = N !== "voir loyer" ? (E !== 0 && isFiniteNumber(N) ? round2(N / 2) : null) : "s. o.";
-    const Q = P !== "s. o." ? (E !== 0 && O !== null && P !== null ? -round2(Math.min(O, P)) : null) : "s.o.";
-    const R = F !== 0 ? round2(F * J) : null;
-    const S = N !== "voir loyer" ? (F !== 0 && isFiniteNumber(N) ? round2(N / 2) : null) : "s. o.";
-    const T = S !== "s. o." ? (F !== 0 && R !== null && S !== null ? -round2(Math.min(R, S)) : null) : "s. o.";
-
-    const bucket = r.type === "Bâti" ? totals.IB : totals.INB;
-
-    const ressources = isFiniteNumber(N) ? N : 0;
-    const dedInterets = isFiniteNumber(Q) ? Q : 0;
-    const dedRente = isFiniteNumber(T) ? T : 0;
-    const locatifs = isFiniteNumber(V) ? V : 0;
-
-    bucket.ressources += ressources;
-    bucket.dedInterets += dedInterets;
-    bucket.dedRente += dedRente;
-    bucket.locatifs += locatifs;
-    totals.rowsDetail.push({ type: r.type, localisation: r.localisation, rc: r.rc, loyer: r.loyer, quote: r.quote, K: K ?? 0, L: L ?? 0, M: M ?? 0, locatifs, ressources, dedInterets, dedRente, rowAnnuel: round2(ressources + locatifs + dedInterets + dedRente) });
-  }
-
-  totals.IB.total = round2(totals.IB.ressources + totals.IB.dedInterets + totals.IB.dedRente + totals.IB.locatifs);
-  totals.INB.total = round2(totals.INB.ressources + totals.INB.dedInterets + totals.INB.dedRente + totals.INB.locatifs);
-
-  totals.etranger = round2(totals.etranger);
-
-  totals.totalAnnuel = round2(totals.IB.total + totals.INB.total + totals.etranger);
-  totals.totalMensuel = round2(totals.totalAnnuel / 12);
-
-  return totals;
-}
+// computeImmoExcel importée depuis ./utils/calculs.js
 function computeCessionsExcel(rows, montantOAnnuel, trancheImmunisee, seuilR, seuilS) {
   let totalAnnuel = 0;
 
