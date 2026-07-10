@@ -247,6 +247,26 @@ describe("computeBiensMobiliersExcel", () => {
     expect(r.totalAnnuel).toBe(564);
   });
 
+  // -----------------------------------------------------------------------
+  // Exemples légaux (art. 5.2 et 5.3)
+  // -----------------------------------------------------------------------
+  it("Art. 5.2 — exemple légal : 55 500 €, 100% → 4 678 €/an", () => {
+    // 0%(0–6200) + 6%(6300) + 10%(43000) = 378+4300 = 4678
+    const r = computeBiensMobiliersExcel({ montantCapital: 55500, partConcernee: 100 });
+    expect(r.E6).toBe(378);
+    expect(r.E7).toBe(4300);
+    expect(r.totalAnnuel).toBe(4678);
+  });
+
+  it("Art. 5.3 — compte commun 60 000 €, 50% → 2 564 €/an", () => {
+    // Seuils proratés : T1=3100, T2=6250
+    // 6%(3150) = 189 ; 10%(23750) = 2375 → total 2564
+    const r = computeBiensMobiliersExcel({ montantCapital: 60000, partConcernee: 50 });
+    expect(r.E6).toBe(189);
+    expect(r.E7).toBe(2375);
+    expect(r.totalAnnuel).toBe(2564);
+  });
+
   it("totalMensuel = totalAnnuel / 12", () => {
     const r = computeBiensMobiliersExcel({ montantCapital: 20000, partConcernee: 100 });
     expect(r.totalMensuel).toBeCloseTo(r.totalAnnuel / 12, 5);

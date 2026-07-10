@@ -1000,17 +1000,18 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                             <Input label="Part concernée (%)" type="number" value={bmData.partConcernee}
                               onChange={(e) => updateMob(i, { partConcernee: safeNumber(e.target.value, 100) })} />
                           </div>
-                          {bmCalc.totalAnnuel > 0 && (
-                            <div style={{ marginTop: 8, fontSize: 14, color: colors.textLight }}>
-                              {safeNumber(bmData.montantCapital, 0) > MOB_SEUIL_R && (
-                                <div>Tranche 2 ({MOB_SEUIL_R.toLocaleString("fr-BE")}–{MOB_SEUIL_S.toLocaleString("fr-BE")} €) × 6% = <strong><Money value={bmCalc.E6} /></strong>/an</div>
-                              )}
-                              {safeNumber(bmData.montantCapital, 0) > MOB_SEUIL_S && (
-                                <div>Tranche 3 (&gt;{MOB_SEUIL_S.toLocaleString("fr-BE")} €) × 10% = <strong><Money value={bmCalc.E7} /></strong>/an</div>
-                              )}
-                              <div style={{ fontWeight: 700, color: colors.primary }}>Total : <Money value={bmCalc.totalAnnuel} />/an</div>
-                            </div>
-                          )}
+                          {bmCalc.totalAnnuel > 0 && (() => {
+                            const C = safeNumber(bmData.partConcernee, 100) / 100;
+                            const s1 = Math.round(MOB_SEUIL_R * C).toLocaleString("fr-BE");
+                            const s2 = Math.round(MOB_SEUIL_S * C).toLocaleString("fr-BE");
+                            return (
+                              <div style={{ marginTop: 8, fontSize: 14, color: colors.textLight }}>
+                                {bmCalc.E6 > 0 && <div>Tranche 2 ({s1}–{s2} €) × 6% = <strong><Money value={bmCalc.E6} /></strong>/an</div>}
+                                {bmCalc.E7 > 0 && <div>Tranche 3 (&gt;{s2} €) × 10% = <strong><Money value={bmCalc.E7} /></strong>/an</div>}
+                                <div style={{ fontWeight: 700, color: colors.primary }}>Total : <Money value={bmCalc.totalAnnuel} />/an</div>
+                              </div>
+                            );
+                          })()}
                         </div>
                       </details>
 
@@ -3150,14 +3151,19 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
               <Input label="Part concernee (%)" type="number" value={data.biensMobiliers.partConcernee}
                 onChange={(e) => setData(d => ({ ...d, biensMobiliers: { ...d.biensMobiliers, partConcernee: safeNumber(e.target.value, 100) } }))} />
             </div>
-            {B > 0 && (
-              <div style={{ fontSize: 14, color: colors.textLight }}>
-                <div>inférieur ou égal {MOB_SEUIL_R.toLocaleString("fr-BE")} euro : exonéré</div>
-                {B > MOB_SEUIL_R && <div>{MOB_SEUIL_R.toLocaleString("fr-BE")} - {MOB_SEUIL_S.toLocaleString("fr-BE")} euro x 6% = <strong><Money value={bm.E6} /></strong>/an</div>}
-                {B > MOB_SEUIL_S && <div>sup. {MOB_SEUIL_S.toLocaleString("fr-BE")} euro x 10% = <strong><Money value={bm.E7} /></strong>/an</div>}
-                <div style={{ fontWeight: 700, color: colors.primary, marginTop: 4 }}>Total : <Money value={bm.totalAnnuel} />/an - <Money value={bm.totalMensuel} />/mois</div>
-              </div>
-            )}
+            {B > 0 && (() => {
+              const C  = safeNumber(data.biensMobiliers.partConcernee, 100) / 100;
+              const s1 = Math.round(MOB_SEUIL_R * C).toLocaleString("fr-BE");
+              const s2 = Math.round(MOB_SEUIL_S * C).toLocaleString("fr-BE");
+              return (
+                <div style={{ fontSize: 14, color: colors.textLight }}>
+                  <div>≤ {s1} euro : exonéré</div>
+                  {bm.E6 > 0 && <div>{s1} – {s2} euro × 6% = <strong><Money value={bm.E6} /></strong>/an</div>}
+                  {bm.E7 > 0 && <div>&gt; {s2} euro × 10% = <strong><Money value={bm.E7} /></strong>/an</div>}
+                  <div style={{ fontWeight: 700, color: colors.primary, marginTop: 4 }}>Total : <Money value={bm.totalAnnuel} />/an — <Money value={bm.totalMensuel} />/mois</div>
+                </div>
+              );
+            })()}
           </div>
         );
       })())}
