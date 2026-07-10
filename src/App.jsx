@@ -1000,6 +1000,9 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                             <Input label="Part concernée (%)" type="number" value={bmData.partConcernee}
                               onChange={(e) => updateMob(i, { partConcernee: safeNumber(e.target.value, 100) })} />
                           </div>
+                          <div style={{ fontSize: 12, color: colors.textLight, marginBottom: 8 }}>
+                            Compte commun : 1/n personnes. Cat. 3 (famille) : 2/n — ex. compte à 3 → 67 %.
+                          </div>
                           {bmCalc.totalAnnuel > 0 && (() => {
                             const C = safeNumber(bmData.partConcernee, 100) / 100;
                             const s1 = Math.round(MOB_SEUIL_R * C).toLocaleString("fr-BE");
@@ -3150,6 +3153,9 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
                 onChange={(e) => setData(d => ({ ...d, biensMobiliers: { ...d.biensMobiliers, montantCapital: safeNumber(e.target.value, 0) } }))} />
               <Input label="Part concernee (%)" type="number" value={data.biensMobiliers.partConcernee}
                 onChange={(e) => setData(d => ({ ...d, biensMobiliers: { ...d.biensMobiliers, partConcernee: safeNumber(e.target.value, 100) } }))} />
+            </div>
+            <div style={{ fontSize: 12, color: colors.textLight, marginBottom: 8 }}>
+              Compte commun : 1/n personnes. Cat. 3 (famille) : 2/n — ex. compte à 3 → 67 %.
             </div>
             {B > 0 && (() => {
               const C  = safeNumber(data.biensMobiliers.partConcernee, 100) / 100;
