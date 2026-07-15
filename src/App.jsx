@@ -2293,12 +2293,12 @@ function Sidebar({ active, onSelect, onNewCalcul, isCollapsed, onToggleCollapse 
       joursPrisEnCompte: jp,
     };
   }
-function computeApercuExcelLike({ data, pieces }) {
+function computeApercuExcelLike({ data, pieces, joursPrisEnCompteOverride }) {
   const dateISO = data.reference.dateISO || firstOfCurrentMonth();
   const dim = daysInMonth(dateISO);
 
   // Excel Informations!C18 : jours période (si 0 => mois complet)
-  const joursPeriode = safeNumber(data.reference.joursPrisEnCompte, 0);
+  const joursPeriode = safeNumber(joursPrisEnCompteOverride != null ? joursPrisEnCompteOverride : data.reference.joursPrisEnCompte, 0);
 
   const {
     categorie,
@@ -2609,8 +2609,16 @@ function computeFromForm(data) {
   if (categorie === null) return null;
 
   const dateISO = data.reference.dateISO || firstOfCurrentMonth();
-  const [yearStr] = dateISO.split("-");
+  const [yearStr, , dayStr] = dateISO.split("-");
   const year = safeNumber(yearStr, 2026);
+
+  // Prorata automatique : si la date d'octroi n'est pas le 1er du mois,
+  // on calcule les jours de droit (du jour d'octroi jusqu'à la fin du mois inclus).
+  const dayOctroi = parseInt(dayStr || "1") || 1;
+  const dimRef = daysInMonth(dateISO);
+  const manualJours = safeNumber(data.reference.joursPrisEnCompte, 0);
+  const effectiveJours = manualJours > 0 ? manualJours : (dayOctroi > 1 ? (dimRef - dayOctroi + 1) : 0);
+  const isAutoProrata = manualJours === 0 && dayOctroi > 1;
 
   const dem = computeNetMonthly(data.revenusNets.demandeur);
   const chom = computeChomageOrMutuelleMonthly({ ...data.cmr.chomage, year });
@@ -2664,31 +2672,34 @@ function computeFromForm(data) {
       avantagesMensuel,
       diversesGenerales,
       diversesBenevoles,
-      cohabitantsMensuel: cohabitantsTotals.totalMensuel, // ← UTILISER LE TOTAL CALCULÉ
+      cohabitantsMensuel: cohabitantsTotals.totalMensuel,
       ri: { montantMensuel: 0 },
     },
+    joursPrisEnCompteOverride: effectiveJours,
   });
-
 
   // 2) RI à partir de C37
   const ri = computeRIApercuExcel({
     dateISO,
     categorie,
     C37_totalRessourcesAnnuelles: apercu0.C37_totalRessourcesAnnuelles,
-    joursPrisEnCompte: data.reference.joursPrisEnCompte,
+    joursPrisEnCompte: effectiveJours,
   });
   console.log("DEBUG RI", ri);
 
   // 3) Aperçu final (affichage)
   const apercu = { ...apercu0, ri };
 
-  // NOUVEAU: Retourner aussi les cohabitants
   return {
     ...ri,
     apercu,
     cohabitants: cohabitantsTotals,
     immoDetails: immoTotals,
     cessionsDetails: cessionsResult,
+    effectiveJours,
+    isAutoProrata,
+    dayOctroi,
+    dimRef,
   };
 }
 
@@ -3629,31 +3640,45 @@ export default function App() {
                     annuel={result.apercu.ri.C43_riAnnuelNet}
                   />
 
-                  {/* ===== Calcul du RI pour un mois incomplet (Excel) ===== */}
+                  {/* ===== Calcul du RI pour un mois incomplet ===== */}
                   <tr>
                     <td colSpan={3} style={{ paddingTop: 16 }}>
                       <div style={{ border: `2px solid ${colors.primary}`, borderRadius: 10, padding: 14 }}>
-                        <div style={{ fontWeight: 800, marginBottom: 10 }}>
+                        <div style={{ fontWeight: 800, marginBottom: 6 }}>
                           Calcul du revenu d'intégration pour un mois incomplet
                         </div>
+                        {result.isAutoProrata && (
+                          <div className="alert alert--info" style={{ marginBottom: 10, padding: "8px 12px" }}>
+                            <i className="fas fa-circle-info" aria-hidden="true" />
+                            <span>
+                              Date d'octroi le <strong>{result.dayOctroi}/{result.apercu.ri.joursMois}</strong> → droit ouvert
+                              pour <strong>{result.effectiveJours} jours</strong> (du {result.dayOctroi} à la fin du mois).
+                              Prorata calculé automatiquement. Entrez un nombre ci-dessous pour le remplacer.
+                            </span>
+                          </div>
+                        )}
                         <div style={{ display: "grid", gap: 10, fontSize: 14 }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                             <div>Nbre de jours pris en compte dans la période concernée :</div>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                               <NumInput
                                 aria-label="Nombre de jours pris en compte"
-                                style={{ width: 70, padding: "6px 8px" }}
-                                value={data.reference.joursPrisEnCompte}
+                                style={{ width: 70, padding: "6px 8px", background: result.isAutoProrata ? "#EEF4FA" : undefined }}
+                                placeholder={result.isAutoProrata ? String(result.effectiveJours) : "0"}
+                                value={data.reference.joursPrisEnCompte || ""}
                                 onChange={(e) =>
                                   setData((prev) => ({
                                     ...prev,
                                     reference: {
                                       ...prev.reference,
-                                      joursPrisEnCompte: safeNumber(e.target.value, 0),
+                                      joursPrisEnCompte: safeNumber(e.target.value, 0) || "",
                                     },
                                   }))
                                 }
                               />
+                              {result.isAutoProrata && safeNumber(data.reference.joursPrisEnCompte, 0) === 0 && (
+                                <span style={{ fontSize: 12, color: colors.primary, fontStyle: "italic" }}>auto ({result.effectiveJours})</span>
+                              )}
                               <span>sur</span>
                               <input
                                 aria-label="Nombre de jours dans le mois (automatique)"
@@ -3667,7 +3692,7 @@ export default function App() {
                           </div>
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                             <div style={{ fontWeight: 700 }}>
-                              Revenu d'intégration mensuel en tenant compte du nombre de jours
+                              Revenu d'intégration mensuel{result.effectiveJours > 0 ? ` (${result.effectiveJours}/${result.apercu.ri.joursMois} jours)` : ""}
                             </div>
                             <div style={{ fontSize: 16, fontWeight: 900 }}>
                               <Money value={result.apercu.ri.montantMensuelProrata} />
