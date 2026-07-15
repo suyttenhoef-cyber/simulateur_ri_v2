@@ -492,14 +492,12 @@ function computeCohabitantsGrouped(cohabitantsData, referenceDate) {
     };
   }
 
-  // Mode groupé : excédent = somme(ressources débiteurs) − somme(seuils débiteurs + seuils "Autre")
-  // Les cohabitants "Autre" contribuent leur seuil au dénominateur mais pas leurs revenus.
+  // Mode groupé (Art. 34 §2 circulaire 16/01/2026) :
+  // Les cohabitants §3 ("Autre") sont entièrement ignorés : ni leurs ressources
+  // ni leur seuil n'entrent dans le calcul groupé.
   const activeDebiteurs = debiteurs.filter(d => d.priseEnCharge !== "Pas de report");
   const ressourcesTotal = round2(activeDebiteurs.reduce((s, d) => s + d.ressourcesTotale, 0));
-  const seuilTotal      = round2(
-    activeDebiteurs.reduce((s, d) => s + d.seuilRI, 0) +
-    autresCohabitants.reduce((s, d) => s + d.seuilRI, 0)
-  );
+  const seuilTotal      = round2(activeDebiteurs.reduce((s, d) => s + d.seuilRI, 0));
   const rawExcedent     = Math.max(0, round2(ressourcesTotal - seuilTotal));
 
   // Appliquer pctReport si des débiteurs sont en "Report partiel"
@@ -1257,7 +1255,6 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
           {(() => {
             const debCount = (grouped.debiteurs || []).filter(d => d.priseEnCharge !== "Pas de report").length;
             const autreCount = (grouped.autresCohabitants || []).length;
-            const totalSeuilCount = debCount + autreCount;
             const hasPartiel = (grouped.debiteurs || []).some(d => d.priseEnCharge === "Report partiel");
             return (
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, marginBottom: 16 }}>
@@ -1268,8 +1265,8 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                   </tr>
                   <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
                     <td style={{ padding: "6px 8px", color: colors.text }}>
-                      Seuil garanti ({totalSeuilCount} cohabitant{totalSeuilCount !== 1 ? "s" : ""})
-                      {autreCount > 0 && <span style={{ color: colors.textLight, fontSize: 14, marginLeft: 6 }}>dont {autreCount} « Autre » (seuil uniquement)</span>}
+                      Seuil garanti ({debCount} débiteur{debCount !== 1 ? "s" : ""} d'aliments)
+                      {autreCount > 0 && <span style={{ color: colors.textLight, fontSize: 14, marginLeft: 6 }}>+ {autreCount} §3 non comptabilisé{autreCount !== 1 ? "s" : ""}</span>}
                     </td>
                     <td style={{ padding: "6px 8px", textAlign: "right", color: "#BF2222", fontWeight: 600 }}>−&nbsp;<Money value={grouped.seuilTotal} /> /an</td>
                   </tr>
