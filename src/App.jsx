@@ -165,7 +165,7 @@ const defaultSimpleRow = () => ({ id: Math.random(), label: "", montant: 0, peri
 
 const defaultCohabitantRow = () => ({
   nom: "",
-  type: "Ascendant majeur",
+  type: "Père / Mère",
   categorie: 1,
   priseEnCharge: "Report max",
   pctReport: 30,
@@ -416,27 +416,31 @@ function computeCohabitantRow(row, referenceDate) {
   }
 
   const categorie = row.categorie || 1;
-  
-  // I5: VLOOKUP pour obtenir le seuil RI selon la catégorie
-  const seuilRI = getRIAnnuel(referenceDate, categorie);
-  
+
+  // §4 (partenaire + enfant mineur) : TOUTES les ressources comptent → seuil = 0
+  const isPartner4 = row.type === "Partenaire avec enfant(s) mineur(s) (§4)";
+  // §3 (frère, sœur, oncle, etc.) : ressources non prises en compte → indicatif
+  const isIndicatifOnly = row.type === "Autre" || row.type === "Autre (frère, sœur, oncle, tante, etc.) — §3";
+
+  // I5: VLOOKUP pour obtenir le seuil RI selon la catégorie (§4 → 0)
+  const seuilRI = isPartner4 ? 0 : getRIAnnuel(referenceDate, categorie);
+
   // J5: Calcul de l'excédent
   let excedent = 0;
   let message = "";
-  
+
   if (ressourcesTotale > seuilRI) {
     excedent = round2(ressourcesTotale - seuilRI);
   } else {
-    message = "Le cohabitant a possiblement droit au RI";
+    message = isPartner4 ? "Pas de ressources" : "Le cohabitant a possiblement droit au RI";
   }
-  
+
   // K5: Montant mensuel (si excédent)
   const montantMensuel = excedent > 0 ? round2(excedent / 12) : 0;
-  
+
   let ressourcesProrata = 0;
   let montantReporte = 0;
   const priseEnCharge = row.priseEnCharge || "Report max";
-  const isIndicatifOnly = row.type === "Autre";
 
   if (!isIndicatifOnly) {
     if (priseEnCharge === "Report max") {
@@ -619,6 +623,18 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
       <button onClick={addRow} className="btn-add">+ Ajouter un cohabitant</button>
     }>
 
+      {/* ── Note transition Art. 34 (AR 07/01/2026, en vigueur 01/03/2026) ── */}
+      <div className="alert alert--info" style={{ marginBottom: 16 }}>
+        <i className="fas fa-circle-info" aria-hidden="true" />
+        <span>
+          <strong>Art. 34 revu (AR 07/01/2026, en vigueur le 01/03/2026)</strong> — Nouveaux cohabitants
+          débiteurs d'aliments : beaux-parents/beaux-enfants si marié·e, ex-conjoint·e.
+          Pour les <strong>nouvelles demandes depuis le 01/03/2026</strong> : appliquer directement les règles
+          ci-dessous. Pour les <strong>bénéficiaires existants au 16/01/2026</strong> : les nouvelles règles
+          s'appliquent uniquement à la prochaine révision obligatoire.
+        </span>
+      </div>
+
       {/* ── Mode de calcul ── */}
       <div style={{ marginBottom: 16 }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: colors.primary, display: "block", marginBottom: 8 }}>
@@ -677,11 +693,32 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                     placeholder="Nom du cohabitant" />
 
                   {/* Type */}
-                  <Field label="Type">
+                  <Field label="Type (Art. 34 AR)">
                     <select value={r.type} onChange={(e) => updateRow(i, { type: e.target.value })}>
-                      <option value="Ascendant majeur">Ascendant majeur</option>
-                      <option value="Descendant majeur">Descendant majeur</option>
-                      <option value="Autre">Autre</option>
+                      <optgroup label="§1 — Partenaire de vie (sans enfant mineur)">
+                        <option value="Partenaire de vie (§1)">Partenaire de vie (§1)</option>
+                      </optgroup>
+                      <optgroup label="§4 — Partenaire de vie (avec enfant(s) mineur(s))">
+                        <option value="Partenaire avec enfant(s) mineur(s) (§4)">Partenaire avec enfant(s) mineur(s) — toutes ressources (§4)</option>
+                      </optgroup>
+                      <optgroup label="§2 — Débiteurs d'aliments 1er degré">
+                        <option value="Père / Mère">Père / Mère</option>
+                        <option value="Fils / Fille">Fils / Fille</option>
+                        <option value="Beau-père / Belle-mère (marié·e)">Beau-père / Belle-mère (marié·e)</option>
+                        <option value="Gendre / Belle-fille (marié·e)">Gendre / Belle-fille (marié·e)</option>
+                        <option value="Ex-conjoint·e">Ex-conjoint·e</option>
+                      </optgroup>
+                      <optgroup label="§2 — Débiteurs d'aliments 2ème degré">
+                        <option value="Grand-père / Grand-mère">Grand-père / Grand-mère</option>
+                        <option value="Petit-fils / Petite-fille">Petit-fils / Petite-fille</option>
+                      </optgroup>
+                      <optgroup label="§3 — Autres cohabitants (non pris en compte)">
+                        <option value="Autre">Autre (frère, sœur, oncle, tante, etc.) — §3</option>
+                      </optgroup>
+                      <optgroup label="Anciens types (compatibilité)">
+                        <option value="Ascendant majeur">Ascendant majeur (ancien)</option>
+                        <option value="Descendant majeur">Descendant majeur (ancien)</option>
+                      </optgroup>
                     </select>
                   </Field>
                 </div>
@@ -802,7 +839,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                       {/* Revenus professionnels nets */}
                       <details style={accStyle}>
                         <summary style={{ listStyle: "none" }}>
-                          {secHdr("fa-briefcase", "Revenus professionnels nets", proTotal)}
+                          {secHdr("fa-briefcase", "Revenus professionnels nets", round2(proTotal * 12))}
                         </summary>
                         <div style={{ padding: "10px 12px" }}>
                           {/* Comptabilises */}
@@ -912,7 +949,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                       {/* Chomage, mutuelle & remplacement */}
                       <details style={{ ...accStyle, marginTop: 4 }}>
                         <summary style={{ listStyle: "none" }}>
-                          {secHdr("fa-file-medical", "Chomage / Mutuelle / Remplacement", cmrTotal)}
+                          {secHdr("fa-file-medical", "Chomage / Mutuelle / Remplacement", round2(cmrTotal * 12))}
                         </summary>
                         {(() => {
                           const cData = r.cmrData || {};
@@ -1125,14 +1162,25 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                   </div>
                 </div>
 
-                {/* Mention indicatif si type "Autre" */}
+                {/* Mention §3 : cohabitant non pris en compte */}
                 {r.type === "Autre" && (
                   <div className="alert alert--warning" style={{ marginTop: 12 }}>
                     <i className="fas fa-circle-info" aria-hidden="true" />
                     <span>
-                      Ce cohabitant est de type <strong>« Autre »</strong> : ses ressources sont conservées
-                      à titre indicatif uniquement et <strong>ne sont pas prises en compte</strong> dans
-                      le calcul du droit au RI du demandeur.
+                      Ce cohabitant relève du <strong>§3 de l'Art. 34</strong> (frère, sœur, oncle, tante, etc.) :
+                      ses ressources sont conservées à titre indicatif et <strong>ne sont pas prises en compte</strong> dans
+                      le calcul du droit au RI (AR 11 juillet 2002, modifié au 01/03/2026).
+                    </span>
+                  </div>
+                )}
+                {/* Mention §4 : toutes les ressources du partenaire comptent */}
+                {r.type === "Partenaire avec enfant(s) mineur(s) (§4)" && (
+                  <div className="alert alert--info" style={{ marginTop: 12 }}>
+                    <i className="fas fa-circle-info" aria-hidden="true" />
+                    <span>
+                      <strong>Art. 34 §4</strong> : le partenaire vit avec le demandeur ET un ou plusieurs enfants mineurs.
+                      La <strong>totalité de ses ressources</strong> est prise en compte (aucune déduction du seuil Cat. 1).
+                      La catégorie ci-dessous n'est pas applicable.
                     </span>
                   </div>
                 )}
@@ -1175,7 +1223,12 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                     </div>
                   )}
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8 }}>
-                    <div><strong>Seuil RI (catégorie {calc.categorie}):</strong> <Money value={calc.seuilRI} /></div>
+                    <div>
+                      <strong>{calc.type === "Partenaire avec enfant(s) mineur(s) (§4)" ? "Seuil Art. 34 §4 :" : `Seuil RI (catégorie ${calc.categorie}) :`}</strong>{" "}
+                      {calc.type === "Partenaire avec enfant(s) mineur(s) (§4)"
+                        ? <em style={{ color: colors.textLight }}>0 — toutes ressources (§4)</em>
+                        : <Money value={calc.seuilRI} />}
+                    </div>
                     <div><strong>Excédent:</strong> <Money value={calc.excedent} /></div>
                     <div><strong>Montant mensuel:</strong> <Money value={calc.montantMensuel} /></div>
                     <div><strong>Montant reporté :</strong> {calc.isIndicatifOnly ? <em style={{ color: colors.textLight }}>non reporté (indicatif)</em> : <Money value={calc.montantReporte} />}</div>

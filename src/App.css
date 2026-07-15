@@ -569,6 +569,13 @@ input[type="number"] { -moz-appearance: textfield; }
 }
 .alert--warning i { color: var(--warning-yellow-bar); }
 
+.alert--info {
+  background: #EEF4FA;
+  border-left-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+.alert--info i { color: var(--color-primary); }
+
 .alert--danger {
   background: var(--warning-red-bg);
   border-left-color: var(--warning-red);
