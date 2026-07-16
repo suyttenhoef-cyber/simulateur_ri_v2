@@ -530,6 +530,21 @@ function computeCohabitantsTotal(rows, referenceDate) {
   return computeCohabitantsGrouped({ rows, modeCalcul: "individuel" }, referenceDate);
 }
 
+const TYPE_META = {
+  "Partenaire de vie (§1)":                      { badge: "§1",   color: "#163E67" },
+  "Partenaire avec enfant(s) mineur(s) (§4)":    { badge: "§4",   color: "#c0560a" },
+  "Père / Mère":                                  { badge: "§2",   color: "#1a7a3c" },
+  "Fils / Fille":                                 { badge: "§2",   color: "#1a7a3c" },
+  "Beau-père / Belle-mère (marié·e)":             { badge: "§2",   color: "#1a7a3c" },
+  "Gendre / Belle-fille (marié·e)":               { badge: "§2",   color: "#1a7a3c" },
+  "Ex-conjoint·e":                                { badge: "§2",   color: "#1a7a3c" },
+  "Grand-père / Grand-mère":                      { badge: "§2b",  color: "#0e7490" },
+  "Petit-fils / Petite-fille":                    { badge: "§2b",  color: "#0e7490" },
+  "Autre":                                        { badge: "§3",   color: "#767676" },
+  "Ascendant majeur":                             { badge: "anc.", color: "#767676" },
+  "Descendant majeur":                            { badge: "anc.", color: "#767676" },
+};
+
 // 3. Composant CohabitantsTable
 function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, categorieDemandeur, onOpenFiche }) {
   const rows             = cohabitants.rows || [];
@@ -541,6 +556,10 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
   const nbBeneficiairesRIS = Math.max(1, safeNumber(cohabitants.nbBeneficiairesRIS, 1));
 
   const grouped = useMemo(() => computeCohabitantsGrouped(cohabitants, referenceDate), [cohabitants, referenceDate]);
+
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const safeSelectedIdx = rows.length > 0 ? Math.max(0, Math.min(selectedIdx, rows.length - 1)) : 0;
+  const rowCalcs = useMemo(() => rows.map(r => computeCohabitantRow(r, referenceDate)), [rows, referenceDate]);
 
   // Fourchette RIS
   const seuilDem     = categorieDemandeur ? getRIAnnuel(referenceDate, categorieDemandeur) : 0;
@@ -555,8 +574,19 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
 
   function update(patch) { onChangeCohabitants({ ...cohabitants, ...patch }); }
   function updateRow(i, patch) { update({ rows: rows.map((r, idx) => idx === i ? { ...r, ...patch } : r) }); }
-  function addRow() { update({ rows: [...rows, defaultCohabitantRow()] }); }
-  function removeRow(i) { update({ rows: rows.filter((_, idx) => idx !== i) }); }
+  function addRow() {
+    update({ rows: [...rows, defaultCohabitantRow()] });
+    setSelectedIdx(rows.length);
+  }
+  function removeRow(i) {
+    update({ rows: rows.filter((_, idx) => idx !== i) });
+    setSelectedIdx(prev => {
+      if (rows.length <= 1) return 0;
+      if (i < prev) return prev - 1;
+      if (i === prev) return Math.max(0, prev - 1);
+      return prev;
+    });
+  }
 
   function addProRow(i)            { updateRow(i, { proRows: [...(rows[i].proRows || []), { label: "", customLabel: null, montant: 0 }] }); }
   function removeProRow(i, j)      { updateRow(i, { proRows: (rows[i].proRows || []).filter((_, k) => k !== j) }); }
@@ -617,72 +647,108 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
   };
 
   return (
-    <Card title={<span style={{ display: "flex", alignItems: "center", gap: 6 }}>Revenus des cohabitants<FicheBtn ficheKey="cohabitants" onOpen={onOpenFiche} /></span>} action={
-      <button onClick={addRow} className="btn-add">+ Ajouter un cohabitant</button>
-    }>
+    <Card title={<span style={{ display: "flex", alignItems: "center", gap: 6 }}>Revenus des cohabitants<FicheBtn ficheKey="cohabitants" onOpen={onOpenFiche} /></span>}>
 
-      {/* ── Note transition Art. 34 (AR 07/01/2026, en vigueur 01/03/2026) ── */}
-      <div className="alert alert--info" style={{ marginBottom: 16 }}>
-        <i className="fas fa-circle-info" aria-hidden="true" />
-        <span>
-          <strong>Art. 34 revu (AR 07/01/2026, en vigueur le 01/03/2026)</strong> — Nouveaux cohabitants
-          débiteurs d'aliments : beaux-parents/beaux-enfants si marié·e, ex-conjoint·e.
-          Pour les <strong>nouvelles demandes depuis le 01/03/2026</strong> : appliquer directement les règles
-          ci-dessous. Pour les <strong>bénéficiaires existants au 16/01/2026</strong> : les nouvelles règles
-          s'appliquent uniquement à la prochaine révision obligatoire.
-        </span>
-      </div>
-
-      {/* ── Mode de calcul ── */}
-      <div style={{ marginBottom: 16 }}>
-        <span style={{ fontSize: 14, fontWeight: 700, color: colors.primary, display: "block", marginBottom: 8 }}>
-          Mode de calcul
-        </span>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          {btnMode("groupe",     "Groupé — Circulaire 16/01/2026",  "Seuil calculé sur l'ensemble des cohabitants combinés (recommandé)")}
-          {btnMode("individuel", "Individuel (ancienne méthode)",    "Excédent calculé séparément pour chaque cohabitant")}
-        </div>
-      </div>
-
-      {/* ── Nombre de bénéficiaires RIS ── */}
-      <div style={{ marginBottom: 16 }}>
-        <span style={{ fontSize: 14, fontWeight: 700, color: colors.primary, display: "block", marginBottom: 6 }}>
-          Nombre de bénéficiaires RIS dans le ménage
-        </span>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <NumInput
-            aria-label="Nombre de bénéficiaires RIS dans le ménage"
-            value={nbBeneficiairesRIS}
-            style={{ width: 80, padding: "8px 10px", border: `1px solid ${colors.border}`, borderRadius: 8, fontSize: 14, textAlign: "center" }}
-            onChange={(e) => update({ nbBeneficiairesRIS: Math.max(1, safeNumber(e.target.value, 1)) })}
-          />
-          <span style={{ fontSize: 14, color: colors.textMuted }}>
-            {nbBeneficiairesRIS > 1 ? `L'excédent sera divisé par ${nbBeneficiairesRIS}` : "Aucune division appliquée"}
-          </span>
-        </div>
-      </div>
-
-      {/* ── Liste des cohabitants ── */}
-      {rows.length === 0 ? (
-        <p style={{ opacity: 0.6 }}>Aucun cohabitant enregistré</p>
-      ) : (
-        <>
-          {rows.map((r, i) => {
-            const calc = computeCohabitantRow(r, referenceDate);
+      {/* ── Barre de paramètres globaux compacte ── */}
+      <div style={{ display: "flex", gap: 12, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
+        {/* Mode de calcul — mini toggle */}
+        <div style={{ display: "flex", border: `1px solid ${colors.border}`, borderRadius: 8, overflow: "hidden", flexShrink: 0 }}>
+          {[
+            { value: "groupe",     label: "Groupé" },
+            { value: "individuel", label: "Individuel" },
+          ].map(opt => {
+            const sel = modeCalcul === opt.value;
             return (
-              <Card key={i} title={
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-                  <span>Cohabitant #{i + 1}</span>
-                  <button
-                    onClick={() => removeRow(i)}
-                    className="btn-remove"
-                    style={{ marginLeft: 24 }}
-                    aria-label={`Supprimer cohabitant ${i + 1}`}
-                  >
-                    <i className="fas fa-trash" aria-hidden="true" /> Supprimer
-                  </button>
-                </div>
-              }>
+              <button key={opt.value} onClick={() => update({ modeCalcul: opt.value })}
+                style={{ padding: "5px 14px", fontSize: 13, fontWeight: sel ? 700 : 400, background: sel ? colors.primary : colors.white, color: sel ? "#fff" : colors.text, border: "none", cursor: "pointer", fontFamily: "'Source Sans Pro', sans-serif" }}>
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+        {/* Nb bénéficiaires */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14 }}>
+          <span style={{ color: colors.textMuted }}>Bénéficiaires RIS :</span>
+          <NumInput aria-label="Nombre de bénéficiaires RIS" value={nbBeneficiairesRIS}
+            style={{ width: 55, padding: "4px 8px", border: `1px solid ${colors.border}`, borderRadius: 6, fontSize: 14, textAlign: "center" }}
+            onChange={(e) => update({ nbBeneficiairesRIS: Math.max(1, safeNumber(e.target.value, 1)) })} />
+        </div>
+        {/* Note Art. 34 — collapsible */}
+        <details style={{ flex: 1, minWidth: 180 }}>
+          <summary style={{ cursor: "pointer", fontSize: 12, color: colors.primary, userSelect: "none", listStyle: "none" }}>
+            <i className="fas fa-circle-info" style={{ marginRight: 4 }} aria-hidden="true" />Art. 34 AR — en vigueur 01/03/2026 ▸
+          </summary>
+          <div className="alert alert--info" style={{ marginTop: 6, fontSize: 13 }}>
+            <span>Nouveaux débiteurs depuis le 01/03/2026 : beaux-parents/beaux-enfants si marié·e, ex-conjoint·e. Nouvelles demandes : appliquer immédiatement. Bénéficiaires existants au 16/01/2026 : à la prochaine révision obligatoire.</span>
+          </div>
+        </details>
+      </div>
+
+      {/* ── Split panel : liste compacte + détail ── */}
+      {rows.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "32px 0", color: colors.textLight }}>
+          <div style={{ fontSize: 14, marginBottom: 12 }}>Aucun cohabitant enregistré.</div>
+          <button onClick={addRow} className="btn-add">+ Ajouter un cohabitant</button>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(180px, 250px) 1fr", gap: 16, alignItems: "start" }}>
+
+          {/* ── Panneau gauche — liste compacte ── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {rows.map((r, i) => {
+              const calc = rowCalcs[i];
+              const meta = TYPE_META[r.type] || { badge: "?", color: "#767676" };
+              const isSel = safeSelectedIdx === i;
+              return (
+                <button key={i} onClick={() => setSelectedIdx(i)}
+                  style={{ border: `2px solid ${isSel ? colors.primary : colors.border}`, borderRadius: 10, padding: "10px 12px", background: isSel ? "#EEF4FA" : colors.white, cursor: "pointer", textAlign: "left", fontFamily: "'Source Sans Pro', sans-serif", transition: "border-color 0.15s", width: "100%" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <span style={{ fontWeight: 700, fontSize: 14, color: isSel ? colors.primary : colors.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "80%" }}>
+                      {r.nom || `Cohabitant #${i + 1}`}
+                    </span>
+                    <span onClick={(e) => { e.stopPropagation(); removeRow(i); }}
+                      role="button" aria-label={`Supprimer cohabitant ${i + 1}`} title="Supprimer"
+                      style={{ cursor: "pointer", color: "#BF2222", fontSize: 13, padding: "0 3px", flexShrink: 0 }}>
+                      <i className="fas fa-times" aria-hidden="true" />
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 4 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: meta.color, background: meta.color + "20", borderRadius: 4, padding: "1px 5px", flexShrink: 0 }}>{meta.badge}</span>
+                    <span style={{ fontSize: 12, color: "#767676", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {(r.type || "").replace(/\s*\(§[^)]+\)/g, "").replace(/\s*\(marié·e\)/g, "")}
+                    </span>
+                  </div>
+                  {calc.ressourcesTotale > 0 && (
+                    <div style={{ marginTop: 5, fontSize: 13 }}>
+                      {calc.isIndicatifOnly
+                        ? <span style={{ color: "#767676", fontStyle: "italic", fontSize: 12 }}>indicatif §3</span>
+                        : calc.excedent > 0
+                          ? <span style={{ fontWeight: 700, color: "#BF2222" }}>+<Money value={calc.montantMensuel} />/mois</span>
+                          : <span style={{ fontWeight: 600, color: "#1a7a3c" }}>0 € reporté</span>
+                      }
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+            <button onClick={addRow} className="btn-add" style={{ marginTop: 4, fontSize: 13 }}>
+              <i className="fas fa-plus" aria-hidden="true" /> Ajouter
+            </button>
+          </div>
+
+          {/* ── Panneau droit — détail cohabitant sélectionné ── */}
+          {rows[safeSelectedIdx] != null && (() => {
+            const i = safeSelectedIdx;
+            const r = rows[i];
+            const calc = rowCalcs[i];
+            return (
+          <div style={{ border: `1px solid ${colors.border}`, borderRadius: 12, padding: 16, background: colors.white }}>
+            <div style={{ fontWeight: 700, fontSize: 15, color: colors.primary, marginBottom: 14, paddingBottom: 10, borderBottom: `1px solid ${colors.border}` }}>
+              {r.nom || `Cohabitant #${i + 1}`}
+              <span style={{ fontWeight: 400, fontSize: 13, color: "#767676", marginLeft: 8 }}>
+                {(r.type || "").replace(/\s*\(§[^)]+\)/g, "").replace(/\s*\(marié·e\)/g, "")}
+              </span>
+            </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
 
                   {/* Nom */}
@@ -1238,10 +1304,10 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                     </div>
                   )}
                 </div>
-              </Card>
+              </div>
             );
-          })}
-        </>
+          })()}
+        </div>
       )}
 
       {/* ── Synthèse groupée + prise en compte ── */}
