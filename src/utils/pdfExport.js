@@ -632,7 +632,7 @@ export async function generatePDF(data, result, apercu) {
             <div style="margin-top:10px;display:flex;gap:28px;font-size:14px;color:${eligible ? '#155724' : '#721c24'};">
               <div><b>Mensuel :</b> ${fmt(riMensuel)}</div>
               <div><b>Annuel :</b> ${fmt(riAnnuel)}</div>
-              ${safeN(data.reference.joursPrisEnCompte) > 0 ? `<div><b>Proratisé :</b> ${fmt(safeN(apercu?.ri?.montantMensuelProrata))}/mois (${data.reference.joursPrisEnCompte} j)</div>` : ''}
+              ${safeN(apercu?.ri?.joursPrisEnCompte) > 0 ? `<div><b>Proratisé :</b> ${fmt(safeN(apercu?.ri?.montantMensuelProrata))}/mois (${safeN(apercu?.ri?.joursPrisEnCompte)} j/${safeN(apercu?.ri?.joursMois)} j)</div>` : ''}
             </div>
           ` : ''}
         </div>
@@ -652,6 +652,18 @@ export async function generatePDF(data, result, apercu) {
           </thead>
           <tbody>${tbody}</tbody>
         </table>
+
+        ${safeN(apercu?.ri?.joursPrisEnCompte) > 0 ? `
+        <!-- PRORATA -->
+        <div style="margin-top:16px;padding:12px 16px;background:#eef4fa;border-radius:8px;border-left:4px solid #163E67;">
+          <div style="font-weight:700;font-size:14px;color:#163E67;margin-bottom:6px;">Montant proratisé — ${safeN(apercu?.ri?.joursPrisEnCompte)} jour(s) sur ${safeN(apercu?.ri?.joursMois)}</div>
+          <div style="font-size:14px;color:#333;">
+            Droit ouvert à partir du <b>${result.dayOctroi}</b> du mois :
+            <b style="color:#163E67;font-size:15px;">&nbsp;${fmt(safeN(apercu?.ri?.montantMensuelProrata))}/mois</b>
+            <span style="color:#888;font-size:12px;">&nbsp;(${fmt(riMensuel)}/mois × ${safeN(apercu?.ri?.joursPrisEnCompte)}/${safeN(apercu?.ri?.joursMois)} jours)</span>
+          </div>
+        </div>
+        ` : ''}
 
         <!-- PIED DE PAGE -->
         <div style="margin-top:20px;font-size:12px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:12px;">
