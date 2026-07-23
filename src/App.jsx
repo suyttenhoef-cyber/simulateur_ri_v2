@@ -1524,6 +1524,13 @@ const REVENUS_COMPTABILISES_SUGGESTIONS = [
   { value: "Autre", label: "💡 Autre (saisie libre)" },
 ];
 
+const REVENUS_FORMATION_LABELS = new Set([
+  "Allocation de formation Forem, VDAB ou Actiris",
+  "Allocation de stage d'insertion",
+  "Allocation de stage Onem (ou Actiris)",
+  "Formation en alternance",
+]);
+
 const REVENUS_EXONERES_SUGGESTIONS = [
   { value: "", label: "Sélectionner un type d'exonération..." },
   { value: "Accueillante enfants - frais exposés", label: "Accueillante enfants - frais exposés" },
@@ -2716,8 +2723,13 @@ function computeFromForm(data) {
   
   // Calcul des cohabitants
   const cohabitantsTotals = computeCohabitantsGrouped(data.cohabitants || { rows: [] }, dateISO);
-  // Exonération
-  const exo = computeExonerationExcel({ dateISO, exo: data.exoneration });
+  // Exonération — Art. 35 ne s'applique pas si revenus pro antérieurs au RIS
+  const _demHasProNonFormation = (data.revenusNets.demandeur.comptabiliseRows || []).some(
+    r => safeNumber(r.montant, 0) > 0 && r.label && !REVENUS_FORMATION_LABELS.has(r.label)
+  );
+  const exo = _demHasProNonFormation
+    ? { demandeur: { exoGeneralMens: 0, exoEtudMens: 0, exoPenurieMens: 0, exoArtisteAnnuel: 0, totalMensuel: 0, totalAnnuel: 0 }, totalMensuel: 0, totalAnnuel: 0 }
+    : computeExonerationExcel({ dateISO, exo: data.exoneration });
 
   // 1) Aperçu SANS RI (pour obtenir C37)
   const apercu0 = computeApercuExcelLike({
@@ -3104,7 +3116,12 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
     safeNumber(data.cmr.remplacement.autres_revenus, 0)
   );
   const cmrTotal  = round2(chomTotal + mutTotal + remTotal);
-  const exoCalc   = computeExonerationExcel({ dateISO, exo: data.exoneration });
+  const hasRevenusProNonFormation = (data.revenusNets.demandeur.comptabiliseRows || []).some(
+    r => safeNumber(r.montant, 0) > 0 && r.label && !REVENUS_FORMATION_LABELS.has(r.label)
+  );
+  const exoCalc = hasRevenusProNonFormation
+    ? { demandeur: { exoGeneralMens: 0, exoEtudMens: 0, exoPenurieMens: 0, exoArtisteAnnuel: 0, totalMensuel: 0, totalAnnuel: 0 }, totalMensuel: 0, totalAnnuel: 0 }
+    : computeExonerationExcel({ dateISO, exo: data.exoneration });
   const exoTotal  = round2(exoCalc.totalMensuel);
   const exonereRowsTotal = round2((data.revenusNets.demandeur.exonereRows || []).reduce((s, r) => s + safeNumber(r.montant, 0), 0));
   const divTotal  = round2(
@@ -3175,13 +3192,21 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
           <div style={{ fontWeight: 700, fontSize: 14, color: colors.primary, marginTop: 20, marginBottom: 10 }}>
             Exonérations socio-professionnelles (Art. 35)
           </div>
-          {exoTotal < 0 && (
+          {hasRevenusProNonFormation ? (
+            <div className="alert alert--warning" style={{ marginBottom: 10 }}>
+              <i className="fa fa-ban" />
+              <span>
+                Non applicable — des revenus professionnels sont encodés avant l'octroi du RIS.
+                L'Art. 35 ne s'applique qu'aux activités entamées <em>pendant</em> la perception du revenu d'intégration.
+              </span>
+            </div>
+          ) : exoTotal < 0 && (
             <div className="summary-box" style={{ marginBottom: 14 }}>
               <b>Total exoneration mensuelle : <Money value={exoTotal} /></b>
               <span style={{ marginLeft: 12, opacity: 0.7, fontSize: 14 }}>(annuel : <Money value={exoCalc.totalAnnuel} />)</span>
             </div>
           )}
-          <div style={{ display: "grid", gap: 6 }}>
+          <div style={{ display: "grid", gap: 6, opacity: hasRevenusProNonFormation ? 0.35 : 1, pointerEvents: hasRevenusProNonFormation ? "none" : "auto" }}>
             {[
               { key: "general",   label: "Exonération générale",   fk: "exo_generale_etudiant" },
               { key: "etudiant",  label: "Exonération étudiants",  fk: "exo_generale_etudiant" },
