@@ -196,7 +196,7 @@ function firstOfCurrentMonth() {
 }
 
 const defaultData = {
-  reference: { dateISO: firstOfCurrentMonth(), joursPrisEnCompte: "" },
+  reference: { dateISO: firstOfCurrentMonth(), joursPrisEnCompte: "", nouvelleDemande: true },
   identite: { nom: "", prenom: "", dateNaissance: "", nationalite: "" },
   menage: { situation: "", nbEnfants: 0 },
   revenusNets: {
@@ -2363,7 +2363,7 @@ function Sidebar({ active, onSelect, onNewCalcul, isCollapsed, onToggleCollapse 
       joursPrisEnCompte: jp,
     };
   }
-function computeApercuExcelLike({ data, pieces, joursPrisEnCompteOverride }) {
+function computeApercuExcelLike({ data, pieces, joursPrisEnCompteOverride, nouvelleDemande }) {
   const dateISO = data.reference.dateISO || firstOfCurrentMonth();
   const dim = daysInMonth(dateISO);
 
@@ -2418,9 +2418,9 @@ function computeApercuExcelLike({ data, pieces, joursPrisEnCompteOverride }) {
     mut.mensuelTotal +
     rem;
 
-  // F8 = IF(jours=0, ROUND(F4,2), ROUND(jours*F4/dim,2))
-const F8_totalProratises_M =
-  (joursPeriode === 0)
+  // F8 = prorata des revenus uniquement si mois incomplet ET nouvelle demande
+  // "Pas nouvelle demande" (continuation) → revenus pris en compte sans prorata
+  const F8_totalProratises_M = (joursPeriode === 0 || nouvelleDemande === false)
     ? round2n(totalProratisables_M)
     : round2n((joursPeriode * totalProratisables_M) / (dim || 1));
 
@@ -2731,6 +2731,8 @@ function computeFromForm(data) {
     ? { demandeur: { exoGeneralMens: 0, exoEtudMens: 0, exoPenurieMens: 0, exoArtisteAnnuel: 0, totalMensuel: 0, totalAnnuel: 0 }, totalMensuel: 0, totalAnnuel: 0 }
     : computeExonerationExcel({ dateISO, exo: data.exoneration });
 
+  const nouvelleDemande = data.reference.nouvelleDemande !== false; // default true
+
   // 1) Aperçu SANS RI (pour obtenir C37)
   const apercu0 = computeApercuExcelLike({
     data,
@@ -2751,6 +2753,7 @@ function computeFromForm(data) {
       ri: { montantMensuel: 0 },
     },
     joursPrisEnCompteOverride: effectiveJours,
+    nouvelleDemande,
   });
 
   // 2) RI à partir de C37
@@ -2775,6 +2778,7 @@ function computeFromForm(data) {
     isAutoProrata,
     dayOctroi,
     dimRef,
+    nouvelleDemande,
   };
 }
 
@@ -3746,6 +3750,28 @@ export default function App() {
                           </div>
                         )}
                         <div style={{ display: "grid", gap: 10, fontSize: 14 }}>
+                          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <input
+                              type="checkbox"
+                              checked={data.reference.nouvelleDemande !== false}
+                              onChange={(e) => setData(d => ({ ...d, reference: { ...d.reference, nouvelleDemande: e.target.checked } }))}
+                            />
+                            <span>
+                              <strong>Nouvelle demande</strong>
+                              <span style={{ fontWeight: 400, color: "#555", marginLeft: 4 }}>
+                                (interruption ≥ 2 mois complets — les revenus professionnels du mois sont proratisés)
+                              </span>
+                            </span>
+                          </label>
+                          {data.reference.nouvelleDemande === false && (
+                            <div className="alert alert--info" style={{ padding: "7px 12px" }}>
+                              <i className="fa fa-circle-info" />
+                              <span>
+                                Pas une nouvelle demande : tous les revenus professionnels du mois sont pris en compte sans prorata.
+                                Seul le montant RIS sera proratisé à la fin.
+                              </span>
+                            </div>
+                          )}
                           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                             <div>Nbre de jours pris en compte dans la période concernée :</div>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
