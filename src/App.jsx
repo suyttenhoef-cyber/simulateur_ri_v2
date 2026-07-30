@@ -994,7 +994,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                             </table>
                           )}
                           <button onClick={() => addProExoRow(i)} className="btn-add">
-                            <i className="fas fa-plus" aria-hidden="true" /> Ajouter exoneration
+                            <i className="fas fa-plus" aria-hidden="true" /> Ajouter
                           </button>
 
                           {/* Net */}
