@@ -660,7 +660,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
             const sel = modeCalcul === opt.value;
             return (
               <button key={opt.value} onClick={() => update({ modeCalcul: opt.value })}
-                style={{ padding: "5px 14px", fontSize: 13, fontWeight: sel ? 700 : 400, background: sel ? colors.primary : colors.white, color: sel ? "#fff" : colors.text, border: "none", cursor: "pointer", fontFamily: "'Source Sans Pro', sans-serif" }}>
+                style={{ padding: "5px 14px", fontSize: 14, fontWeight: sel ? 700 : 400, background: sel ? colors.primary : colors.white, color: sel ? "#fff" : colors.text, border: "none", cursor: "pointer", fontFamily: "'Source Sans Pro', sans-serif" }}>
                 {opt.label}
               </button>
             );
@@ -673,15 +673,17 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
             style={{ width: 55, padding: "4px 8px", border: `1px solid ${colors.border}`, borderRadius: 6, fontSize: 14, textAlign: "center" }}
             onChange={(e) => update({ nbBeneficiairesRIS: Math.max(1, safeNumber(e.target.value, 1)) })} />
         </div>
-        {/* Note Art. 34 — collapsible */}
-        <details style={{ flex: 1, minWidth: 180 }}>
-          <summary style={{ cursor: "pointer", fontSize: 12, color: colors.primary, userSelect: "none", listStyle: "none" }}>
-            <i className="fas fa-circle-info" style={{ marginRight: 4 }} aria-hidden="true" />Art. 34 AR — en vigueur 01/03/2026 ▸
-          </summary>
-          <div className="alert alert--info" style={{ marginTop: 6, fontSize: 13 }}>
-            <span>Nouveaux débiteurs depuis le 01/03/2026 : beaux-parents/beaux-enfants si marié·e, ex-conjoint·e. Nouvelles demandes : appliquer immédiatement. Bénéficiaires existants au 16/01/2026 : à la prochaine révision obligatoire.</span>
-          </div>
-        </details>
+        {/* Note Art. 34 — tooltip */}
+        <span className="tooltip-wrap" style={{ fontSize: 14, color: colors.primary, cursor: "help" }}
+          tabIndex={0} role="button" aria-label="Art. 34 AR — informations">
+          <i className="fas fa-circle-info" aria-hidden="true" />
+          <span style={{ marginLeft: 4 }}>Art. 34 AR — en vigueur 01/03/2026</span>
+          <span className="tooltip-box">
+            Nouveaux débiteurs depuis le 01/03/2026 : beaux-parents/beaux-enfants si marié·e, ex-conjoint·e.
+            Nouvelles demandes : appliquer immédiatement.
+            Bénéficiaires existants au 16/01/2026 : à la prochaine révision obligatoire.
+          </span>
+        </span>
       </div>
 
       {/* ── Split panel : liste compacte + détail ── */}
@@ -708,20 +710,20 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                     </span>
                     <span onClick={(e) => { e.stopPropagation(); removeRow(i); }}
                       role="button" aria-label={`Supprimer cohabitant ${i + 1}`} title="Supprimer"
-                      style={{ cursor: "pointer", color: "#BF2222", fontSize: 13, padding: "0 3px", flexShrink: 0 }}>
+                      style={{ cursor: "pointer", color: "#BF2222", fontSize: 14, padding: "0 3px", flexShrink: 0 }}>
                       <i className="fas fa-times" aria-hidden="true" />
                     </span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 4 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: meta.color, background: meta.color + "20", borderRadius: 4, padding: "1px 5px", flexShrink: 0 }}>{meta.badge}</span>
-                    <span style={{ fontSize: 12, color: "#767676", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: meta.color, background: meta.color + "20", borderRadius: 4, padding: "1px 5px", flexShrink: 0 }}>{meta.badge}</span>
+                    <span style={{ fontSize: 14, color: "#767676", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {(r.type || "").replace(/\s*\(§[^)]+\)/g, "").replace(/\s*\(marié·e\)/g, "")}
                     </span>
                   </div>
                   {calc.ressourcesTotale > 0 && (
-                    <div style={{ marginTop: 5, fontSize: 13 }}>
+                    <div style={{ marginTop: 5, fontSize: 14 }}>
                       {calc.isIndicatifOnly
-                        ? <span style={{ color: "#767676", fontStyle: "italic", fontSize: 12 }}>indicatif §3</span>
+                        ? <span style={{ color: "#767676", fontStyle: "italic" }}>indicatif §3</span>
                         : calc.excedent > 0
                           ? <span style={{ fontWeight: 700, color: "#BF2222" }}>+<Money value={calc.montantMensuel} />/mois</span>
                           : <span style={{ fontWeight: 600, color: "#1a7a3c" }}>0 € reporté</span>
@@ -731,7 +733,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                 </button>
               );
             })}
-            <button onClick={addRow} className="btn-add" style={{ marginTop: 4, fontSize: 13 }}>
+            <button onClick={addRow} className="btn-add" style={{ marginTop: 4, fontSize: 14 }}>
               <i className="fas fa-plus" aria-hidden="true" /> Ajouter
             </button>
           </div>
@@ -745,7 +747,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
           <div style={{ border: `1px solid ${colors.border}`, borderRadius: 12, padding: 16, background: colors.white }}>
             <div style={{ fontWeight: 700, fontSize: 15, color: colors.primary, marginBottom: 14, paddingBottom: 10, borderBottom: `1px solid ${colors.border}` }}>
               {r.nom || `Cohabitant #${i + 1}`}
-              <span style={{ fontWeight: 400, fontSize: 13, color: "#767676", marginLeft: 8 }}>
+              <span style={{ fontWeight: 400, fontSize: 14, color: "#767676", marginLeft: 8 }}>
                 {(r.type || "").replace(/\s*\(§[^)]+\)/g, "").replace(/\s*\(marié·e\)/g, "")}
               </span>
             </div>
@@ -3791,7 +3793,7 @@ export default function App() {
                                 }
                               />
                               {result.isAutoProrata && safeNumber(data.reference.joursPrisEnCompte, 0) === 0 && (
-                                <span style={{ fontSize: 12, color: colors.primary, fontStyle: "italic" }}>auto ({result.effectiveJours})</span>
+                                <span style={{ fontSize: 14, color: colors.primary, fontStyle: "italic" }}>auto ({result.effectiveJours})</span>
                               )}
                               <span>sur</span>
                               <input
