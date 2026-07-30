@@ -1021,10 +1021,10 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                           const setRem  = (p) => updateCmrData(i, "remplacement", p);
                           const fldStyle = { padding: "3px 6px", fontSize: 14 };
                           const fieldRow = (label, value, onChange) => (
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                              <label style={{ fontSize: 14, color: colors.textLight, flex: "0 0 220px" }}>{label}</label>
+                            <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap", fontSize: 14, color: colors.textLight }}>
+                              <span style={{ flex: "0 0 220px" }}>{label}</span>
                               <NumInput value={value} onChange={onChange} style={{ ...fldStyle, width: 110, textAlign: "right" }} />
-                            </div>
+                            </label>
                           );
                           return (
                             <div style={{ padding: "10px 12px", display: "grid", gap: 12 }}>
