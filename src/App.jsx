@@ -875,8 +875,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                           </tfoot>
                         </table>
                       )}
-                      <button onClick={onAdd}
-                        style={{ background: colors.primary, color: "#fff", border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+                      <button onClick={onAdd} className="btn-add">
                         <i className="fas fa-plus" aria-hidden="true" /> Ajouter une ligne
                       </button>
                     </div>
@@ -952,8 +951,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                               </tbody>
                             </table>
                           )}
-                          <button onClick={() => addProRow(i)}
-                            style={{ background: colors.primary, color: "#fff", border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+                          <button onClick={() => addProRow(i)} className="btn-add">
                             <i className="fas fa-plus" aria-hidden="true" /> Ajouter
                           </button>
 
@@ -995,8 +993,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                               </tbody>
                             </table>
                           )}
-                          <button onClick={() => addProExoRow(i)}
-                            style={{ background: "#6c757d", color: "#fff", border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+                          <button onClick={() => addProExoRow(i)} className="btn-add">
                             <i className="fas fa-plus" aria-hidden="true" /> Ajouter exoneration
                           </button>
 
