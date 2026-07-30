@@ -908,7 +908,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                         </summary>
                         <div style={{ padding: "10px 12px" }}>
                           {/* Comptabilises */}
-                          <div style={{ fontWeight: 600, fontSize: 14, color: colors.primary, marginBottom: 6 }}>Revenus comptabilises</div>
+                          <div style={{ fontWeight: 600, fontSize: 14, color: colors.primary, marginBottom: 6 }}>Revenus comptabilisés</div>
                           {(r.proRows || []).length > 0 && (
                             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, marginBottom: 6 }}>
                               <thead>
@@ -956,7 +956,7 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
                           </button>
 
                           {/* Exoneres */}
-                          <div style={{ fontWeight: 600, fontSize: 14, color: colors.primary, margin: "12px 0 6px" }}>Revenus exoneres</div>
+                          <div style={{ fontWeight: 600, fontSize: 14, color: colors.primary, margin: "12px 0 6px" }}>Revenus exonérés</div>
                           {(r.proExoRows || []).length > 0 && (
                             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, marginBottom: 6 }}>
                               <thead>
