@@ -1395,15 +1395,19 @@ function CohabitantsTable({ cohabitants, onChangeCohabitants, referenceDate, cat
           {priseEnCompte === "equite" && (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, background: "#FFF8E1", border: "1px solid #f0d060", borderRadius: 8, padding: 12, marginBottom: 14 }}>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, color: colors.primary }}>Ressources retenues (€/an)</div>
-                <NumInput aria-label="Ressources retenues (€/an)" value={montantRetenuAnnuel}
-                  onChange={(e) => update({ montantRetenuAnnuel: safeNumber(e.target.value, 0), risOctroyeCible: "" })} />
+                <label style={{ display: "block" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, color: colors.primary }}>Ressources retenues (€/an)</div>
+                  <NumInput value={montantRetenuAnnuel}
+                    onChange={(e) => update({ montantRetenuAnnuel: safeNumber(e.target.value, 0), risOctroyeCible: "" })} />
+                </label>
                 <div style={{ fontSize: 14, color: colors.textLight, marginTop: 3 }}>Maximum légal : <Money value={grouped.excedentGroupe} /> €/an</div>
               </div>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, color: colors.primary }}>— ou — RIS visé (€/mois)</div>
-                <NumInput aria-label="RIS visé (€/mois)" value={risOctroyeCible}
-                  onChange={(e) => handleRisOctroyeCible(e.target.value)} />
+                <label style={{ display: "block" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, color: colors.primary }}>— ou — RIS visé (€/mois)</div>
+                  <NumInput value={risOctroyeCible}
+                    onChange={(e) => handleRisOctroyeCible(e.target.value)} />
+                </label>
                 <div style={{ fontSize: 14, color: colors.textLight, marginTop: 3 }}>→ Recalcule automatiquement les ressources retenues</div>
               </div>
             </div>
