@@ -13,6 +13,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@fontsource/source-sans-pro": "^5.3.0",
+    "@fortawesome/fontawesome-free": "^7.3.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.0.0",
     "react": "^19.2.0",

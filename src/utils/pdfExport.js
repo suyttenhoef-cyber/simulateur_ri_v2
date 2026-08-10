@@ -89,7 +89,7 @@ function findCleanBreak(canvas, idealPx, pxPerMm) {
  */
 export async function generatePDF(data, result, apercu) {
   try {
-    const logoBase64 = await imageToBase64('https://www.cpasconnect.be/img/cpasconnect/logo.svg');
+    const logoBase64 = await imageToBase64(new URL(`${import.meta.env.BASE_URL}logo.svg`, window.location.href).href);
 
     const fmt   = formatCurrency;
     const safeN = (x) => { const n = Number(x); return isFinite(n) ? n : 0; };

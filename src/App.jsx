@@ -22,13 +22,7 @@ const globalStyles = `
 `;
 
 // Injecter Font Awesome si pas déjà présent
-if (!document.getElementById('fa-cdn')) {
-  const link = document.createElement('link');
-  link.id = 'fa-cdn';
-  link.rel = 'stylesheet';
-  link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
-  document.head.appendChild(link);
-}
+// Font Awesome chargé via npm (@fortawesome/fontawesome-free) dans main.jsx
 
 // Sélectionner tout le contenu au focus sur les champs numériques (évite "0250")
 document.addEventListener('focusin', (e) => {

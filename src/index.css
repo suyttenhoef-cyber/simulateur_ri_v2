@@ -2,8 +2,6 @@
    index.css — Design tokens alignés CPASConnect / Vanden Broele
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;500;600;700;800&display=swap');
-
 :root {
   /* Typographie */
   font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
