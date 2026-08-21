@@ -2720,10 +2720,11 @@ function computeFromForm(data) {
   
   // Calcul des cohabitants
   const cohabitantsTotals = computeCohabitantsGrouped(data.cohabitants || { rows: [] }, dateISO);
-  // Exonération — Art. 35 ne s'applique pas si revenus pro antérieurs au RIS
-  const _demHasProNonFormation = (data.revenusNets.demandeur.comptabiliseRows || []).some(
-    r => safeNumber(r.montant, 0) > 0 && r.label && !REVENUS_FORMATION_LABELS.has(r.label)
-  );
+  // Exonération — Art. 35 bloqué uniquement si nouvelle demande ET revenus pro antérieurs au RIS
+  const _demHasProNonFormation = data.reference.nouvelleDemande !== false &&
+    (data.revenusNets.demandeur.comptabiliseRows || []).some(
+      r => safeNumber(r.montant, 0) > 0 && r.label && !REVENUS_FORMATION_LABELS.has(r.label)
+    );
   const exo = _demHasProNonFormation
     ? { demandeur: { exoGeneralMens: 0, exoEtudMens: 0, exoPenurieMens: 0, exoArtisteAnnuel: 0, totalMensuel: 0, totalAnnuel: 0 }, totalMensuel: 0, totalAnnuel: 0 }
     : computeExonerationExcel({ dateISO, exo: data.exoneration });
@@ -3117,9 +3118,10 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
     safeNumber(data.cmr.remplacement.autres_revenus, 0)
   );
   const cmrTotal  = round2(chomTotal + mutTotal + remTotal);
-  const hasRevenusProNonFormation = (data.revenusNets.demandeur.comptabiliseRows || []).some(
-    r => safeNumber(r.montant, 0) > 0 && r.label && !REVENUS_FORMATION_LABELS.has(r.label)
-  );
+  const hasRevenusProNonFormation = data.reference.nouvelleDemande !== false &&
+    (data.revenusNets.demandeur.comptabiliseRows || []).some(
+      r => safeNumber(r.montant, 0) > 0 && r.label && !REVENUS_FORMATION_LABELS.has(r.label)
+    );
   const exoCalc = hasRevenusProNonFormation
     ? { demandeur: { exoGeneralMens: 0, exoEtudMens: 0, exoPenurieMens: 0, exoArtisteAnnuel: 0, totalMensuel: 0, totalAnnuel: 0 }, totalMensuel: 0, totalAnnuel: 0 }
     : computeExonerationExcel({ dateISO, exo: data.exoneration });
