@@ -6,7 +6,7 @@ import {
   MOB_SEUIL_R, MOB_SEUIL_S,
   calculateCessionDetailed,
   computeCessionsTotalAnnuel, computeBiensMobiliersExcel, computeImmoExcel,
-  computeRemplacementMonthly,
+  computeRemplacementMonthly, computeBenevolatResource,
 } from './utils/calculs.js';
 
 // Injection Font Awesome + styles globaux dans le <head>
@@ -220,11 +220,13 @@ const defaultData = {
       { label: "Partie d'une Bourse couvrant les frais de séjour", montant: 0 },
       { label: "Autre ressource diverses", montant: 0 }
     ],
-    benevoles: [
-      { label: "montant journalier", montant: 0 },
-      { label: "montant annuel acquis", montant: 0 },
-      { label: "indemnités perçues", montant: 0 }
-    ]
+    // Art. 22 §1 q) AR 11/07/2002 — exonération binaire : voir computeBenevolatResource.
+    benevoles: {
+      montantJournalier: 0,     // € / jour de prestation
+      montantAnnuel: 0,         // € / an réellement perçus
+      categorieMajoree: false,  // Art. 12 loi 03/07/2005
+      plafondAnnuelMajore: 0,   // saisi par l'agent tant que le montant n'est pas publié
+    }
   }
 };
 // =====================
@@ -262,9 +264,36 @@ const EXO_SUPPL_ANNUEL = { 1: 155, 2: 250, 3: 310 };
 // Source : https://primabook.mi-is.be/fr/droit-lintegration-sociale/montants-ris
 // Affichés à titre indicatif dans « Allocations & ressources diverses » — n'entrent
 // dans aucun calcul, la saisie reste libre.
+// parAnMajore : plafond annuel relevé de l'Art. 12 de la loi du 03/07/2005
+// (entraîneur/arbitre sportif, garde de nuit, transport non urgent de patients
+// couchés, volontaires santé COVID 2022). Valait 2.987,70 € en 2023 mais n'est
+// pas publié sur la page des montants RIS : laissé à null, l'agent le saisit.
+// Dès que le montant officiel est connu, le renseigner ici suffit.
 const DEFRAIEMENT_VOLONTAIRE_TABLE = [
-  { date: "2026-09-01", libelleDate: "01/09/2026", parJour: 44.02, parAn: 1760.83, parKm: 0.37 },
+  { date: "2026-09-01", libelleDate: "01/09/2026", parJour: 44.02, parAn: 1760.83, parKm: 0.37, parAnMajore: null },
 ];
+
+// Résout les plafonds applicables (date + catégorie) puis délègue la règle
+// à computeBenevolatResource (./utils/calculs.js).
+function benevolatPlafonds(benevoles, dateISO) {
+  const b = benevoles || {};
+  const p = vlookupByDateISO(dateISO, DEFRAIEMENT_VOLONTAIRE_TABLE);
+  const plafondAnnuel = b.categorieMajoree
+    ? safeNumber(p.parAnMajore ?? b.plafondAnnuelMajore, 0)
+    : p.parAn;
+  return { ...p, plafondJour: p.parJour, plafondAnnuel };
+}
+
+function computeBenevolatResourceFromData(benevoles, dateISO) {
+  const b = benevoles || {};
+  const { plafondJour, plafondAnnuel } = benevolatPlafonds(b, dateISO);
+  return computeBenevolatResource({
+    montantJournalier: b.montantJournalier,
+    montantAnnuel: b.montantAnnuel,
+    plafondJour,
+    plafondAnnuel,
+  });
+}
 
 function Field({ label, hint, children }) {
   const id = useId();
@@ -2499,10 +2528,10 @@ function computeFromForm(data) {
     (s, r) => s + safeNumber(r.montant, 0),
     0
   );
-  const diversesBenevoles = (data.ressourcesDiverses.benevoles || []).reduce(
-    (s, r) => s + safeNumber(r.montant, 0),
-    0
-  );
+  // Bénévolat — Art. 22 §1 q) : exonéré si les DEUX plafonds sont respectés,
+  // sinon la totalité de l'indemnité annuelle compte comme ressource.
+  const benevolat = computeBenevolatResourceFromData(data.ressourcesDiverses.benevoles, dateISO);
+  const diversesBenevoles = benevolat.ressourceMensuelle;
 
   // --- Cessions (annuel) - Nouveau calcul détaillé
   const cessionsResult = computeCessionsTotalAnnuel(data.cessionsBiens?.rows || [], categorie);
@@ -2568,6 +2597,7 @@ function computeFromForm(data) {
     ...ri,
     apercu,
     cohabitants: cohabitantsTotals,
+    benevolat,
     immoDetails: immoTotals,
     cessionsDetails: cessionsResult,
     effectiveJours,
@@ -2925,9 +2955,10 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
     : computeExonerationExcel({ dateISO, exo: data.exoneration });
   const exoTotal  = round2(exoCalc.totalMensuel);
   const exonereRowsTotal = round2((data.revenusNets.demandeur.exonereRows || []).reduce((s, r) => s + safeNumber(r.montant, 0), 0));
+  const benevolat = computeBenevolatResourceFromData(data.ressourcesDiverses.benevoles, dateISO);
   const divTotal  = round2(
     data.ressourcesDiverses.generales.reduce((s, r) => s + safeNumber(r.montant, 0), 0) +
-    data.ressourcesDiverses.benevoles.reduce((s, r) => s + safeNumber(r.montant, 0), 0)
+    benevolat.ressourceMensuelle
   );
   const avTotal   = round2(Object.values(data.avantages).reduce((s, v) => s + safeNumber(v, 0), 0));
   const cesTotal  = round2(computeCessionsTotalAnnuel(data.cessionsBiens.rows, categorie).totalMensuel);
@@ -3047,32 +3078,104 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
             </div>
           </div>
           <div>
-            <div style={{ fontWeight: 600, fontSize: 14, color: colors.primary, marginBottom: 8 }}>Benevoles</div>
+            <div style={{ fontWeight: 600, fontSize: 14, color: colors.primary, marginBottom: 8 }}>
+              Defraiement du volontaire
+            </div>
             {(() => {
-              const p = vlookupByDateISO(dateISO, DEFRAIEMENT_VOLONTAIRE_TABLE);
+              const ben = data.ressourcesDiverses.benevoles || {};
+              const p = benevolatPlafonds(ben, dateISO);
+              const setBen = (patch) => setData(d => ({
+                ...d,
+                ressourcesDiverses: { ...d.ressourcesDiverses, benevoles: { ...d.ressourcesDiverses.benevoles, ...patch } },
+              }));
               return (
-                <div className="alert alert--info" style={{ marginBottom: 10, padding: "7px 12px" }}>
-                  <i className="fa fa-circle-info" aria-hidden="true" />
-                  <span>
-                    Plafonds de défraiement forfaitaire au {p.libelleDate} :{" "}
-                    <strong><Money value={p.parJour} />/jour</strong>{" · "}
-                    <strong><Money value={p.parAn} />/an</strong>{" · "}
-                    <strong><Money value={p.parKm} />/km</strong>.
-                    Au-delà, le défraiement est requalifié en ressource.
-                  </span>
-                </div>
+                <>
+                  <div className="alert alert--info" style={{ marginBottom: 10, padding: "7px 12px" }}>
+                    <i className="fa fa-circle-info" aria-hidden="true" />
+                    <span>
+                      Plafonds au {p.libelleDate} : <strong><Money value={p.parJour} />/jour</strong>{" et "}
+                      <strong><Money value={p.parAn} />/an</strong> (indemnité kilométrique vélo <Money value={p.parKm} />/km).
+                      L'exonération est <strong>tout ou rien</strong> : si l'un des deux plafonds est dépassé,
+                      la totalité de l'indemnité annuelle compte comme ressource — et non le seul excédent.
+                    </span>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 12 }}>
+                    <Input label="Indemnite par jour de prestation" type="number" hint="€ / jour"
+                      value={ben.montantJournalier || 0}
+                      onChange={(e) => setBen({ montantJournalier: safeNumber(e.target.value, 0) })} />
+                    <Input label="Indemnite totale percue sur l'annee" type="number" hint="€ / an"
+                      value={ben.montantAnnuel || 0}
+                      onChange={(e) => setBen({ montantAnnuel: safeNumber(e.target.value, 0) })} />
+                  </div>
+
+                  <label style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 14, marginTop: 10, cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      style={{ marginTop: 3 }}
+                      checked={!!ben.categorieMajoree}
+                      onChange={(e) => setBen({ categorieMajoree: e.target.checked })}
+                    />
+                    <span>
+                      <strong>Categorie a plafond annuel releve</strong>
+                      <span style={{ fontWeight: 400, color: "#555", marginLeft: 4 }}>
+                        (Art. 12 loi 03/07/2005 — entraineur / arbitre sportif, garde de nuit,
+                        transport non urgent de patients couches, volontaire sante COVID 2022)
+                      </span>
+                    </span>
+                  </label>
+
+                  {ben.categorieMajoree && (
+                    <div style={{ marginTop: 10 }}>
+                      <Input label="Plafond annuel releve applicable" type="number" hint="€ / an"
+                        value={ben.plafondAnnuelMajore || 0}
+                        onChange={(e) => setBen({ plafondAnnuelMajore: safeNumber(e.target.value, 0) })} />
+                      <div className="alert alert--warning" style={{ marginTop: 8, padding: "7px 12px" }}>
+                        <i className="fa fa-triangle-exclamation" aria-hidden="true" />
+                        <span>
+                          Ce plafond n'est pas publie sur la page des montants RIS : a saisir manuellement
+                          (2.987,70 € pour 2023, a reindexer). Tant qu'il vaut 0, le test annuel est neutralise.
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {(() => {
+                    const r = computeBenevolatResourceFromData(ben, dateISO);
+                    const rienEncode = !safeNumber(ben.montantJournalier, 0) && !safeNumber(ben.montantAnnuel, 0);
+                    if (rienEncode) return null;
+                    if (r.plafondAnnuelManquant) {
+                      return (
+                        <div className="alert alert--warning" style={{ marginTop: 10, padding: "7px 12px" }}>
+                          <i className="fa fa-triangle-exclamation" aria-hidden="true" />
+                          <span>Plafond annuel applicable inconnu — le test ne peut pas etre mene.</span>
+                        </div>
+                      );
+                    }
+                    return r.exonere ? (
+                      <div className="alert alert--info" style={{ marginTop: 10, padding: "7px 12px" }}>
+                        <i className="fa fa-circle-check" aria-hidden="true" />
+                        <span>
+                          Les deux plafonds sont respectes : indemnite <strong>entierement exoneree</strong>,
+                          aucune ressource retenue.
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="alert alert--warning" style={{ marginTop: 10, padding: "7px 12px" }}>
+                        <i className="fa fa-triangle-exclamation" aria-hidden="true" />
+                        <span>
+                          Plafond {r.depasseJour ? "journalier" : ""}
+                          {r.depasseJour && r.depasseAnnuel ? " et " : ""}
+                          {r.depasseAnnuel ? "annuel" : ""} depasse : la totalite de l'indemnite est retenue,
+                          soit <strong><Money value={r.ressourceAnnuelle} />/an</strong>{" "}
+                          (<Money value={r.ressourceMensuelle} />/mois).
+                        </span>
+                      </div>
+                    );
+                  })()}
+                </>
               );
             })()}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 12 }}>
-              {data.ressourcesDiverses.benevoles.map((r, i) => (
-                <Input key={i} label={r.label} type="number" value={r.montant} hint="€ / mois"
-                  onChange={(e) => {
-                    const next = [...data.ressourcesDiverses.benevoles];
-                    next[i] = { ...next[i], montant: safeNumber(e.target.value, 0) };
-                    setData(d => ({ ...d, ressourcesDiverses: { ...d.ressourcesDiverses, benevoles: next } }));
-                  }} />
-              ))}
-            </div>
           </div>
         </>
       )}

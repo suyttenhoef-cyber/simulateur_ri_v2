@@ -8,6 +8,7 @@ import {
   computeBiensMobiliersExcel,
   computeCessionsTotalAnnuel,
   computeRemplacementMonthly,
+  computeBenevolatResource,
 } from "./calculs.js";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -504,5 +505,71 @@ describe("computeRemplacementMonthly", () => {
       pensionMensuel: 100.005,
       autres_revenus: 0.001,
     })).toBe(100.01);
+  });
+});
+
+// ─── computeBenevolatResource ───────────────────────────────────────────────
+
+describe("computeBenevolatResource", () => {
+  // Plafonds au 01/09/2026
+  const P = { plafondJour: 44.02, plafondAnnuel: 1760.83 };
+
+  it("exonère intégralement sous les deux plafonds", () => {
+    const r = computeBenevolatResource({ montantJournalier: 40, montantAnnuel: 1200, ...P });
+    expect(r.exonere).toBe(true);
+    expect(r.ressourceAnnuelle).toBe(0);
+    expect(r.ressourceMensuelle).toBe(0);
+  });
+
+  it("exonère quand les montants égalent exactement les plafonds", () => {
+    const r = computeBenevolatResource({ montantJournalier: 44.02, montantAnnuel: 1760.83, ...P });
+    expect(r.exonere).toBe(true);
+    expect(r.ressourceAnnuelle).toBe(0);
+  });
+
+  // Le point clé : l'exonération est binaire, pas marginale.
+  it("compte la TOTALITE quand le plafond journalier est depasse", () => {
+    const r = computeBenevolatResource({ montantJournalier: 45, montantAnnuel: 1200, ...P });
+    expect(r.exonere).toBe(false);
+    expect(r.depasseJour).toBe(true);
+    expect(r.depasseAnnuel).toBe(false);
+    expect(r.ressourceAnnuelle).toBe(1200); // et non 1200 - 1760,83 ni un excédent
+    expect(r.ressourceMensuelle).toBe(100);
+  });
+
+  it("compte la TOTALITE quand le plafond annuel est depasse", () => {
+    const r = computeBenevolatResource({ montantJournalier: 40, montantAnnuel: 2000, ...P });
+    expect(r.exonere).toBe(false);
+    expect(r.depasseJour).toBe(false);
+    expect(r.depasseAnnuel).toBe(true);
+    expect(r.ressourceAnnuelle).toBe(2000); // et non 2000 - 1760,83 = 239,17
+  });
+
+  it("un depassement d'un centime suffit a tout faire compter", () => {
+    const r = computeBenevolatResource({ montantJournalier: 44.03, montantAnnuel: 1500, ...P });
+    expect(r.exonere).toBe(false);
+    expect(r.ressourceAnnuelle).toBe(1500);
+  });
+
+  it("applique le plafond annuel releve (Art. 12 loi 03/07/2005)", () => {
+    const base = { montantJournalier: 40, montantAnnuel: 2500 };
+    expect(computeBenevolatResource({ ...base, ...P }).exonere).toBe(false);
+    expect(computeBenevolatResource({ ...base, plafondJour: 44.02, plafondAnnuel: 2987.70 }).exonere).toBe(true);
+  });
+
+  it("signale un plafond annuel manquant", () => {
+    const r = computeBenevolatResource({ montantAnnuel: 1200, plafondJour: 44.02, plafondAnnuel: 0 });
+    expect(r.plafondAnnuelManquant).toBe(true);
+  });
+
+  it("ne signale rien et exonère si aucun montant n'est encodé", () => {
+    const r = computeBenevolatResource(P);
+    expect(r.exonere).toBe(true);
+    expect(r.plafondAnnuelManquant).toBe(false);
+    expect(r.ressourceAnnuelle).toBe(0);
+  });
+
+  it("retourne un resultat exonere sans argument", () => {
+    expect(computeBenevolatResource().exonere).toBe(true);
   });
 });

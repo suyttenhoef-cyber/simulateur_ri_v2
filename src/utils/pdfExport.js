@@ -256,11 +256,22 @@ export async function generatePDF(data, result, apercu) {
     // ════════════════════════════════════════════════════════════════════
     // SECTION 4 — Ressources diverses
     // ════════════════════════════════════════════════════════════════════
-    const divItems = [...(data.ressourcesDiverses?.generales || []), ...(data.ressourcesDiverses?.benevoles || [])].filter(r => safeN(r.montant) > 0);
-    if (divItems.length > 0) {
+    const divItems = (data.ressourcesDiverses?.generales || []).filter(r => safeN(r.montant) > 0);
+    // Bénévolat — Art. 22 §1 q) : n'apparaît que si un plafond est dépassé,
+    // l'indemnité étant sinon entièrement exonérée (exonération tout ou rien).
+    const benevolatMensuel = safeN(result?.benevolat?.ressourceMensuelle);
+    if (divItems.length > 0 || benevolatMensuel > 0) {
       tbody += SEC('Ressources diverses');
       for (const r of divItems) {
         tbody += ROW(demCell(), r.label, `${fmt(safeN(r.montant))}/mois`, r2(safeN(r.montant) * 12));
+      }
+      if (benevolatMensuel > 0) {
+        tbody += ROW(
+          demCell(),
+          'Defraiement volontaire (plafond depasse)',
+          `${fmt(benevolatMensuel)}/mois`,
+          r2(safeN(result?.benevolat?.ressourceAnnuelle))
+        );
       }
       tbody += SEP();
     }

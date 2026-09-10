@@ -330,3 +330,45 @@ export function computeRemplacementMonthly({
     safeNumber(autres_revenus, 0)
   );
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Défraiement du volontaire — Art. 22 §1 q) AR 11/07/2002
+//                             Art. 10 et 12 loi 03/07/2005 (droits des volontaires)
+//
+// L'exonération est BINAIRE, pas marginale : l'indemnité est exonérée à condition
+// de ne dépasser NI le plafond journalier NI le plafond annuel. Si une seule des
+// deux conditions n'est pas remplie, la TOTALITÉ de l'indemnité est prise en
+// compte comme ressource (et non le seul excédent).
+//
+// Le plafond annuel est relevé pour certaines catégories (entraîneur/arbitre
+// sportif, garde de nuit, transport non urgent de patients couchés, volontaires
+// santé COVID 2022) — Art. 12 de la loi du 03/07/2005.
+// ─────────────────────────────────────────────────────────────────────────────
+export function computeBenevolatResource({
+  montantJournalier,
+  montantAnnuel,
+  plafondJour,
+  plafondAnnuel,
+} = {}) {
+  const j  = safeNumber(montantJournalier, 0);
+  const a  = safeNumber(montantAnnuel, 0);
+  const pj = safeNumber(plafondJour, 0);
+  const pa = safeNumber(plafondAnnuel, 0);
+
+  const depasseJour   = pj > 0 && j > pj;
+  const depasseAnnuel = pa > 0 && a > pa;
+  const exonere       = !depasseJour && !depasseAnnuel;
+
+  // Plafond annuel non renseigné alors qu'un montant annuel est encodé :
+  // le test ne peut pas être mené, l'appelant doit alerter l'agent.
+  const plafondAnnuelManquant = pa === 0 && a > 0;
+
+  return {
+    exonere,
+    depasseJour,
+    depasseAnnuel,
+    plafondAnnuelManquant,
+    ressourceAnnuelle:  exonere ? 0 : round2(a),
+    ressourceMensuelle: exonere ? 0 : round2(a / 12),
+  };
+}
