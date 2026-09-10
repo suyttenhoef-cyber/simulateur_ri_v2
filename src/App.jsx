@@ -3421,6 +3421,31 @@ export default function App() {
                     onChange={(e) => setData(d => ({ ...d, reference: { ...d.reference, dateISO: e.target.value } }))}
                   />
                 </div>
+                <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid #F0F4F8", display: "grid", gap: 8 }}>
+                  <label style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 14, cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      style={{ marginTop: 3 }}
+                      checked={data.reference.nouvelleDemande !== false}
+                      onChange={(e) => setData(d => ({ ...d, reference: { ...d.reference, nouvelleDemande: e.target.checked } }))}
+                    />
+                    <span>
+                      <strong>Nouvelle demande</strong>
+                      <span style={{ fontWeight: 400, color: "#555", marginLeft: 4 }}>
+                        (interruption ≥ 2 mois complets — les revenus professionnels du mois sont proratisés)
+                      </span>
+                    </span>
+                  </label>
+                  {data.reference.nouvelleDemande === false && (
+                    <div className="alert alert--info" style={{ padding: "7px 12px" }}>
+                      <i className="fa fa-circle-info" aria-hidden="true" />
+                      <span>
+                        Pas une nouvelle demande : tous les revenus professionnels du mois sont pris en compte sans prorata.
+                        Seul le montant RIS sera proratisé à la fin.
+                      </span>
+                    </div>
+                  )}
+                </div>
               </Card>
 
               {/* Carte Identité */}
@@ -3751,28 +3776,15 @@ export default function App() {
                           </div>
                         )}
                         <div style={{ display: "grid", gap: 10, fontSize: 14 }}>
-                          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <input
-                              type="checkbox"
-                              checked={data.reference.nouvelleDemande !== false}
-                              onChange={(e) => setData(d => ({ ...d, reference: { ...d.reference, nouvelleDemande: e.target.checked } }))}
-                            />
+                          <div style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "7px 12px", background: "#F5F8FA", borderRadius: 6 }}>
+                            <i className="fa fa-circle-info" aria-hidden="true" style={{ color: colors.primary, marginTop: 3 }} />
                             <span>
-                              <strong>Nouvelle demande</strong>
-                              <span style={{ fontWeight: 400, color: "#555", marginLeft: 4 }}>
-                                (interruption ≥ 2 mois complets — les revenus professionnels du mois sont proratisés)
-                              </span>
+                              {data.reference.nouvelleDemande !== false
+                                ? <><strong>Nouvelle demande</strong> — les revenus professionnels du mois sont proratisés.</>
+                                : <><strong>Pas une nouvelle demande</strong> — les revenus professionnels du mois sont pris en compte sans prorata.</>}
+                              <span style={{ color: "#555" }}> Modifiable dans l'onglet <strong>Informations</strong>, carte « Référence ».</span>
                             </span>
-                          </label>
-                          {data.reference.nouvelleDemande === false && (
-                            <div className="alert alert--info" style={{ padding: "7px 12px" }}>
-                              <i className="fa fa-circle-info" />
-                              <span>
-                                Pas une nouvelle demande : tous les revenus professionnels du mois sont pris en compte sans prorata.
-                                Seul le montant RIS sera proratisé à la fin.
-                              </span>
-                            </div>
-                          )}
+                          </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                             <div>Nbre de jours pris en compte dans la période concernée :</div>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
