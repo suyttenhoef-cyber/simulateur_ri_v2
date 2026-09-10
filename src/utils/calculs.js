@@ -297,3 +297,22 @@ export function computeImmoExcel(rows, nbEnfants = 0) {
 
   return totals;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Revenus de remplacement (demandeur) — somme des cinq postes mensuels
+// ─────────────────────────────────────────────────────────────────────────────
+export function computeRemplacementMonthly({
+  pensionMensuel,
+  droitPasserelleMensuel,
+  allocationHandicapeMensuel,
+  indemnisation_perte_revenus,
+  autres_revenus,
+} = {}) {
+  return round2(
+    safeNumber(pensionMensuel, 0) +
+    safeNumber(droitPasserelleMensuel, 0) +
+    safeNumber(allocationHandicapeMensuel, 0) +
+    safeNumber(indemnisation_perte_revenus, 0) +
+    safeNumber(autres_revenus, 0)
+  );
+}

@@ -7,6 +7,7 @@ import {
   computeImmoExcel,
   computeBiensMobiliersExcel,
   computeCessionsTotalAnnuel,
+  computeRemplacementMonthly,
 } from "./calculs.js";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -444,5 +445,64 @@ describe("computeCessionsTotalAnnuel", () => {
     const rows = [{ typeBien: "Autre bien bâti", valeurVenale: 20000, partConcernee: 100 }];
     const r = computeCessionsTotalAnnuel(rows, 1);
     expect(r.totalMensuel).toBeCloseTo(r.totalAnnuel / 12, 2);
+  });
+});
+
+// ─── computeRemplacementMonthly ─────────────────────────────────────────────
+
+describe("computeRemplacementMonthly", () => {
+  // Régression : un opérateur virgule dans l'ancienne implémentation faisait
+  // que seul `autres_revenus` était retourné — les quatre autres postes
+  // étaient silencieusement perdus dans le calcul du RI.
+  const POSTES = [
+    "pensionMensuel",
+    "droitPasserelleMensuel",
+    "allocationHandicapeMensuel",
+    "indemnisation_perte_revenus",
+    "autres_revenus",
+  ];
+
+  it.each(POSTES)("compte le poste %s pris isolément", (poste) => {
+    expect(computeRemplacementMonthly({ [poste]: 1200 })).toBe(1200);
+  });
+
+  it("additionne les cinq postes", () => {
+    expect(computeRemplacementMonthly({
+      pensionMensuel: 1000,
+      droitPasserelleMensuel: 200,
+      allocationHandicapeMensuel: 30,
+      indemnisation_perte_revenus: 4,
+      autres_revenus: 0.5,
+    })).toBe(1234.5);
+  });
+
+  it("ignore autres_revenus absent sans perdre les autres postes", () => {
+    expect(computeRemplacementMonthly({
+      pensionMensuel: 1812.33,
+      droitPasserelleMensuel: 0,
+      allocationHandicapeMensuel: 0,
+      indemnisation_perte_revenus: 0,
+    })).toBe(1812.33);
+  });
+
+  it("traite les valeurs non numériques comme zéro", () => {
+    expect(computeRemplacementMonthly({
+      pensionMensuel: "1000",
+      droitPasserelleMensuel: null,
+      allocationHandicapeMensuel: undefined,
+      indemnisation_perte_revenus: "",
+      autres_revenus: NaN,
+    })).toBe(1000);
+  });
+
+  it("retourne 0 sans argument", () => {
+    expect(computeRemplacementMonthly()).toBe(0);
+  });
+
+  it("arrondit à 2 décimales", () => {
+    expect(computeRemplacementMonthly({
+      pensionMensuel: 100.005,
+      autres_revenus: 0.001,
+    })).toBe(100.01);
   });
 });

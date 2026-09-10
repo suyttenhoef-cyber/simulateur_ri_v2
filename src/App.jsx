@@ -8,6 +8,7 @@ import {
   TITRE_PROPRIETE_COEFF, ABATTEMENT_PAR_CATEGORIE, TYPE_CESSION_MAP,
   calculateMonthsDiffCession, calculateCessionDetailed,
   computeCessionsTotalAnnuel, computeBiensMobiliersExcel, computeImmoExcel,
+  computeRemplacementMonthly,
 } from './utils/calculs.js';
 
 // Injection Font Awesome + styles globaux dans le <head>
@@ -1980,9 +1981,7 @@ function computeChomageOrMutuelleMonthly({ mensuelReel, montantJour26, montantJo
   return { mensuelTotal: m1 + m2 + m3, daysPaid };
 }
 
-function computeRemplacementMonthly({ pensionMensuel, droitPasserelleMensuel, allocationHandicapeMensuel, indemnisation_perte_revenus, autres_revenus, }) {
-  return safeNumber(pensionMensuel, 0) + safeNumber(droitPasserelleMensuel, 0) + safeNumber(allocationHandicapeMensuel, 0) + safeNumber(indemnisation_perte_revenus, 0), + safeNumber(autres_revenus, 0);
-}
+// computeRemplacementMonthly importée depuis ./utils/calculs.js
 // computeBiensMobiliersExcel importée depuis ./utils/calculs.js
 function daysInMonth(dateISO) {
   const [y, m] = toISODateOnly(dateISO).split("-").map(Number);
