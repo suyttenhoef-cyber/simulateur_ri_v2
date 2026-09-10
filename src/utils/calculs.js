@@ -194,6 +194,20 @@ export function computeCessionsTotalAnnuel(rows, categorie) {
  *
  * Art. 4.3 : l'exonération est divisée par le nombre de biens du même type.
  *
+ * Colonnes du fichier Excel d'origine, pour référence :
+ *   K = IF(H<>0, H*J, "")
+ *   L = IF(H<>0, ROUND( (exo x2 selon type)*J / COUNTIF(H19:H39,">0"), 2), "")
+ *   M = IF(H<>0, IF(K>=L, (K-L)*3, 0), "")
+ *   N = IF(V<>"", IF(V<>"s. o.", "voir loyer", M), "")
+ *   O = IF(E<>"", ROUND(E*J,2), "")
+ *   P = IF(N<>"voir loyer", IF(E<>"", ROUND(N/2,2), ""), "s. o.")
+ *   Q = IF(P<>"s. o.", IF(E<>"", -MIN(O:P), ""), "s. o.")
+ *   R = IF(F<>"", ROUND(F*J,2), "")
+ *   S = IF(N<>"voir loyer", IF(F<>"", ROUND(N/2,2), ""), "s. o.")
+ *   T = IF(S<>"s. o.", IF(F<>"", -MIN(R:S), ""), "s. o.")
+ *   U = IF(I<>"", I*J, "s. o.")
+ *   V = IF(U>M, U, "s. o.")
+ *
  * @param {Array} rows
  * @param {number} nbEnfants
  */

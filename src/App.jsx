@@ -2,11 +2,9 @@ import { useMemo, useState, useRef, useEffect, useId, isValidElement, cloneEleme
 import { generatePDF } from './utils/pdfExport.js';
 import './App.css';
 import {
-  safeNumber, round2, asNumOrZero, isFiniteNumber,
+  safeNumber, round2,
   MOB_SEUIL_R, MOB_SEUIL_S,
-  TRANCHE_IMMUNISEE_CESSION, SEUIL_CESSION_T1, SEUIL_CESSION_T2,
-  TITRE_PROPRIETE_COEFF, ABATTEMENT_PAR_CATEGORIE, TYPE_CESSION_MAP,
-  calculateMonthsDiffCession, calculateCessionDetailed,
+  calculateCessionDetailed,
   computeCessionsTotalAnnuel, computeBiensMobiliersExcel, computeImmoExcel,
   computeRemplacementMonthly,
 } from './utils/calculs.js';
@@ -43,9 +41,6 @@ const colors = {
   success: "#2BEBCE",
   danger: "#BF2222"
 };
-function computeCohabitantsMonthly(rows) {
-  return rows.reduce((acc, row) => acc + safeNumber(row.mensuel, 0), 0);
-}
 function Row({ label, mensuel, annuel, highlight = false, neg = false, grand = false }) {
   const renderMoney = (v) => {
     if (v === null || v === undefined) return "";
@@ -90,22 +85,6 @@ function Sec({ children }) {
 function Gap() {
   return <tr><td colSpan={3} style={{ padding: 0, height: 6, background: "#F0F4F8" }} /></tr>;
 }
-
-// Valeurs issues de l'image (fixes en euros)
-const REVENUS_RC_BATI = 750;        // RC Bâti
-const REVENUS_RC_NON_BATI = 125;    // RC Non bâti
-const REVENUS_ENFANT = 30;          // Revenus Enfant (part de l'immobilier)
-
-const TRANCHE_1 = 1250;             // Tranche 1 pour cession
-const TRANCHE_2 = 2000;             // Tranche 2 pour cession
-const TRANCHE_3 = 2500;             // Tranche 3 pour cession
-
-
-const MONTANT_FORFAITAIRE_CESSION_AN = 37200; // Tranche immunisée
-
-const TITRE_PLEINE_PROPRIETE = 1.0;  // Coefficient Pleine Propriété (100%)
-const TITRE_USUFRUIT = 0.4;         // Coefficient Usufruit (40%)
-const TITRE_NU_PROPRIETE = 0.6;     // Coefficient Nu-Propriété (60%)
 
 const SECTIONS = [
   { id: "informations",      label: "Informations",            icon: "fa-address-card" },
@@ -276,10 +255,8 @@ const EXO_TABLE = [
 ];
 
 // Données!Q3:S3 (Exonération supplémentaire annuelle ©)
+// Montant forfaitaire non indexé — pas de table datée, contrairement aux deux ci-dessus.
 const EXO_SUPPL_ANNUEL = { 1: 155, 2: 250, 3: 310 };
-
-// Données!S22 (tranche immunisée cessions — dead code, utiliser TRANCHE_IMMUNISEE_CESSION de calculs.js)
-// const CESSION_TRANCHE_IMMUNISEE = 37200;
 
 function Field({ label, hint, children }) {
   const id = useId();
@@ -334,10 +311,7 @@ function Money({ value }) {
 // CALCULS POUR CESSIONS DE BIENS
 // ========================================
 
-// Constantes et fonctions de cession importées depuis ./utils/calculs.js :
-// TRANCHE_IMMUNISEE_CESSION, SEUIL_CESSION_T1, SEUIL_CESSION_T2,
-// TITRE_PROPRIETE_COEFF, ABATTEMENT_PAR_CATEGORIE, TYPE_CESSION_MAP,
-// calculateMonthsDiffCession, calculateCessionDetailed, computeCessionsTotalAnnuel
+// Seuils, abattements et calculs de cession : voir ./utils/calculs.js — source unique.
 function computeNetMonthly({ comptabiliseRows, exonereRows }) {
   const sumC = (comptabiliseRows || []).reduce((acc, r) => acc + safeNumber(r.montant, 0), 0);
   const sumE = (exonereRows     || []).reduce((acc, r) => acc + safeNumber(r.montant, 0), 0);
@@ -520,11 +494,6 @@ function computeCohabitantsGrouped(cohabitantsData, referenceDate) {
     modeCalcul, ressourcesTotal, seuilTotal, rawExcedent, excedentGroupe,
     priseEnCompte, montantRetenuAnnuel, nbBeneficiaires,
   };
-}
-
-// Compatibilité — conservé pour les exports qui appellent encore cette fonction
-function computeCohabitantsTotal(rows, referenceDate) {
-  return computeCohabitantsGrouped({ rows, modeCalcul: "individuel" }, referenceDate);
 }
 
 const TYPE_META = {
@@ -2483,190 +2452,10 @@ function computeApercuExcelLike({ data, pieces, joursPrisEnCompteOverride, nouve
   };
 }
 
-// round2 importée depuis ./utils/calculs.js
-const TRANCHE_IMMUNISEE_UNIQUE = 37200;
-const SEUIL_T2 = 6200;
-const SEUIL_T3 = 12500;
-
-function coeffTitrePropriete(titre) {
-  if (!titre) return 1;
-  const t = String(titre).toLowerCase();
-  if (t.includes("usufruit")) return 0.4;
-  if (t.includes("nu")) return 0.6; // nu-propriété
-  return 1; // pleine propriété
-}
-
-// Excel: HLOOKUP(cat, Données!Q20:S21,2) => 1250/2000/2500
-function montantAnnuelCat(categorie) {
-  if (categorie === 1) return 1250;
-  if (categorie === 2) return 2000;
-  return 2500; // cat 3
-}
-
-// Excel P = MAX( (yearK-yearD)*12 + (monthK-monthD) - 1, 0 )
-function monthsDiffMinus1(dateCession, datePourRI) {
-  if (!dateCession || !datePourRI) return 0;
-  const d = new Date(dateCession);
-  const k = new Date(datePourRI);
-  if (Number.isNaN(d.getTime()) || Number.isNaN(k.getTime())) return 0;
-
-  const yd = d.getUTCFullYear(), md = d.getUTCMonth() + 1; // 1..12
-  const yk = k.getUTCFullYear(), mk = k.getUTCMonth() + 1;
-
-  const monthsDiff = (yk - yd) * 12 + (mk - md);
-  return Math.max(monthsDiff - 1, 0);
-}
-
-function computeCessionsAnnualExcelLike(rows, categorie) {
-  const O = montantAnnuelCat(categorie);
-
-  let total = 0;
-
-  for (const r of (rows || [])) {
-    const type = r.typeBien || "";
-    const valeur = safeNumber(r.valeurVenale, 0);
-    if (!valeur) continue;
-
-    const part = safeNumber(r.partConcernee, 100) / 100; // UI en %
-    const dettes = safeNumber(r.dettesPersonnelles, 0);
-    const dispense = safeNumber(r.dispenseEquite, 0);
-
-    const coeff = coeffTitrePropriete(r.titrePropriete);
-
-    const isUnique =
-      type === "Bien bâti (unique)" ||
-      type === "Bien non-bâti (unique)" ||
-      type === "Bien non-bati (unique)";
-
-    // Q = E * F * coeffTitre
-    const Q = round2(valeur * part * coeff);
-
-    // N = -ROUND(trancheImmunisee * part, 2) si unique
-    const N = isUnique ? -round2(TRANCHE_IMMUNISEE_UNIQUE * part) : 0;
-
-    // P (nbr mois) + S (annualité) si unique
-    const P = isUnique ? monthsDiffMinus1(r.dateCession, r.datePriseEnCompteRI) : 0;
-    const S = isUnique ? -round2(O * P / 12) : 0;
-
-    // T = ((Q + N) - dettes) - (dispense - S)
-    const T = round2((Q + N) - dettes - (dispense - S));
-
-    // Tranches (Excel multiplie encore par F ici)
-    const U = (T === 0) ? 0 : round2(Math.min(SEUIL_T2, T) * part);
-    const V = (T === 0) ? 0 : (T > SEUIL_T2 ? round2(Math.min(SEUIL_T3, T) * part) : 0);
-    const W = (T > SEUIL_T3) ? T : 0;
-
-    const revenu1 = 0;
-    const revenu2 = (V > U) ? round2((V - U) * 0.06) : 0;
-    const revenu3 = (W > 0) ? round2((W - V) * 0.10) : 0;
-
-    const M = round2(revenu1 + revenu2 + revenu3);
-    total += M;
-  }
-
-  return round2(total);
-}
-// isFiniteNumber et asNumOrZero importées depuis ./utils/calculs.js
-
-/**
- * Reproduit les colonnes Excel:
- * K = IF(H<>0, H*J, "")
- * L = IF(H<>0, ROUND( (exo x2 selon type)*J / COUNTIF(H19:H39,">0"), 2), "")
- * M = IF(H<>0, IF(K>=L, (K-L)*3,0), "")
- * N = IF(V<>"", IF(V<>"s. o.","voir loyer", M), "")
- * O = IF(E<>"", ROUND(E*J,2), "")
- * P = IF(N<>"voir loyer", IF(E<>"", ROUND(N/2,2),""),"s. o.")
- * Q = IF(P<>"s. o.", IF(E<>"", -MIN(O:P),""),"s.o.")
- * R = IF(F<>"", ROUND(F*J,2), "")
- * S = IF(N<>"voir loyer", IF(F<>"", ROUND(N/2,2),""),"s. o.")
- * T = IF(S<>"s. o.", IF(F<>"", -MIN(R:S),""),"s. o.")
- * U = IF(I<>"", I*J, "s. o.")
- * V = IF(U>M, U, "s. o.")
- */
-
-function coeffTitreExcel(titre) {
-  // Excel: HLOOKUP(G, Données!Q16:S17,2)
-  // Mapping d’après ta liste
-  if (titre === "Usufruit") return 0.4;
-  if (titre === "Nu-propriété (N.P.)") return 0.6;
-  return 1; // Pleine Propriété (P.P.) par défaut
-}
-
-// Excel P:
-// MAX(12-1-MONTH(DateCession) + (YEAR(DateRI)-YEAR(DateCession)-1)*12 + MONTH(DateRI),0)
-function monthsPExcel(dateCession, dateRI) {
-  if (!dateCession || !dateRI) return 0;
-  const d = new Date(dateCession);
-  const k = new Date(dateRI);
-  if (Number.isNaN(d.getTime()) || Number.isNaN(k.getTime())) return 0;
-
-  const dY = d.getUTCFullYear();
-  const dM = d.getUTCMonth() + 1;
-  const kY = k.getUTCFullYear();
-  const kM = k.getUTCMonth() + 1;
-
-  const P = 12 - 1 - dM + (kY - dY - 1) * 12 + kM;
-  return Math.max(P, 0);
-}
-
-
-// computeImmoExcel importée depuis ./utils/calculs.js
-function computeCessionsExcel(rows, montantOAnnuel, trancheImmunisee, seuilR, seuilS) {
-  let totalAnnuel = 0;
-
-  for (const r of (rows || [])) {
-    const type = r.typeBien || "";
-    const E = asNumOrZero(r.valeurVenale);
-    if (!E) continue;
-
-    const F = asNumOrZero(r.partConcernee) / 100; 
-    const H = asNumOrZero(r.dettesPersonnelles);
-    const J = asNumOrZero(r.dispenseEquite);
-    const G = r.titrePropriete || "";
-
-    const isUnique = type === "Bien bâti (unique)" || type === "Bien non bâti (unique)";
-
-    // N (tranche immunisée)
-    const N = isUnique ? -round2(trancheImmunisee * F) : 0;
-
-    // O (montant annuel cat) est fourni en param
-    // P (nbr mois)
-    const P = isUnique ? monthsPExcel(r.dateCession, r.datePriseEnCompteRI) : 0;
-
-    // Q = E*F*coeffTitre
-    const Q = round2(E * F * coeffTitreExcel(G));
-
-    // S = -ROUND(O*P/12,2)
-    const S = isUnique ? -round2((montantOAnnuel * P) / 12) : 0;
-
-    // T = ((Q+N)-H) - (J - S)
-    const T = round2((Q + N) - H - (J - S));
-
-    // U, V, W
-    const U = T === 0 ? 0 : round2(Math.min(seuilR, T) * F);
-    const V = T === 0 ? 0 : (T > seuilR ? round2(Math.min(seuilS, T) * F) : 0);
-    const W = T > seuilS ? T : "";
-
-    // X=0
-    const X = 0;
-
-    // Y = IF(V>U, ROUND((V-U)*0.06,2),0)
-    const Y = V > U ? round2((V - U) * 0.06) : 0;
-
-    // Z = IF(W<>"",(W-V)*0.1,"s. o.")
-    const Z = W !== "" ? round2((W - V) * 0.1) : 0;
-
-    // M = SUM(Z,Y,X)
-    const M = round2(X + Y + Z);
-
-    totalAnnuel += M;
-  }
-
-  return {
-    totalAnnuel: round2(totalAnnuel),
-    totalMensuel: round2(totalAnnuel / 12),
-  };
-}
+// Tous les seuils et barèmes de calcul (cessions, biens mobiliers, biens immobiliers,
+// revenus de remplacement) vivent dans ./utils/calculs.js — source unique, testée.
+// Ne pas en redéclarer ici : des doublons non utilisés y ont longtemps masqué
+// lesquels servaient réellement au calcul.
 
 function computeFromForm(data) {
   const categorie =
