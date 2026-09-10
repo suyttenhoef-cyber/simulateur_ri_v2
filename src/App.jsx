@@ -258,6 +258,14 @@ const EXO_TABLE = [
 // Montant forfaitaire non indexé — pas de table datée, contrairement aux deux ci-dessus.
 const EXO_SUPPL_ANNUEL = { 1: 155, 2: 250, 3: 310 };
 
+// Plafonds de défraiement forfaitaire du volontaire (montants indexés).
+// Source : https://primabook.mi-is.be/fr/droit-lintegration-sociale/montants-ris
+// Affichés à titre indicatif dans « Allocations & ressources diverses » — n'entrent
+// dans aucun calcul, la saisie reste libre.
+const DEFRAIEMENT_VOLONTAIRE_TABLE = [
+  { date: "2026-09-01", libelleDate: "01/09/2026", parJour: 44.02, parAn: 1760.83, parKm: 0.37 },
+];
+
 function Field({ label, hint, children }) {
   const id = useId();
   const labeled = isValidElement(children) ? cloneElement(children, { id }) : children;
@@ -3040,6 +3048,21 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
           </div>
           <div>
             <div style={{ fontWeight: 600, fontSize: 14, color: colors.primary, marginBottom: 8 }}>Benevoles</div>
+            {(() => {
+              const p = vlookupByDateISO(dateISO, DEFRAIEMENT_VOLONTAIRE_TABLE);
+              return (
+                <div className="alert alert--info" style={{ marginBottom: 10, padding: "7px 12px" }}>
+                  <i className="fa fa-circle-info" aria-hidden="true" />
+                  <span>
+                    Plafonds de défraiement forfaitaire au {p.libelleDate} :{" "}
+                    <strong><Money value={p.parJour} />/jour</strong>{" · "}
+                    <strong><Money value={p.parAn} />/an</strong>{" · "}
+                    <strong><Money value={p.parKm} />/km</strong>.
+                    Au-delà, le défraiement est requalifié en ressource.
+                  </span>
+                </div>
+              );
+            })()}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 12 }}>
               {data.ressourcesDiverses.benevoles.map((r, i) => (
                 <Input key={i} label={r.label} type="number" value={r.montant} hint="€ / mois"
