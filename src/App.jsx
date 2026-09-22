@@ -1514,6 +1514,7 @@ const REVENUS_COMPTABILISES_SUGGESTIONS = [
   { value: "Avance reçue", label: "Avance reçue" },
   { value: "Bonus de démarrage de l'Onem", label: "Bonus de démarrage de l'Onem" },
   { value: "Chèque-repas", label: "Chèque-repas" },
+  { value: "Chèques ALE / wijk-werken", label: "Chèques ALE / wijk-werken" },
   { value: "Don régulier", label: "Don régulier" },
   { value: "Eco-Chèque", label: "Eco-Chèque" },
   { value: "Flexijob", label: "Flexijob" },
@@ -1537,10 +1538,33 @@ const REVENUS_FORMATION_LABELS = new Set([
   "Formation en alternance",
 ]);
 
+// Chèques ALE — Art. 22 §1 d) AR 11/07/2002 (Flandre : wijk-werken).
+// La part prise en charge par l'éditeur, à concurrence de 6 € par chèque non
+// invalidé, ainsi que les indemnités afférentes, sont exonérées du calcul des
+// ressources. N'étant pas une ressource, elles ne doivent pas neutraliser
+// l'exonération Art. 35 sur les autres revenus du dossier.
+//
+// Cloisonnement, non implémenté à dessein : si une entité fédérée rémunérait
+// au-delà de 6 €/chèque, le surplus compterait comme ressource sans pouvoir
+// bénéficier NI de l'Art. 35, NI de l'exonération supplémentaire annuelle
+// (Art. 22 §2). Aucune entité ne dépasse ce montant aujourd'hui — 4,10 € partout,
+// 6 € en Communauté germanophone — et le cas est absent de la pratique.
+const REVENUS_ALE_LABELS = new Set([
+  "Chèques ALE / wijk-werken",
+]);
+
+// Revenus qui ne neutralisent PAS l'exonération Art. 35 en nouvelle demande :
+// revenus de formation, et revenus ALE exonérés par leur régime propre.
+const REVENUS_SANS_BLOCAGE_ART35 = new Set([
+  ...REVENUS_FORMATION_LABELS,
+  ...REVENUS_ALE_LABELS,
+]);
+
 const REVENUS_EXONERES_SUGGESTIONS = [
   { value: "", label: "Sélectionner un type d'exonération..." },
   { value: "Accueillante enfants - frais exposés", label: "Accueillante enfants - frais exposés" },
   { value: "Chèque-repas (part perso)", label: "Chèque-repas (part perso)" },
+  { value: "Chèques ALE / wijk-werken - part exonérée (6 €/chèque)", label: "Chèques ALE / wijk-werken - part exonérée (6 €/chèque)" },
   { value: "Indemnité à charge employeur", label: "Indemnité à charge employeur" },
   { value: "Indépendant - Cotisations sociales", label: "Indépendant - Cotisations sociales" },
   { value: "Indépendant - Dépenses professionnelles", label: "Indépendant - Dépenses professionnelles" },
@@ -2550,7 +2574,7 @@ function computeFromForm(data) {
   // Exonération — Art. 35 bloqué uniquement si nouvelle demande ET revenus pro antérieurs au RIS
   const _demHasProNonFormation = data.reference.nouvelleDemande !== false &&
     (data.revenusNets.demandeur.comptabiliseRows || []).some(
-      r => safeNumber(r.montant, 0) > 0 && r.label && !REVENUS_FORMATION_LABELS.has(r.label)
+      r => safeNumber(r.montant, 0) > 0 && r.label && !REVENUS_SANS_BLOCAGE_ART35.has(r.label)
     );
   const exo = _demHasProNonFormation
     ? { demandeur: { exoGeneralMens: 0, exoEtudMens: 0, exoPenurieMens: 0, exoArtisteAnnuel: 0, totalMensuel: 0, totalAnnuel: 0 }, totalMensuel: 0, totalAnnuel: 0 }
@@ -2948,7 +2972,7 @@ function RevenusDemandeurPage({ data, setData, openFiche }) {
   const cmrTotal  = round2(chomTotal + mutTotal + remTotal);
   const hasRevenusProNonFormation = data.reference.nouvelleDemande !== false &&
     (data.revenusNets.demandeur.comptabiliseRows || []).some(
-      r => safeNumber(r.montant, 0) > 0 && r.label && !REVENUS_FORMATION_LABELS.has(r.label)
+      r => safeNumber(r.montant, 0) > 0 && r.label && !REVENUS_SANS_BLOCAGE_ART35.has(r.label)
     );
   const exoCalc = hasRevenusProNonFormation
     ? { demandeur: { exoGeneralMens: 0, exoEtudMens: 0, exoPenurieMens: 0, exoArtisteAnnuel: 0, totalMensuel: 0, totalAnnuel: 0 }, totalMensuel: 0, totalAnnuel: 0 }
