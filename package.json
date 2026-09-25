@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "veille": "node tools/veille/veille.mjs",
+    "veille:check": "node tools/veille/veille.mjs --check"
   },
   "dependencies": {
     "@fontsource/source-sans-pro": "^5.3.0",

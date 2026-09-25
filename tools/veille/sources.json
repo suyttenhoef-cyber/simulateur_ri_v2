@@ -1,0 +1,52 @@
+{
+  "_comment": [
+    "Sources de veille reglementaire pour le simulateur RI.",
+    "statut : 'public'  = information du secteur public, reutilisable",
+    "         'editeur' = editeur commercial, contenu partiellement payant.",
+    "                     NE PAS activer sans validation juridique : ToS et droit",
+    "                     d'auteur s'appliquent, robots.txt ne vaut pas licence.",
+    "actif : false = declaree mais non recuperee par le script."
+  ],
+  "sources": [
+    {
+      "id": "spp-montants-ris",
+      "titre": "Montants RIS — SPP Integration sociale",
+      "url": "https://primabook.mi-is.be/fr/droit-lintegration-sociale/montants-ris",
+      "statut": "public",
+      "actif": true,
+      "couvre": [
+        "seuils RI par categorie",
+        "exonerations Art. 35",
+        "defraiement volontaire",
+        "plafonds debiteurs d'aliments"
+      ],
+      "baremes": true
+    },
+    {
+      "id": "spp-ressources",
+      "titre": "Ressources — SPP Integration sociale",
+      "url": "https://primabook.mi-is.be/fr/droit-lintegration-sociale/ressources",
+      "statut": "public",
+      "actif": false,
+      "couvre": [
+        "Art. 22 exonerations",
+        "prestations familiales",
+        "cheques ALE"
+      ],
+      "baremes": false,
+      "note": "URL a confirmer — le chemin essaye renvoie 404"
+    },
+    {
+      "id": "dq-cisp-ris",
+      "titre": "Formation CISP et RIS — Droits Quotidiens",
+      "url": "https://www.droitsquotidiens.be/fr/actualites/commencer-une-formation-en-cisp-quelles-consequences-sur-le-ris",
+      "statut": "editeur",
+      "actif": false,
+      "couvre": [
+        "formation CISP",
+        "Art. 35"
+      ],
+      "baremes": false
+    }
+  ]
+}
