@@ -1,0 +1,124 @@
+name: Veille réglementaire
+
+on:
+  schedule:
+    # Tous les lundis à 06h00 UTC. Les indexations belges prennent effet le 1er
+    # du mois : un passage hebdomadaire les détecte en moins de sept jours.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: veille
+  cancel-in-progress: false
+
+jobs:
+  veille:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Relever les sources officielles
+        id: veille
+        run: |
+          set -o pipefail
+          npm run veille 2>&1 | tee veille.log || true
+          # Le rapport de barèmes, sans le bruit npm, pour le corps de l'issue.
+          # Une plage sed ne convient pas : une ligne vide suit immédiatement le titre.
+          grep -E '^  (ok|ABSENT) |^  Tous les barèmes|^  [0-9]+ montant' veille.log > baremes.log || true
+
+      - name: Analyser le résultat
+        id: analyse
+        run: |
+          SNAP_CHANGE=$([ -n "$(git status --porcelain docs/kb)" ] && echo true || echo false)
+          BAREME_ABSENT=$(grep -q "ABSENT" veille.log && echo true || echo false)
+          echo "snapshot=$SNAP_CHANGE" >> "$GITHUB_OUTPUT"
+          echo "bareme=$BAREME_ABSENT"  >> "$GITHUB_OUTPUT"
+          {
+            echo "### Instantanés"
+            if [ "$SNAP_CHANGE" = "true" ]; then
+              git --no-pager diff --stat docs/kb
+            else
+              echo "Aucun changement."
+            fi
+          } > resume.md
+          echo "--- résultat : snapshot=$SNAP_CHANGE bareme_absent=$BAREME_ABSENT"
+
+      # Les instantanés doivent être committés, sinon la dérive est redétectée
+      # chaque semaine et l'issue se rouvre indéfiniment.
+      - name: Committer les instantanés
+        if: steps.analyse.outputs.snapshot == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/kb
+          git commit -m "chore(veille) : releve automatique des sources officielles"
+          git push
+
+      - name: Ouvrir une issue — barème non confirmé
+        if: steps.analyse.outputs.bareme == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "Un ou plusieurs montants appliqués par le simulateur sont **introuvables** sur la page officielle du SPP Intégration sociale."
+            echo
+            echo "Deux causes possibles : une indexation est intervenue et les tables du code sont périmées, ou la page a changé de forme."
+            echo
+            echo "À vérifier dans \`src/App.jsx\` : \`RI_ANNUEL_TABLE\` et \`EXO_TABLE\`."
+            echo
+            echo '```'
+            cat baremes.log
+            echo '```'
+            echo
+            cat resume.md
+            echo
+            echo "_Relevé du $(date -u '+%d/%m/%Y') — [exécution](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})_"
+          } > issue.md
+          gh issue create \
+            --title "Veille : barème non confirmé par la source officielle" \
+            --body-file issue.md \
+            --label "veille" || \
+          gh issue create \
+            --title "Veille : barème non confirmé par la source officielle" \
+            --body-file issue.md
+
+      - name: Ouvrir une issue — source modifiée
+        if: steps.analyse.outputs.snapshot == 'true' && steps.analyse.outputs.bareme == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "Le contenu d'une ou plusieurs sources officielles a changé depuis le dernier relevé."
+            echo
+            echo "Les barèmes appliqués par le simulateur restent confirmés — il s'agit donc d'une évolution de texte : nouvelle règle, précision, ou simple remaniement éditorial."
+            echo
+            cat resume.md
+            echo
+            echo "Le détail est visible dans le commit de relevé, sur \`docs/kb/\`."
+            echo
+            echo "_Relevé du $(date -u '+%d/%m/%Y') — [exécution](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})_"
+          } > issue.md
+          gh issue create \
+            --title "Veille : évolution des sources officielles" \
+            --body-file issue.md \
+            --label "veille" || \
+          gh issue create \
+            --title "Veille : évolution des sources officielles" \
+            --body-file issue.md
+
+      - name: Rapport
+        run: cat veille.log

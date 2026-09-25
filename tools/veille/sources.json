@@ -23,18 +23,21 @@
       "baremes": true
     },
     {
-      "id": "spp-ressources",
-      "titre": "Ressources — SPP Integration sociale",
-      "url": "https://primabook.mi-is.be/fr/droit-lintegration-sociale/ressources",
+      "id": "spp-calcul-ressources",
+      "titre": "Le calcul des ressources — SPP Integration sociale",
+      "url": "https://primabook.mi-is.be/fr/droit-lintegration-sociale/le-calcul-des-ressources",
       "statut": "public",
-      "actif": false,
+      "actif": true,
       "couvre": [
         "Art. 22 exonerations",
         "prestations familiales",
-        "cheques ALE"
+        "cheques ALE",
+        "biens mobiliers et immobiliers",
+        "cessions de biens",
+        "defraiement du volontaire",
+        "debiteurs d aliments"
       ],
-      "baremes": false,
-      "note": "URL a confirmer — le chemin essaye renvoie 404"
+      "baremes": false
     },
     {
       "id": "dq-cisp-ris",

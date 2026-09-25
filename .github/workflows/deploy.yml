@@ -3,6 +3,12 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: ["main"]
+    # La documentation et l'outillage n'entrent pas dans le build : un relevé
+    # de veille ou une correction de casus ne doit pas redéployer le site.
+    paths-ignore:
+      - "docs/**"
+      - "tools/**"
+      - "**/*.md"
   workflow_dispatch:
 
 permissions:
